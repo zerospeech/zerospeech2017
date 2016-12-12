@@ -1,0 +1,3 @@
+[submodule "sample_eval/src/h5features"]
+	path = sample_eval/src/h5features
+	url = git@github.com:bootphon/h5features.git
