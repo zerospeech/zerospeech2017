@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Resolving path
+SCRIPT_PATH="${BASH_SOURCE[0]}";
+if ([ -h "${SCRIPT_PATH}" ]) then
+    while([ -h "${SCRIPT_PATH}" ]) do SCRIPT_PATH=`readlink "${SCRIPT_PATH}"`; done
+fi
+pushd "`pwd`" > /dev/null
+cd `dirname ${SCRIPT_PATH}` > /dev/null
+SCRIPT_PATH="`pwd`";
+popd > /dev/null
+
+# Which eval ?
+# if hash eval.py 2>/dev/null; then
+#     echo "An installed version of ABXpy was detected, using the installed evaluation"
+#     command=eval.py
+# else
+# echo "No installed version of ABXpy was detected, using the precompiled version"
+#     command="python ./ressources/eval"
+#fi
+
+#mkdir -p "${SCRIPT_PATH}/tmp"
+
+python "${SCRIPT_PATH}/ressources/eval.py" "${@}"
