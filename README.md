@@ -1,42 +1,92 @@
 # Zero Speech Challenge 2017
 
 All you need to get started for the track 1 and track 2 of the
-**[Zero Speech Challenge 2017](TODO)**:
+**[Zero Speech Challenge 2017](http://sapience.dec.ens.fr/bootphon/)**:
 
-- speech data download
-- evaluation software setup
-- baseline and topline replication
+* Speech data download
+* Evaluation software setup
+* Baseline and topline replication
 
-**First of all** install [git](https://git-scm.com/downloads)
-and [conda](http://conda.pydata.org/miniconda.html) on your system, if
-not already done.
+The setup procedure is described for Linux. It has been tested on
+several distributions (Ubuntu 16.04, Debian Jessie and CentOS 6). It
+should work as well on MacOS.
 
 
 ## Getting the hyper-training data
 
-TODO We need a server and bandwidth to host raw speech data, ABX task
-files and baseline features.
+TODO Put online raw speech data and ABX task files.
 
-TODO a script *get_data.sh* with wget commands to the server. This
-will create ./data/{lang1, lang2, etc...} folders with {train, test}
+TODO Write a *get_data.sh* with wget commands to the server. This will
+create ./data/{lang1, lang2, etc...} folders with {train, test}
 subfolders.
+
+
+## General setup
+
+* First of all install [git](https://git-scm.com/downloads)
+  and [conda](http://conda.pydata.org/miniconda.html) on your system,
+  if not already done.
+
+* Create a dedicated Python2 virtual environment to isolate this code
+  from the system wide Python installation.
+
+        conda create --name zerospeech python=2
+
+* Then clone this repository and go in its root directory
+
+        git clone --recursive git@github.com:bootphon/zerospeech2017.git
+        cd zerospeech2017
+
+* **Do not forget to activate your virtual environment**
+
+        source activate zerospeech
 
 
 ## Track 1: Unsupervised subword modeling
 
-    git clone --recursive git@github.com:bootphon/zerospeech2017.git
+### Installation
 
-### Environment setup
+Simply have a:
 
-### Baseline reproduction
+    ./track1/setup/setup_track1.sh
 
-### Topline reproduction
+This installs the dependencies of the track 1 evaluation program
+(ABXpy and h5features) from the `./track1/src` folder to your virtual
+environment. To make sure the installation is correct, you can run
+their tests:
 
-TODO This will require [abkhazia](https://github.com/bootphon/abkhazia)
+    pytest ./track1/src
+
+
+### Evaluation program
+
+
+To do the evaluation, do:
+
+    cd ./track1/eval
+	./eval_track1.py /path/to/your/feature/folder/ length_of_the_files corpus /path/to/your/output/folder/ .
+
+For example, for features extracted on 1s files for the chinese corpus :
+
+	./eval1 /home/julien/data 1 chinese temp/
+
+
+### Baseline replication
+
+TODO Write a `track1/baseline.sh` just calling features_extraction and
+eval_track1 with the baseline MFCC features.
+
+
+### Topline replication
+
+TODO Write a `track1/topline.sh`. This will
+require [abkhazia](https://github.com/bootphon/abkhazia) -> posteriors on DNN
 
 
 
 ## Track 2: Spoken term discovery
+
+TODO
 
 
 ## Licence

@@ -1,0 +1,5 @@
+track1/abx_task/chinese/*.abx
+track1/abx_task/french/*.abx
+track1/abx_task/english/*.abx
+
+*.pyc
