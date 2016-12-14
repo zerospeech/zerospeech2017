@@ -14,7 +14,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
+"""Evaluation program for the Zero Speech Challenge 2017
 
+Track 1: Unsupervised subword modeling
+
+"""
 import os
 import sys
 # import ABXpy.task
@@ -353,7 +357,8 @@ def fullrun(task, feature_folder, h5, file_sizes, corpus, distinction,
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        description='Full ABX discrimination task')
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
 
     # parser.add_argument(
     #     '-c', '--config', default=CONFIG_FILE,
