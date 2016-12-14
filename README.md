@@ -12,14 +12,36 @@ several distributions (Ubuntu 16.04, Debian Jessie and CentOS 6). It
 should work as well on MacOS.
 
 
+## General setup
+
+* First of all install [git](https://git-scm.com/downloads)
+  and [conda](http://conda.pydata.org/miniconda.html) on your system,
+  if not already done.
+
+* Create a dedicated Python2 virtual environment to isolate this code
+  from the system wide Python installation.
+
+        conda create --name zerospeech python=2
+
+* Then clone this repository and go in its root directory
+
+        git clone --recursive git@github.com:bootphon/zerospeech2017.git
+        cd zerospeech2017
+
+* **Do not forget to activate your virtual environment**
+
+        source activate zerospeech
+
+
 ## Getting the hyper-training data
 
-TODO Put online raw speech data and ABX task files.
+**TODO** Put online raw speech data and ABX task files.
 
-TODO Write a *get_data.sh [data_dir]* with wget commands to the server. This will
+**TODO** Write a *get_data.sh [data_dir]* with wget commands to the server. This will
 create ./data/{train, test}/{lang1, lang2, etc...} folders as below.
 
-TODO Change that structure if another one is more convenient!
+**TODO** Change that structure if another one is more convenient! Actually
+this require to refactore the eval_track1.py (for task files lookup).
 
 * Once downloaded, the `data` directory has the following structure:
 
@@ -50,50 +72,11 @@ TODO Change that structure if another one is more convenient!
   corpus).
 
 
-
-
-## General setup
-
-* First of all install [git](https://git-scm.com/downloads)
-  and [conda](http://conda.pydata.org/miniconda.html) on your system,
-  if not already done.
-
-* Create a dedicated Python2 virtual environment to isolate this code
-  from the system wide Python installation.
-
-        conda create --name zerospeech python=2
-
-* Then clone this repository and go in its root directory
-
-        git clone --recursive git@github.com:bootphon/zerospeech2017.git
-        cd zerospeech2017
-
-* **Do not forget to activate your virtual environment**
-
-        source activate zerospeech
-
-
 ## Track 1: Unsupervised subword modeling
-
-### Installation
-
-* Simply have a:
-
-        ./track1/setup/setup_track1.sh
-
-  This installs the dependencies of the track 1 evaluation program
-  ([ABXpy](https://github.com/bootphon/ABXpy)
-  and [h5features](https://github.com/bootphon/h5features)) from the
-  `./track1/src` folder to your virtual environment.
-
-* To make sure the installation is correct, you can run their tests:
-
-        pytest ./track1/src
-
 
 ### Features file format
 
-TODO Only ASCII format is described here, document other supported
+**TODO** Only ASCII format is described here, document other supported
 formats.
 
 Our evaluation system requires that your unsupervised subword modeling
@@ -126,7 +109,23 @@ features for a whole sentence on the basis of manual phone-level
 alignments for that sentence.
 
 
-### Evaluation program
+### Evaluation program: installation
+
+* With your virtual environment activated, simply have a:
+
+        ./track1/setup/setup_track1.sh
+
+  This installs the dependencies of the track 1 evaluation program
+  ([ABXpy](https://github.com/bootphon/ABXpy)
+  and [h5features](https://github.com/bootphon/h5features)) from the
+  `./track1/src` folder to your virtual environment.
+
+* To make sure the installation is correct, you can run the tests:
+
+        pytest ./track1/src
+
+
+### Evaluation program: usage
 
 * The Track 1 evaluation program is `./track1/eval/eval_track1.py`. The
   detail of arguments is given by the `--help` option:
@@ -142,58 +141,43 @@ alignments for that sentence.
 * The input feature folder must contain a collection of feature files
   as described above, one file per wav files in the test corpus.
 
-* TODO need to describe expected output!!
+* **TODO** need to describe expected output!!
 
 
-TODO need to describe expected input folder structure!!
+**TODO** need to describe expected input folder structure!!
 
 
-### Using your own distance in evaluation
+### Evaluation program: using your own distance
 
 To see how it is possible to provide your own distance, let us show
 first how it is possible to obtain the default DTW+cosine distance
 using the `-d` option. The distance function used by default
-(DTW+cosine) is defined in the python script:
+(DTW+cosine) is defined in the python script
+`./track1/eval/distance.py` by the function named distance. So calling
+the `eval_track1.py` executable from the `./track1/eval` folder with
+the option `-d ./distance.distance` will reproduce the default
+behavior.
 
-     ./track1/eval/distance.py
-
-by the function named distance. So calling the `eval_track1.py` executable from
-the `./track1/eval` folder with the option:
-
-     -d ./distance.distance
-
-will reproduce the default behavior.
-
-Now to define your own distance function you can for example copy the file:
-
-     ./track1/eval/distance.py
-
-in directory *dir* somewhere on your system, modify the distance
-function definition to suit your needs and call eval1 with the option:
-
-     -d dir/distance.distance
+Now to define your own distance function you can for example copy the
+file `./track1/eval/distance.py` in directory *dir* somewhere on your
+system, modify the distance function definition to suit your needs and
+call `eval_track1.py` with the option `-d dir/distance.distance`.
 
 You will see that the `distance.py` script begins by importing three
 other python modules, one for DTW, one for cosine distance and one for
 Kullback-Leibler divergence. The cosine and Kullback-Leibler modules
-are located in folder:
-
-     ./track1/src/ABXpy/distances/metrics
-
-and implement frame-to-frame distance computations in a fashion
-similar to the
+are located in folder `./track1/src/ABXpy/distances/metrics` and
+implement frame-to-frame distance computations in a fashion similar to
+the
 [scipy.spatial.distance.cdist](http://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html#scipy.spatial.distance.cdist) function
-from the scipy python library. The DTW module is also located in the
-folder:
+from the scipy python library.
 
-     ./track1/src/ABXpy/distances/metrics
-
-but as a static library (`dtw.so`) compiled from the cython source file:
-
-     ./track1/src/ABXpy/distances/metrics/install/dtw.pyx
-
-for efficiency reasons. You can use our optimized DTW implementation
-with any frame-to-frame distance function with a synopsis like the
+The DTW module is also located in the folder
+`./track1/src/ABXpy/distances/metrics` but as a static library
+(`dtw.so`) compiled from the cython source file
+`./track1/src/ABXpy/distances/metrics/install/dtw.pyx` for efficiency
+reasons. You can use our optimized DTW implementation with any
+frame-to-frame distance function with a synopsis like the
 *scipy.spatial.distance.cdist* function by modifying appropriately
 your copy of `distance.py`. You can also replace the whole distance
 computation by any python or cython module that you designed as long
@@ -203,19 +187,19 @@ function in the `distance.py` script.
 
 ### Baseline replication
 
-TODO Write a `track1/baseline.sh` just calling features_extraction and
-eval_track1 with the baseline MFCC features.
+**TODO** Write a `track1/baseline.sh` just calling *features_extraction* and
+*eval_track1.py* with the baseline MFCC features.
 
 
 ### Topline replication
 
-TODO Write a `track1/topline.sh`. This will
+**TODO** Write a `track1/topline.sh`. This will
 require [abkhazia](https://github.com/bootphon/abkhazia) -> posteriors on DNN
 
 
 ## Track 2: Spoken term discovery
 
-TODO
+**TODO**
 
 
 ## Toubleshooting
