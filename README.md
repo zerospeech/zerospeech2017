@@ -37,13 +37,14 @@ should work as well on MacOS.
 
 **TODO** Put online raw speech data and ABX task files.
 
-**TODO** Write a *get_data.sh [data_dir]* with wget commands to the server. This will
-create ./data/{train, test}/{lang1, lang2, etc...} folders as below.
+**TODO** Write a *download_data.sh data_dir* with wget commands to the
+server. This will create ./data/{train, test}/{lang1, lang2, etc...}
+folders as below.
 
 **TODO** Change that structure if another one is more convenient! Actually
-this require to refactore the eval_track1.py (for task files lookup).
+this require to refactor the eval_track1.py (for task files look-up).
 
-* Once downloaded, the `data` directory has the following structure:
+* Once downloaded, the `data_dir` directory has the following structure:
 
         train/
             {english, chinese, french}/
@@ -54,7 +55,7 @@ this require to refactore the eval_track1.py (for task files lookup).
                     {new_speakers, old_speakers}/
                         *.wav
                         across.abx
-                        whithin.abx
+                        within.abx
 
 * All the wav files are sampled at 16kHz on 16 bits.
 
@@ -133,18 +134,16 @@ alignments for that sentence.
         cd ./track1/eval
         ./eval_track1.py --help
 
-* For exemple this command will evaluate features extracted on 1s files
+* For example this command will evaluate features extracted on 1s files
   for the Chinese corpus:
 
 	    ./eval_track1.py chinese 1 /path/to/feature/folder/ /path/to/output/folder/
 
 * The input feature folder must contain a collection of feature files
-  as described above, one file per wav files in the test corpus.
+  as described above, one file per wav files in the test corpus. **TODO**
+  do we need *old_speakers*, *new_speakers* subdirectories?
 
 * **TODO** need to describe expected output!!
-
-
-**TODO** need to describe expected input folder structure!!
 
 
 ### Evaluation program: using your own distance
@@ -202,7 +201,7 @@ require [abkhazia](https://github.com/bootphon/abkhazia) -> posteriors on DNN
 **TODO**
 
 
-## Toubleshooting
+## Troubleshooting
 
 ### Troubles with track 1 or track 2
 
@@ -213,7 +212,7 @@ issue [here](https://github.com/bootphon/zerospeech2017/issues).
 ### Troubles with software dependencies
 
 If you have problems with ABXpy, h5features or another of our tools,
-please refeer to their related github page on
+please reefer to their related github page on
 the [Bootphon repository](https://github.com/bootphon).
 
 
@@ -222,7 +221,7 @@ the [Bootphon repository](https://github.com/bootphon).
 The parallelisation of our program relies on a module from Python's
 standard library called *multiprocessing.py* which can be a bit
 unstable. If you experience problems when running the evaluation, try
-requiring only one cpu to avoid using this module altogether.
+requiring only one CPU to avoid using this module altogether.
 
 
 ## Licence
