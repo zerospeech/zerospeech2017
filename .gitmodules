@@ -4,3 +4,6 @@
 [submodule "h5features"]
 	path = track1/src/h5features
 	url = git@github.com:bootphon/h5features.git
+[submodule "features_extraction"]
+	path = track1/src/features_extraction
+	url = git@github.com:bootphon/features_extraction.git

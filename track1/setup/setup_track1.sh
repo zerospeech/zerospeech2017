@@ -22,11 +22,6 @@
 #
 #   conda create -n zerospeech python=2
 #   source activate zerospeech
-#
-# TODO Update the script for topline/baseline replication setup
-# (features_extraction, abkhazia)
-# TODO Why are we installing spectral (and so oct2py) in
-# requirements_pip.txt ?
 
 
 # equivalent to $(readlink -f $1) in pure bash (compatible with macos)
@@ -49,6 +44,17 @@ conda install --yes --file requirements_conda.txt \
 pip install -r requirements_pip.txt \
     || failure "cannot install from requirements_pip.txt"
 
-# setup h5features and ABXpy
-cd ../src/h5features; python setup.py install || failure "cannot install h5features"; cd -
-cd ../src/ABXpy; make install || failure "cannot install ABXpy"; cd -
+# setup h5features
+cd ../src/h5features
+python setup.py install || failure "cannot install h5features"
+cd -
+
+# setup ABXpy
+cd ../src/ABXpy
+make install || failure "cannot install ABXpy"
+cd -
+
+# setup features_extraction
+cd ../src/features_extraction
+python setup.py install || failure "cannot install features_extraction"
+cd -
