@@ -171,8 +171,8 @@ def avg(filename, task):
     elif task_type=='within':
 
         arr = np.array(map(ast.literal_eval, df['by']))
-        df['speaker']  = [e for e, f in arr]
-        df['context'] = [f for e, f in arr]
+        df['speaker']  = [e for e, f, g in arr]
+        df['context'] = [f for e, f, g in arr]
         #del df['by']
         # aggregate on context
         groups = df.groupby(['speaker','phone_1','phone_2'], as_index=False)
@@ -372,8 +372,6 @@ if __name__ == '__main__':
         # warnings.simplefilter('ignore', ParserWarning)
         for task in taskslist:
             for distinction in speaker_type:
-                #if task==taskslist[0]:
-                #    continue
                 final_score = fullrun(task, args.features, args.h5, args.file_sizes, args.corpus,distinction, args.distance, args.output, ncpus=ncpus)
                 print "returned full_score"
                 sys.stdout.write('{}:\t{:.3f}\n'.format(task['section'], final_score))
