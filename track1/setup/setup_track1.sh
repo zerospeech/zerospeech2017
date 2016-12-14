@@ -25,6 +25,9 @@
 #
 # TODO Update the script for topline/baseline replication setup
 # (features_extraction, abkhazia)
+# TODO Why are we installing spectral (and so oct2py) in
+# requirements_pip.txt ?
+
 
 # equivalent to $(readlink -f $1) in pure bash (compatible with macos)
 function realpath {
@@ -41,9 +44,11 @@ trap "cd $(pwd)" EXIT
 cd $(realpath "${BASH_SOURCE[0]}")
 
 # setup the Python environment with conda and pip
-conda install --yes --file requirements_conda.txt || failure "cannot install from requirements_conda.txt"
-pip install -r requirements_pip.txt  || failure "cannot install from requirements_pip.txt"
+conda install --yes --file requirements_conda.txt \
+    || failure "cannot install from requirements_conda.txt"
+pip install -r requirements_pip.txt \
+    || failure "cannot install from requirements_pip.txt"
 
-# setup ABXpy and h5features
-cd ../src/ABXpy; make install || failure "cannot install ABXpy"; cd -
+# setup h5features and ABXpy
 cd ../src/h5features; python setup.py install || failure "cannot install h5features"; cd -
+cd ../src/ABXpy; make install || failure "cannot install ABXpy"; cd -
