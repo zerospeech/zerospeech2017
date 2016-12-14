@@ -1,6 +1,0 @@
-h5features
-#pytables
-pytest==2.6
-oct2py
-git+http://github.com/bootphon/spectral
-git+https://github.com/bootphon/h5features 

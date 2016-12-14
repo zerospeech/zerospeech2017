@@ -1,6 +1,6 @@
-[submodule "sample_eval/src/h5features"]
-	path = sample_eval/src/h5features
-	url = git@github.com:bootphon/h5features.git
-[submodule "sample_eval/src/ABXpy"]
-	path = sample_eval/src/ABXpy
+[submodule "ABXpy"]
+	path = track1/src/ABXpy
 	url = git@github.com:bootphon/ABXpy.git
+[submodule "h5features"]
+	path = track1/src/h5features
+	url = git@github.com:bootphon/h5features.git

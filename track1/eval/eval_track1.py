@@ -1,6 +1,27 @@
+#!/usr/bin/env python
+#
+# Copyright 2016, 2017 Julien Karadyi
+#
+# You can redistribute this file and/or modify it under the terms of
+# the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any
+# later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+"""Evaluation program for the Zero Speech Challenge 2017
+
+Track 1: Unsupervised subword modeling
+
+"""
 import os
 import sys
-import ABXpy.task
+# import ABXpy.task
 import ABXpy.distances.distances as distances
 import ABXpy.distances.metrics.cosine as cosine
 import ABXpy.distances.metrics.dtw as dtw
@@ -14,23 +35,25 @@ from tables import DataTypeWarning
 from tables import NaturalNameWarning
 # from pandas.io.parsers import ParserWarning
 import numpy as np
-import h5features
+# import h5features
 import pickle
 from ABXpy.misc import any2h5features
 import pandas
 import ast
 
 
-version="0.1.0"
+# version of this script
+VERSION = "0.1.1"
 
+# directory where this script is stored
+CURDIR = (os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else
+          os.path.dirname(os.path.realpath(__file__)))
 
-if getattr(sys, 'frozen', False):
-    # frozen
-    rdir = os.path.dirname(sys.executable)
-else:
-    # unfrozen
-    rdir = os.path.dirname(os.path.realpath(__file__))
-curdir = os.path.dirname(rdir)
+# distance function to call with the --kl option
+KL_DISTANCE_MODULE = os.path.join(CURDIR, 'distance.kl_divergence')
+
+# configuration file
+CONFIG_FILE = os.path.join(CURDIR, 'eval_track1.cfg')
 
 
 def loadfeats(path):
@@ -42,7 +65,8 @@ def loadfeats(path):
 
 class Discarder(object):
     def __init__(self):
-        self.filt = "Exception RuntimeError('Failed to retrieve old handler',) in 'h5py._errors.set_error_handler' ignored"
+        self.filt = ("Exception RuntimeError('Failed to retrieve old "
+                     "handler',) in 'h5py._errors.set_error_handler' ignored")
         self.oldstderr = sys.stderr
         self.towrite = ''
 
@@ -62,7 +86,7 @@ class Discarder(object):
 
     def __exit__(self):
         self.oldstderr.write(self.towrite)
-        #self.oldstderr.flush()
+        # self.oldstderr.flush()
         sys.stderr = self.oldstderr
 
 
@@ -77,17 +101,25 @@ def dtw_cosine_distance(x, y):
 def parseConfig(configfile):
     taskslist = []
     config = ConfigParser.ConfigParser()
-    assert os.path.exists(configfile), 'config file not found {}'.format(configfile)
+    assert os.path.exists(configfile), \
+        'config file not found {}'.format(configfile)
+
     config.read(configfile)
-    assert config.has_section('general'), 'general section missing in config file'
+    assert config.has_section('general'), \
+        'general section missing in config file'
+
     general_items = dict(config.items('general'))
-    sections = [section for section in config.sections() if section != 'general']
+    sections = [section for section in config.sections()
+                if section != 'general']
     for section in sections:
         task_items = dict(config.items(section))
         task_items['section'] = section
         for item in general_items:
             if item in task_items:
-                warnings.warn('general config setting redefined in the task, the task specific one will be used ({}: {})'.format(item, task_items[item]), UserWarning)
+                warnings.warn(
+                    'general config setting redefined in the task, '
+                    'the task specific one will be used ({}: {})'
+                    .format(item, task_items[item]), UserWarning)
             else:
                 task_items[item] = general_items[item]
         taskslist.append(task_items)
@@ -96,8 +128,9 @@ def parseConfig(configfile):
 
 def checkIO(taskslist):
     for task_items in taskslist:
-        #assert 'on' in task_items, 'missing ON argument for task {}'.format(task['section'])
-        #assert 'taskfile' in task_items
+        # assert 'on' in task_items, 'missing ON argument for task {}'.format(
+        #     task['section'])
+        # assert 'taskfile' in task_items
         assert 'distancefile' in task_items
         assert 'scorefile' in task_items
         assert 'analyzefile' in task_items
@@ -117,10 +150,11 @@ def changed_task_spec(taskfile, on, across, by, filters, regressors, sampling):
             'on', on, 'across', across, 'by', by,
             'filters', filters, 'regressors', regressors,
             'sampling', sampling] if x])
-        
+
         with h5py.File(taskfile) as f:
-            return f.attrs.get('done') and (not (f.attrs.get('task') == taskstr))
-    except Exception as e:
+            return f.attrs.get('done') and (
+                not (f.attrs.get('task') == taskstr))
+    except:
         return True
 
 
@@ -164,35 +198,35 @@ def tryremove(path):
 def avg(filename, task):
     task_type = lookup('type', task)
     df = pandas.read_csv(filename, sep='\t')
-    if task_type=='across':
+    if task_type == 'across':
         # aggregate on context
-        groups = df.groupby(['speaker_1','speaker_2','phone_1','phone_2'], as_index=False)
+        groups = df.groupby(
+            ['speaker_1', 'speaker_2', 'phone_1', 'phone_2'], as_index=False)
         df = groups['score'].mean()
-    elif task_type=='within':
-
+    elif task_type == 'within':
         arr = np.array(map(ast.literal_eval, df['by']))
         df['speaker']  = [e for e, f, g in arr]
         df['context'] = [f for e, f, g in arr]
         #del df['by']
+
         # aggregate on context
-        groups = df.groupby(['speaker','phone_1','phone_2'], as_index=False)
+        groups = df.groupby(['speaker', 'phone_1', 'phone_2'], as_index=False)
         df = groups['score'].mean()
-        
     else:
         raise ValueError('Unknown task type: {0}'.format(task_type))
-    #del df['by']
-    
-    ## aggregate on talkers
-    #groups = df.groupby(['context', 'phone_1', 'phone_2'], as_index=False)
-    #df = groups['score'].mean()
-    ## aggregate on contexts    
-    #groups = df.groupby(['phone_1', 'phone_2'], as_index=False) 
-    #df = groups['score'].mean()
-        
+
+    # del df['by']
+    # # aggregate on talkers
+    # groups = df.groupby(['context', 'phone_1', 'phone_2'], as_index=False)
+    # df = groups['score'].mean()
+    # # aggregate on contexts
+    # groups = df.groupby(['phone_1', 'phone_2'], as_index=False)
+    # df = groups['score'].mean()
+
     # aggregate on talker
-    groups = df.groupby(['phone_1','phone_2'], as_index=False)
+    groups = df.groupby(['phone_1', 'phone_2'], as_index=False)
     df = groups['score'].mean()
-    average=df.mean()[0]
+    average = df.mean()[0]
     return average
 
 
@@ -207,12 +241,14 @@ def makedirs(listfiles):
             try:
                 os.makedirs(pardir)
             except:
-                sys.stderr.write('Could not create directories along path for file {}\n'
-                                 .format(os.path.realpath(f)))
+                sys.stderr.write(
+                    'Could not create directories along path for file {}\n'
+                    .format(os.path.realpath(f)))
                 raise
 
 
-def fullrun(task, feature_folder, h5, file_sizes, corpus, distinction, distance, outputdir, doall=True, ncpus=None):
+def fullrun(task, feature_folder, h5, file_sizes, corpus, distinction,
+            distance, outputdir, doall=True, ncpus=None):
 
     print("Processing task {}".format(task['section']))
 
@@ -227,7 +263,9 @@ def fullrun(task, feature_folder, h5, file_sizes, corpus, distinction, distance,
             sys.path.insert(0, path)
             distancefun = getattr(__import__(mod), distancefunction)
         else:
-            distancemodule = lookup('distancemodule', task, os.path.join(curdir, 'ressources/distance'))
+            distancemodule = lookup(
+                'distancemodule', task,
+                os.path.join(CURDIR, 'distance'))
             distancefunction = lookup('distancefunction', task, 'distance')
             path, mod = os.path.split(distancemodule)
             sys.path.insert(0, path)
@@ -238,9 +276,15 @@ def fullrun(task, feature_folder, h5, file_sizes, corpus, distinction, distance,
 
     distance_file = os.path.join(outputdir, lookup('distancefile', task))
     scorefilename = os.path.join(outputdir, lookup('scorefile', task))
-    #taskfilename = os.path.join(curdir, lookup('taskfile', task))
-    taskname=os.path.join(lookup('taskdir',task),'{}/{}s_{}_{}.abx'.format(corpus,file_sizes,distinction,lookup('type',task)))
-    taskfilename = os.path.join(curdir, taskname)
+
+    # taskfilename = os.path.join(CURDIR, lookup('taskfile', task))
+    taskname = os.path.join(
+        lookup('taskdir', task), '{}/{}s_{}_{}.abx'.format(
+            corpus, file_sizes, distinction, lookup('type', task)))
+    taskfilename = os.path.abspath(os.path.join(CURDIR, taskname))
+    print('Task file is {}'.format(taskfilename))
+    assert os.path.isfile(taskfilename), 'Task file unknown'
+
     analyzefilename = os.path.join(outputdir, lookup('analyzefile', task))
     on = lookup('on', task)
     across = nonesplit(lookup('across', task))
@@ -260,13 +304,14 @@ def fullrun(task, feature_folder, h5, file_sizes, corpus, distinction, distance,
     analyzetime = getmtime(analyzefilename)
     featfoldertime = max([getmtime(os.path.join(feature_folder, f))
                           for f in os.listdir(feature_folder)])
+
     # Preprocessing
-    if h5==0:
+    if not h5:
         try:
             print("Preprocessing... Writing the features in h5 format")
             tryremove(feature_file)
-            any2h5features.convert(feature_folder, h5_filename=feature_file,
-                                   load=loadfeats)
+            any2h5features.convert(
+                feature_folder, h5_filename=feature_file, load=loadfeats)
             featuretime = getmtime(feature_file)
             with h5py.File(feature_file) as fh:
                 fh.attrs.create('done', True)
@@ -275,115 +320,139 @@ def fullrun(task, feature_folder, h5, file_sizes, corpus, distinction, distance,
                              'Check the paths availability\n'
                              .format(os.path.realpath(feature_folder),
                                      os.path.realpath(feature_file)))
-            #tryremove(feature_file)
+            # tryremove(feature_file)
             raise
     else:
-        feature_file=os.path.join(feature_folder,'{}s_{}.h5f'.format(file_sizes,distinction))
+        feature_file = os.path.join(
+            feature_folder, '{}s_{}.h5f'.format(file_sizes, distinction))
 
     # computing
     try:
         print("Computing the distances")
         tryremove(distance_file)
-        distances.compute_distances(feature_file, '/features/', taskfilename,
-                                    distance_file, distancefun, n_cpu=ncpus)
+        distances.compute_distances(
+            feature_file, '/features/', taskfilename,
+            distance_file, distancefun, n_cpu=ncpus)
 
         tryremove(scorefilename)
         print("Computing the scores")
         score.score(taskfilename, distance_file, scorefilename)
-        
+
         tryremove(analyzefilename)
         print("Collapsing the results")
         analyze.analyze(taskfilename, scorefilename, analyzefilename)
 
-        return avg(analyzefilename, task)       
-    except:
-        sys.stderr.write('An error occured during the computation\n')
-        raise
+        return avg(analyzefilename, task)
+    # except Exception as e:
+    #     sys.stderr.write('An error occured during the computation\n')
+    #     raise e
     finally:
-
         tryremove(distance_file)
         tryremove(scorefilename)
-        if h5==0:
-            tryremove(feature_file)
         tryremove(analyzefilename)
+        if not h5:
+            tryremove(feature_file)
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Full ABX discrimination task')
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
 
     # parser.add_argument(
-    #     '-c', '--config', default=os.path.join(curdir, 'ressources/sample_eval.cfg'),
-    #     help='config file, default to sample_eval.cfg in ressources')
+    #     '-c', '--config', default=CONFIG_FILE,
+    #     help='config file, default to %(default)s')
+
     parser.add_argument(
-        'features', help='folder containing the feature to evaluate')
+        'corpus', choices=['english', 'chinese', 'french'],
+        help='test corpus you are evaluating your features on')
+
     parser.add_argument(
-        'file_sizes',help='''specify which file_sizes you are evaluating. \
-                choose between 1 , 10 or 120''')
+        'file_sizes', type=int, choices=[1, 10, 120],
+        help='duration (in s.) of the corpus files you are evaluating')
+
     parser.add_argument(
-        'corpus', help='''corpus you are evaluating.\
-                choices are : chinese,english,french''')
+        'features', metavar='<feat-dir>',
+        help='input directory containing the feature to evaluate')
+
     parser.add_argument(
-        '-d', '--distance',
-        help='distance module to use (distancemodule.distancefunction, '
+        'output', metavar='<output-dir>',
+        help='output directory used for intermediate files and results')
+
+    parser.add_argument(
+        '-j', '--njobs', metavar='<int>', type=int, default=1,
+        help='number of cpus to use, default to %(default)s')
+
+    parser.add_argument(
+        '--h5', action='store_true',
+        help='enable if the inputs at already in h5 format.')
+
+    # distance options are mutually exclusive
+    group = parser.add_argument_group(
+        'distance options').add_mutually_exclusive_group()
+
+    group.add_argument(
+        '-d', '--distance', metavar='<distance>',
+        help='distance module to use (distancemodule.distancefunction), '
         'default to dtw cosine distance')
-    parser.add_argument(
+
+    group.add_argument(
         '-kl', action='store_true',
-        help="use kl-divergence, shortcut for '--distance ressources/distance.kl_divergence'")
-    parser.add_argument(
-        'output', help='output directory used for intermediate files and results')
-    parser.add_argument(
-        '-j', help='number of cpus to use')
-    parser.add_argument(
-        '-h5',type=int,default=0,help='enable if the inputs at already in h5 format. Enabled if h5 !=0')
+        help=("use kl-divergence, shortcut for '--distance {}'"
+              .format(KL_DISTANCE_MODULE)))
 
     args = parser.parse_args()
-    config = os.path.join(curdir, 'ressources/eval.cfg')
-    taskslist = parseConfig(config)
-    speaker_type=['old','new']
+
     assert os.path.isdir(args.features) and os.listdir(args.features), (
         'features folder not found or empty')
+
     if not os.path.exists(args.output):
         try:
             os.makedirs(args.output)
         except:
             sys.sdterr.write('Impossible to create the output directory: {}\n'
                              .format(os.path.realpath(args.output)))
-            raise        
+            raise
+
+    taskslist = parseConfig(CONFIG_FILE)
+    speaker_type = ['old', 'new']
+
     checkIO(taskslist)
     res = {}
     outfile = os.path.join(args.output, lookup('outputfile', taskslist[0]))
-    assert os.access(args.output, os.W_OK), ('Impossible to write in the ouput directory, '
-                                             'please check the permissions')
-    if args.kl:
-        args.distance = os.path.join(curdir, 'ressources/distance.kl_divergence')
-    if args.j:
-        try:
-            ncpus = int(args.j)
-        except:
-            sys.stderr.write('invalid number of cpus {}'.format(args.j))
-            raise
-    else:
-        ncpus = None
+    assert os.access(args.output, os.W_OK), (
+        'Impossible to write in the ouput directory, '
+        'please check the permissions')
 
-    sys.stderr = Discarder()
+    if args.kl:
+        args.distance = KL_DISTANCE_MODULE
+
+    ncpus = args.njobs
+
+#    sys.stderr = Discarder()
     with warnings.catch_warnings():
         warnings.simplefilter('ignore', NaturalNameWarning)
         warnings.simplefilter('ignore', DataTypeWarning)
         # warnings.simplefilter('ignore', ParserWarning)
         for task in taskslist:
             for distinction in speaker_type:
-                final_score = fullrun(task, args.features, args.h5, args.file_sizes, args.corpus,distinction, args.distance, args.output, ncpus=ncpus)
+                final_score = fullrun(
+                    task, args.features, args.h5, args.file_sizes,
+                    args.corpus, distinction, args.distance, args.output,
+                    ncpus=ncpus)
                 print "returned full_score"
-                sys.stdout.write('{}:\t{:.3f}\n'.format(task['section'], final_score))
-                res[(task['section'],distinction)]=final_score
+
+                sys.stdout.write(
+                    '{}:\t{:.3f}\n'.format(task['section'], final_score))
+                res[(task['section'], distinction)] = final_score
 
     try:
         with open(outfile, 'w+') as out:
             out.write('task\tscore\n')
             for key, value in res.iteritems():
                 out.write('{}:\t{:.3f}\n'.format(key, value))
-        with open(os.path.join(args.output, 'VERSION_' + version), 'w+') as version_file:
-            version_file.write('')
+        with open(os.path.join(args.output, 'VERSION_' + VERSION), 'w+') as v:
+            v.write('')
     except:
         sys.stderr.write('Could not write in the output file {}\n'
                          .format(outfile))
