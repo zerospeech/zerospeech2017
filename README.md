@@ -83,10 +83,10 @@ should work as well on MacOS.
 
   This installs the dependencies of the track 1 evaluation program,
   baseline and topline replication from the `./track1/src` folder to
-  your virtual environment. Those dependancies are:
+  your virtual environment. Those dependencies are:
 
   * [ABXpy](https://github.com/bootphon/ABXpy) for evaluation
-  * [h5features](https://github.com/bootphon/h5features)) for data storage
+  * [h5features](https://github.com/bootphon/h5features) for data storage
   * [features_extraction](https://github.com/bootphon/features_extraction) for baseline
   * **TODO** [abkhazia](https://github.com/bootphon/abkhazia) for topline
 
@@ -215,7 +215,7 @@ require [abkhazia](https://github.com/bootphon/abkhazia) -> posteriors on DNN
 
 ## Track 2: Spoken term discovery
 
-**TODO**
+**TODO** coming soon
 
 
 ## Troubleshooting

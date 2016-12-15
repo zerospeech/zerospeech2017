@@ -80,31 +80,31 @@ mkdir -p $output_dir || failure "cannot create directory $output_dir"
 trap "rm -f octave-workspace" EXIT
 
 
-# # compute features for old and new speakers
-# for speakers in old_speakers new_speakers
-# do
-#     # input directory with wavs
-#     current_data_dir=$data_dir/test/$lang/$duration/$speakers
-#     [ ! -d $current_data_dir ] && failure "cannot find $current_data_dir"
+# compute features for old and new speakers
+for speakers in old_speakers new_speakers
+do
+    # input directory with wavs
+    current_data_dir=$data_dir/test/$lang/$duration/$speakers
+    [ ! -d $current_data_dir ] && failure "cannot find $current_data_dir"
 
-#     # output h5features file
-#     output_file=$output_dir/${duration}_$(echo $speakers | cut -d_ -f1).h5f
-#     if [ -f $output_file ] ; then
-#         echo "overwritting $output_file"
-#         rm -f $output_file
-#     fi
+    # output h5features file
+    output_file=$output_dir/${duration}_$(echo $speakers | cut -d_ -f1).h5f
+    if [ -f $output_file ] ; then
+        echo "overwritting $output_file"
+        rm -f $output_file
+    fi
 
-#     echo "features extraction for $lang $duration $speakers"
-#     python $features_extraction $current_data_dir/*.wav -h5 $output_file -c $mfcc_config \
-#         || failure "cannot extract features from $current_data_dir"
-# done
+    echo "features extraction for $lang $duration $speakers"
+    python $features_extraction $current_data_dir/*.wav -h5 $output_file -c $mfcc_config \
+        || failure "cannot extract features from $current_data_dir"
+done
 
 
 # evaluate the features
 current_output_dir=$output_dir/eval_$duration
 mkdir -p $current_output_dir || failure "cannot create directory $current_output_dir"
 
-$eval_track1 --h5 --njobs $njobs $lang ${duration::-1} $output_dir $current_output_dir \
+$eval_track1 --h5 --njobs $njobs $lang ${duration::-1} $data_dir $output_dir $current_output_dir \
     || failure "cannot evaluate $lang $duration"
 
 exit 0

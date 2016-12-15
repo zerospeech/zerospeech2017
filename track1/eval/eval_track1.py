@@ -19,31 +19,31 @@
 Track 1: Unsupervised subword modeling
 
 """
+
+import ast
+import argparse
+import ConfigParser
+import h5py
 import os
+import numpy as np
+import pandas
+import pickle
 import sys
-# import ABXpy.task
+import warnings
+
+from tables import DataTypeWarning
+from tables import NaturalNameWarning
+
 import ABXpy.distances.distances as distances
 import ABXpy.distances.metrics.cosine as cosine
 import ABXpy.distances.metrics.dtw as dtw
 import ABXpy.score as score
 import ABXpy.analyze as analyze
-import ConfigParser
-import argparse
-import warnings
-import h5py
-from tables import DataTypeWarning
-from tables import NaturalNameWarning
-# from pandas.io.parsers import ParserWarning
-import numpy as np
-# import h5features
-import pickle
 from ABXpy.misc import any2h5features
-import pandas
-import ast
 
 
 # version of this script
-VERSION = "0.1.1"
+VERSION = "0.1.2"
 
 # directory where this script is stored
 CURDIR = (os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else
@@ -247,9 +247,8 @@ def makedirs(listfiles):
                 raise
 
 
-def fullrun(task, feature_folder, h5, file_sizes, corpus, distinction,
-            distance, outputdir, doall=True, ncpus=None):
-
+def fullrun(task, data_folder, feature_folder, h5, file_sizes, corpus,
+            distinction, distance, outputdir, doall=True, ncpus=None):
     print("Processing task {}".format(task['section']))
 
     feature_file = os.path.join(outputdir, lookup('featurefile', task))
@@ -277,33 +276,39 @@ def fullrun(task, feature_folder, h5, file_sizes, corpus, distinction,
     distance_file = os.path.join(outputdir, lookup('distancefile', task))
     scorefilename = os.path.join(outputdir, lookup('scorefile', task))
 
-    # taskfilename = os.path.join(CURDIR, lookup('taskfile', task))
-    taskname = os.path.join(
-        lookup('taskdir', task), '{}/{}s_{}_{}.abx'.format(
-            corpus, file_sizes, distinction, lookup('type', task)))
-    taskfilename = os.path.abspath(os.path.join(CURDIR, taskname))
+    taskfilename = os.path.join(
+        data_folder, 'test', corpus,
+        '{}s'.format(file_sizes), "{}_speakers".format(distinction),
+        '{}s_{}_{}.abx'.format(file_sizes, distinction,
+                               lookup('type', task)))
+
+    # # taskfilename = os.path.join(CURDIR, lookup('taskfile', task))
+    # taskname = os.path.join(
+    #     lookup('taskdir', task), '{}/{}s_{}_{}.abx'.format(
+    #         corpus, file_sizes, distinction, lookup('type', task)))
+    # taskfilename = os.path.abspath(os.path.join(CURDIR, taskname))
     print('Task file is {}'.format(taskfilename))
     assert os.path.isfile(taskfilename), 'Task file unknown'
 
     analyzefilename = os.path.join(outputdir, lookup('analyzefile', task))
-    on = lookup('on', task)
-    across = nonesplit(lookup('across', task))
-    by = nonesplit(lookup('by', task))
-    filters = lookup('filters', task)
-    regressors = lookup('regressors', task)
-    sampling = lookup('sampling', task)
+    # on = lookup('on', task)
+    # across = nonesplit(lookup('across', task))
+    # by = nonesplit(lookup('by', task))
+    # filters = lookup('filters', task)
+    # regressors = lookup('regressors', task)
+    # sampling = lookup('sampling', task)
     if not ncpus:
         ncpus = int(lookup('ncpus', task, 1))
 
     makedirs([feature_file, distance_file, scorefilename, analyzefilename])
 
-    tasktime = getmtime(taskfilename)
-    featuretime = getmtime(feature_file)
-    distancetime = getmtime(distance_file)
-    scoretime = getmtime(scorefilename)
-    analyzetime = getmtime(analyzefilename)
-    featfoldertime = max([getmtime(os.path.join(feature_folder, f))
-                          for f in os.listdir(feature_folder)])
+    # tasktime = getmtime(taskfilename)
+    # featuretime = getmtime(feature_file)
+    # distancetime = getmtime(distance_file)
+    # scoretime = getmtime(scorefilename)
+    # analyzetime = getmtime(analyzefilename)
+    # featfoldertime = max([getmtime(os.path.join(feature_folder, f))
+    #                       for f in os.listdir(feature_folder)])
 
     # Preprocessing
     if not h5:
@@ -312,7 +317,7 @@ def fullrun(task, feature_folder, h5, file_sizes, corpus, distinction,
             tryremove(feature_file)
             any2h5features.convert(
                 feature_folder, h5_filename=feature_file, load=loadfeats)
-            featuretime = getmtime(feature_file)
+            # featuretime = getmtime(feature_file)
             with h5py.File(feature_file) as fh:
                 fh.attrs.create('done', True)
         except:
@@ -372,6 +377,10 @@ if __name__ == '__main__':
         help='duration (in s.) of the corpus files you are evaluating')
 
     parser.add_argument(
+        'data_dir', metavar='<data-dir>',
+        help='data directory containing the dowloaded challenge dataset')
+
+    parser.add_argument(
         'features', metavar='<feat-dir>',
         help='input directory containing the feature to evaluate')
 
@@ -406,12 +415,16 @@ if __name__ == '__main__':
     assert os.path.isdir(args.features) and os.listdir(args.features), (
         'features folder not found or empty')
 
+    assert os.path.isdir(args.data_dir), (
+        '{} is not a directory'.format(args.data_dir))
+
     if not os.path.exists(args.output):
         try:
             os.makedirs(args.output)
         except:
-            sys.sdterr.write('Impossible to create the output directory: {}\n'
-                             .format(os.path.realpath(args.output)))
+            sys.sdterr.write(
+                'Impossible to create the output directory: {}\n'
+                .format(os.path.realpath(args.output)))
             raise
 
     taskslist = parseConfig(CONFIG_FILE)
@@ -429,7 +442,7 @@ if __name__ == '__main__':
 
     ncpus = args.njobs
 
-#    sys.stderr = Discarder()
+    # sys.stderr = Discarder()
     with warnings.catch_warnings():
         warnings.simplefilter('ignore', NaturalNameWarning)
         warnings.simplefilter('ignore', DataTypeWarning)
@@ -437,9 +450,10 @@ if __name__ == '__main__':
         for task in taskslist:
             for distinction in speaker_type:
                 final_score = fullrun(
-                    task, args.features, args.h5, args.file_sizes,
-                    args.corpus, distinction, args.distance, args.output,
-                    ncpus=ncpus)
+                    task, args.data_dir,
+                    args.features, args.h5, args.file_sizes,
+                    args.corpus, distinction, args.distance,
+                    args.output, ncpus=ncpus)
                 print "returned full_score"
 
                 sys.stdout.write(
