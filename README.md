@@ -1,7 +1,7 @@
 # Zero Speech Challenge 2017
 
 All you need to get started for the track 1 and track 2 of the
-**[Zero Speech Challenge 2017](http://sapience.dec.ens.fr/bootphon/)**:
+**[Zero Speech Challenge 2017](http://www.zerospeech.com)**:
 
 * Train and test data download: raw speech, ABX tasks
 * Evaluation software setup
@@ -35,16 +35,15 @@ should work as well on MacOS.
 
 ## Getting the hyper-training data
 
-**TODO** Put online raw speech data and ABX task files.
+* Dowload the whole challenge hyper-training dataset using the
+  `download_data.sh` script:
 
-**TODO** Write a *download_data.sh data_dir* with wget commands to the
-server. This will create ./data/{train, test}/{lang1, lang2, etc...}
-folders as below.
+        ./download_data.sh ./data
 
-**TODO** Change that structure if another one is more convenient! Actually
-this require to refactor the eval_track1.py (for task files look-up).
+* The dataset is about 65 GB large, so it will take a while to
+  download.
 
-* Once downloaded, the `data_dir` directory has the following structure:
+* Once downloaded, the `./data` directory has the following structure:
 
         train/
             {english, chinese, french}/
@@ -70,63 +69,65 @@ this require to refactor the eval_track1.py (for task files look-up).
 * The test corpora have been cut into small files of controlled size
   (1s, 10s or 120s). There are both old speakers (present in the
   corresponding train corpus) and new speakers (unknown in the train
-  corpus).
+  corpus). Speaker identification is *not* available for test (wav
+  files randomly named).
 
 
 ## Track 1: Unsupervised subword modeling
 
-### Features file format
-
-**TODO** Only ASCII format is described here, document other supported
-formats.
-
-Our evaluation system requires that your unsupervised subword modeling
-system outputs a vector of feature values for each frame. For each wav
-in the test set (e.g. `aghsu09.wav`), an ASCII features file with the
-same name (e.g. `aghsu09.fea`) as the wav should be generated with the
-following format:
-
-    <time> <val1>    ... <valN>
-    <time> <val1>    ... <valN>
-
-Exemple:
-
-     0.0125 12.3 428.8 -92.3 0.021 43.23
-     0.0225 19.0 392.9 -43.1 10.29 40.02
-     ...
-
-**Note:**
-
-The time is in seconds. It corresponds to the center of the frame of
-each feature. In this example, there are frames every 10ms and the
-first frame spans a duration of 25ms starting at the beginning of the
-file, hence, the first frame is centered at .0125 seconds and the
-second 10ms later. It is not required that the frames be regularly
-spaced, in fact the only requirement is that the timestamp of frame
-*n+1* is strictly larger than the timestamp of frame *n*. The frame
-timestamps are used by the evaluation software to determine which
-features correspond to a particular triphone among the sequence of
-features for a whole sentence on the basis of manual phone-level
-alignments for that sentence.
-
-
-### Evaluation program: installation
+### Installation
 
 * With your virtual environment activated, simply have a:
 
         ./track1/setup/setup_track1.sh
 
-  This installs the dependencies of the track 1 evaluation program
-  ([ABXpy](https://github.com/bootphon/ABXpy)
-  and [h5features](https://github.com/bootphon/h5features)) from the
-  `./track1/src` folder to your virtual environment.
+  This installs the dependencies of the track 1 evaluation program,
+  baseline and topline replication from the `./track1/src` folder to
+  your virtual environment. Those dependancies are:
+
+  * [ABXpy](https://github.com/bootphon/ABXpy) for evaluation
+  * [h5features](https://github.com/bootphon/h5features)) for data storage
+  * [features_extraction](https://github.com/bootphon/features_extraction) for baseline
+  * **TODO** [abkhazia](https://github.com/bootphon/abkhazia) for topline
 
 * To make sure the installation is correct, you can run the tests:
 
         pytest ./track1/src
 
 
-### Evaluation program: usage
+### Features file format
+
+* Our evaluation system requires that your unsupervised subword modeling
+  system outputs a vector of feature values for each frame in the following format:
+
+        <time> <val1>    ... <valN>
+        <time> <val1>    ... <valN>
+
+  Exemple:
+
+        0.0125 12.3 428.8 -92.3 0.021 43.23
+        0.0225 19.0 392.9 -43.1 10.29 40.02
+        ...
+
+* The time is in seconds. It corresponds to the center of the frame of
+  each feature. In this example, there are frames every 10ms and the
+  first frame spans a duration of 25ms starting at the beginning of
+  the file, hence, the first frame is centered at .0125 seconds and
+  the second 10ms later. It is not required that the frames be
+  regularly spaced, in fact the only requirement is that the timestamp
+  of frame *n+1* is strictly larger than the timestamp of frame
+  *n*. The frame timestamps are used by the evaluation software to
+  determine which features correspond to a particular triphone among
+  the sequence of features for a whole sentence on the basis of manual
+  phone-level alignments for that sentence.
+
+* For each wav in the test set (e.g. `data/test/chinese/1s/new_speakers/aghsu09.wav`),
+  an ASCII features file with the same name
+  (e.g. `features/test/chinese/1s/new_speakers/aghsu09.fea`) as the wav should be
+  generated in the same subdirectories logic *<lang>/<length>/<type>/<name>*
+
+
+### Evaluation program
 
 * The Track 1 evaluation program is `./track1/eval/eval_track1.py`. The
   detail of arguments is given by the `--help` option:
@@ -140,13 +141,19 @@ alignments for that sentence.
 	    ./eval_track1.py chinese 1 /path/to/feature/folder/ /path/to/output/folder/
 
 * The input feature folder must contain a collection of feature files
-  as described above, one file per wav files in the test corpus. **TODO**
-  do we need *old_speakers*, *new_speakers* subdirectories?
+  as described above, one file per wav files in the test corpus.
 
-* **TODO** need to describe expected output!!
+* The evaluation result is an aggregated ABX discriminability. An
+  example of output file, called `results.txt` is:
+
+        task	score
+        ('across_talkers', 'old'):	0.757
+        ('across_talkers', 'new'):	0.724
+        ('within_talkers', 'old'):	0.868
+        ('within_talkers', 'new'):	0.854
 
 
-### Evaluation program: using your own distance
+### Using your own distance in evaluation
 
 To see how it is possible to provide your own distance, let us show
 first how it is possible to obtain the default DTW+cosine distance
@@ -186,8 +193,18 @@ function in the `distance.py` script.
 
 ### Baseline replication
 
-**TODO** Write a `track1/baseline.sh` just calling *features_extraction* and
-*eval_track1.py* with the baseline MFCC features.
+The track 1 baseline is to run the evaluation on MFCC features with
+delta and delta-delta (39 dimensions) extracted directly from the test
+corpora, whithout any learning.
+
+You can replicate the baseline (i.e. extract MFCCs and evaluate them)
+on the entire test dataset with the command:
+
+    ./track1/baseline/baseline_all.sh ./data ./track1/baseline/results
+
+In this example, `./data` is the path to the downloaded challenge
+dataset and `./track1/baseline/results` is created output directory
+with baseline features and evaluation results.
 
 
 ### Topline replication
