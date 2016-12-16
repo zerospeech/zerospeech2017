@@ -24,7 +24,7 @@ function failure { [ ! -z "$1" ] && echo "Error: $1"; exit 1; }
 
 # basic argument checking
 if [ -z $1 ]; then
-    echo "Usage: $0 data_dir"
+    echo "Usage: $0 data_dir" 
     exit 1
 fi
 
@@ -34,3 +34,5 @@ echo "Dowloading data to $data_dir"
 
 # mkdir -p $data_dir
 # TODO !!!
+# cd $data_dir 
+# wget -m --user=challenge2017 --ask-password ftp://129.199.81.135/database
