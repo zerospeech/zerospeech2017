@@ -278,9 +278,8 @@ def fullrun(task, data_folder, feature_folder, h5, file_sizes, corpus,
 
     taskfilename = os.path.join(
         data_folder, 'test', corpus,
-        '{}s'.format(file_sizes), "{}_speakers".format(distinction),
-        '{}s_{}_{}.abx'.format(file_sizes, distinction,
-                               lookup('type', task)))
+        '{}s'.format(file_sizes), 
+        '{}s_{}.abx'.format(file_sizes, lookup('type', task)))
 
     # # taskfilename = os.path.join(CURDIR, lookup('taskfile', task))
     # taskname = os.path.join(

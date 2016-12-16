@@ -51,10 +51,9 @@ should work as well on MacOS.
         test/
             {english, chinese, french}/
                 {1s, 10s, 120s}/
-                    {new_speakers, old_speakers}/
-                        *.wav
-                        across.abx
-                        within.abx
+                    *.wav
+                    across.abx
+                    within.abx
 
 * All the wav files are sampled at 16kHz on 16 bits.
 
