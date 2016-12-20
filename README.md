@@ -36,7 +36,7 @@ should work as well on MacOS.
 ## Getting the hyper-training data
 
 * Dowload the whole challenge hyper-training dataset using the
-  `download_data.sh` script:
+  `download_data.sh` script, with the password "dataset" :
 
         ./download_data.sh ./data
 
@@ -46,10 +46,10 @@ should work as well on MacOS.
 * Once downloaded, the `./data` directory has the following structure:
 
         train/
-            {english, chinese, french}/
+            {english, mandarin, french}/
                 *.wav
         test/
-            {english, chinese, french}/
+            {english, mandarin, french}/
                 {1s, 10s, 120s}/
                     *.wav
                     across.abx

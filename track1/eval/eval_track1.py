@@ -248,7 +248,7 @@ def makedirs(listfiles):
 
 
 def fullrun(task, data_folder, feature_folder, h5, file_sizes, corpus,
-            distinction, distance, outputdir, doall=True, ncpus=None):
+            distance, outputdir, doall=True, ncpus=None):
     print("Processing task {}".format(task['section']))
 
     feature_file = os.path.join(outputdir, lookup('featurefile', task))
@@ -328,7 +328,7 @@ def fullrun(task, data_folder, feature_folder, h5, file_sizes, corpus,
             raise
     else:
         feature_file = os.path.join(
-            feature_folder, '{}s_{}.h5f'.format(file_sizes, distinction))
+            feature_folder, '{}s.h5f'.format(file_sizes))
 
     # computing
     try:
@@ -368,7 +368,7 @@ if __name__ == '__main__':
     #     help='config file, default to %(default)s')
 
     parser.add_argument(
-        'corpus', choices=['english', 'chinese', 'french'],
+        'corpus', choices=['english', 'mandarin', 'french'],
         help='test corpus you are evaluating your features on')
 
     parser.add_argument(
@@ -447,17 +447,17 @@ if __name__ == '__main__':
         warnings.simplefilter('ignore', DataTypeWarning)
         # warnings.simplefilter('ignore', ParserWarning)
         for task in taskslist:
-            for distinction in speaker_type:
-                final_score = fullrun(
-                    task, args.data_dir,
-                    args.features, args.h5, args.file_sizes,
-                    args.corpus, distinction, args.distance,
-                    args.output, ncpus=ncpus)
-                print "returned full_score"
+            #for distinction in speaker_type:
+            final_score = fullrun(
+                task, args.data_dir,
+                args.features, args.h5, args.file_sizes,
+                args.corpus, args.distance,
+                args.output, ncpus=ncpus)
+            print "returned full_score"
 
-                sys.stdout.write(
-                    '{}:\t{:.3f}\n'.format(task['section'], final_score))
-                res[(task['section'], distinction)] = final_score
+            sys.stdout.write(
+                '{}:\t{:.3f}\n'.format(task['section'], final_score))
+            res[(task['section'])] = final_score
 
     try:
         with open(outfile, 'w+') as out:
