@@ -40,7 +40,7 @@ should work as well on MacOS.
 
         ./download_data.sh ./data
 
-* The dataset is about 65 GB large, so it will take a while to
+* The dataset is about 34 GB large, so it will take a while to
   download.
 
 * Once downloaded, the `./data` directory has the following structure:

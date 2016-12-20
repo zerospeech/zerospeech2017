@@ -32,7 +32,7 @@ data_dir=$1
 
 echo "Dowloading data to $data_dir"
 
-# mkdir -p $data_dir
+ mkdir -p $data_dir
 # TODO !!!
-# cd $data_dir 
-# wget -m --user=challenge2017 --ask-password ftp://129.199.81.135/database
+cd $data_dir 
+wget -m --user=challenge2017 --ask-password ftp://129.199.81.135/datasets_2 -P ./

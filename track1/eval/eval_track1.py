@@ -222,12 +222,30 @@ def avg(filename, task):
     # # aggregate on contexts
     # groups = df.groupby(['phone_1', 'phone_2'], as_index=False)
     # df = groups['score'].mean()
+    
+    ## Compute confidence interval with bootstrap method : 
+
+    boot=df 
+    n = 40000
+    N = 1000
+
+    ci=[]
+    
+    for i in xrange(0,N):
+        bt=boot.merge(pandas.DataFrame(index=np.random.randint(n, size=n)), left_index=True, right_index=True, how='right')
+        groups=bt.groupby(['phone_1','phone_2'],as_index=False)
+        bt=groups['score'].mean()
+        average = bt.mean()[0]
+        ci.append(average)
+    ci=sorted(ci)
+    confidence=[ci[int(round(0.5*N))],ci[int(round(0.95*N))]]
 
     # aggregate on talker
     groups = df.groupby(['phone_1', 'phone_2'], as_index=False)
     df = groups['score'].mean()
     average = df.mean()[0]
-    return average
+
+    return (average,confidence)
 
 
 def featureshaschanged(feature_folder, feature_file):
@@ -431,6 +449,7 @@ if __name__ == '__main__':
 
     checkIO(taskslist)
     res = {}
+    ci = {}
     outfile = os.path.join(args.output, lookup('outputfile', taskslist[0]))
     assert os.access(args.output, os.W_OK), (
         'Impossible to write in the ouput directory, '
@@ -447,23 +466,26 @@ if __name__ == '__main__':
         warnings.simplefilter('ignore', DataTypeWarning)
         # warnings.simplefilter('ignore', ParserWarning)
         for task in taskslist:
-            #for distinction in speaker_type:
-            final_score = fullrun(
-                task, args.data_dir,
-                args.features, args.h5, args.file_sizes,
-                args.corpus, args.distance,
-                args.output, ncpus=ncpus)
+        #for distinction in speaker_type:
+            (final_score,confidence) = fullrun(
+                    task, args.data_dir,
+                    args.features, args.h5, args.file_sizes,
+                    args.corpus, args.distance,
+                    args.output, ncpus=ncpus)
             print "returned full_score"
 
             sys.stdout.write(
-                '{}:\t{:.3f}\n'.format(task['section'], final_score))
+                    '{}:\t{:.3f}\n'.format(task['section'], final_score))
             res[(task['section'])] = final_score
-
+            ci[(task['section'])] = confidence
     try:
         with open(outfile, 'w+') as out:
             out.write('task\tscore\n')
             for key, value in res.iteritems():
                 out.write('{}:\t{:.3f}\n'.format(key, value))
+            out.write('task\tconfidence interval\n')
+            for key,value in ci.iteritems():
+                out.write('{}:\t{:.3f}-{:.3f}\n'.format(key,value[0],value[1]))
         with open(os.path.join(args.output, 'VERSION_' + VERSION), 'w+') as v:
             v.write('')
     except:
