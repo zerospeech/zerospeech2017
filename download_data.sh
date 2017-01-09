@@ -15,24 +15,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-
+#
 # Data downloader for the Zero Speech Challenge 2017.
-
-
-# called on script errors
-function failure { [ ! -z "$1" ] && echo "Error: $1"; exit 1; }
+#
 
 # basic argument checking
 if [ -z $1 ]; then
-    echo "Usage: $0 data_dir" 
+    echo "Usage: $0 data_dir"
     exit 1
 fi
 
+# create data directory
 data_dir=$1
+mkdir -p $data_dir
 
-echo "Dowloading data to $data_dir"
-
- mkdir -p $data_dir
-# TODO !!!
-cd $data_dir 
-wget -m --user=challenge2017 --ask-password ftp://129.199.81.135/datasets_2 -P ./
+# downloading data
+wget ftp://129.199.81.135/datasets_2/ -P $data_dir \
+     --user=challenge2017 --ask-password \
+     -m -nH -q --show-progress --cut-dirs=1
