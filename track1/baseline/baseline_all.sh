@@ -54,7 +54,7 @@ data_dir=$1
 output_dir=$2
 
 
-for lang in english chinese french
+for lang in english mandarin french
 do
     for duration in 1 10 120
     do
