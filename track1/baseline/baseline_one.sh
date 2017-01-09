@@ -56,13 +56,13 @@ if [ ! $# -eq 4 ]; then
     echo "Usage: $0 data_dir output_dir lang duration"
     echo "  data_dir is the path to the downloaded challenge dataset"
     echo "  output_dir is the path to evaluation results"
-    echo "  lang is either english, chinese or french"
+    echo "  lang is either english, mandarin or french"
     echo "  duration is either 1, 10, 120"
     exit 1
 fi
 [ ! -d $1 ] && failure "$1 is not an existing directory"
-[[ ! $3 == "english" && ! $3 == "chinese" && ! $3 == "french" ]] && \
-    failure "unknown langhuage $3. Choose english, chinese or french."
+[[ ! $3 == "english" && ! $3 == "mandarin" && ! $3 == "french" ]] && \
+    failure "unknown language $3. Choose english, mandarin or french."
 [[ ! $4 == 1 && ! $4 == 10 && ! $4 == 120 ]] && \
     failure "unknown duration. Choose 1, 10 or 120."
 
@@ -81,23 +81,23 @@ trap "rm -f octave-workspace" EXIT
 
 
 # compute features for old and new speakers
-for speakers in old_speakers new_speakers
-do
-    # input directory with wavs
-    current_data_dir=$data_dir/test/$lang/$duration/$speakers
-    [ ! -d $current_data_dir ] && failure "cannot find $current_data_dir"
 
-    # output h5features file
-    output_file=$output_dir/${duration}_$(echo $speakers | cut -d_ -f1).h5f
-    if [ -f $output_file ] ; then
-        echo "overwritting $output_file"
-        rm -f $output_file
-    fi
 
-    echo "features extraction for $lang $duration $speakers"
-    python $features_extraction $current_data_dir/*.wav -h5 $output_file -c $mfcc_config \
-        || failure "cannot extract features from $current_data_dir"
-done
+# input directory with wavs
+current_data_dir=$data_dir/test/$lang/$duration
+[ ! -d $current_data_dir ] && failure "cannot find $current_data_dir"
+
+# output h5features file
+output_file=$output_dir/${duration}.h5f
+if [ -f $output_file ] ; then
+    echo "overwritting $output_file"
+    rm -f $output_file
+fi
+
+echo "features extraction for $lang $duration "
+python $features_extraction $current_data_dir/*.wav -h5 $output_file -c $mfcc_config \
+    || failure "cannot extract features from $current_data_dir"
+
 
 
 # evaluate the features
