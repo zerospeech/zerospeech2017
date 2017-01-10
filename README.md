@@ -66,9 +66,8 @@ should work as well on MacOS.
   file `B07.wav`).
 
 * The test corpora have been cut into small files of controlled size
-  (1s, 10s or 120s). There are both old speakers (present in the
-  corresponding train corpus) and new speakers (unknown in the train
-  corpus). Speaker identification is *not* available for test (wav
+  (1s, 10s or 120s). 
+  Speaker identification is *not* available for test (wav
   files randomly named).
 
 
@@ -120,10 +119,10 @@ should work as well on MacOS.
   the sequence of features for a whole sentence on the basis of manual
   phone-level alignments for that sentence.
 
-* For each wav in the test set (e.g. `data/test/chinese/1s/new_speakers/aghsu09.wav`),
+* For each wav in the test set (e.g. `data/test/chinese/1s/aghsu09.wav`),
   an ASCII features file with the same name
-  (e.g. `features/test/chinese/1s/new_speakers/aghsu09.fea`) as the wav should be
-  generated in the same subdirectories logic *<lang>/<length>/<type>/<name>*
+  (e.g. `features/test/chinese/1s/aghsu09.fea`) as the wav should be
+  generated in the same subdirectories logic *<lang>/<length>/<name>*
 
 
 ### Evaluation program
@@ -146,10 +145,8 @@ should work as well on MacOS.
   example of output file, called `results.txt` is:
 
         task	score
-        ('across_talkers', 'old'):	0.757
-        ('across_talkers', 'new'):	0.724
-        ('within_talkers', 'old'):	0.868
-        ('within_talkers', 'new'):	0.854
+        across_talkers:	0.757
+        within_talkers:	0.868
 
 
 ### Using your own distance in evaluation
