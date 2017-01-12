@@ -4,7 +4,6 @@
 cython=0.24.1=py27_0
 h5py=2.6.0=np111py27_2
 hdf5=1.8.17=1
-libgfortran=3.0.0=1
 matplotlib
 mkl=11.3.3=0
 mock
