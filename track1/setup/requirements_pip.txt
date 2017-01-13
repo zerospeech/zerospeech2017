@@ -1,2 +1,1 @@
-oct2py
 git+https://github.com/bootphon/spectral

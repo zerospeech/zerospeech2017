@@ -36,11 +36,11 @@ function failure { [ ! -z "$1" ] && echo "Error: $1"; exit 1; }
 
 
 # path to the features extraction program
-features_extraction=$(realpath "${BASH_SOURCE[0]}")/../src/features_extraction/features.py
+features_extraction=$(realpath "${BASH_SOURCE[0]}")/../src/extract_features/features_extraction_challenge.py
 [ ! -f $features_extraction ] && failure "cannot find $features_extraction"
 
 # MFCC configuration file
-mfcc_config=$(realpath "${BASH_SOURCE[0]}")/../src/features_extraction/mfcc_config.json
+mfcc_config=$(realpath "${BASH_SOURCE[0]}")/../src/extract_features/mfcc_config.json
 [ ! -f $mfcc_config ] && failure "cannot find $mfcc_config"
 
 # evaluation program

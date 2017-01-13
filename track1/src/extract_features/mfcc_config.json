@@ -1,0 +1,14 @@
+{
+    "features": "mfcc",
+    "alpha": 0.97,
+    "frate": 100,
+    "fs": 16000,
+    "lowerf": 100,
+    "upperf": 6855.4976,
+    "nfft": 512,
+    "nfilt": 40,
+    "wlen": 0.025,
+    "ncep": 13,
+    "do_deltas" : true,
+    "do_deltasdeltas" : true
+}
