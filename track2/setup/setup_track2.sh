@@ -50,24 +50,28 @@ python setup.py install || failure "cannot install tde"
 # TODO: change setup.py to point to the bin_dir
 bin_dir=../../bin/
 mkdir -p ${bin_dir}
+install bin/english_eval2.py ${bin_dir} || failure "cannot copy tde - english_eval2.py"
+install bin/french_eval2.py ${bin_dir}  || failure "cannot copy tde - french_eval2.py"
+install bin/mandarin_eval2.py ${bin_dir} || failure "cannot copy tde - mandarin_eval2.py"
+cp -rf bin/resources  ${bin_dir}        || failure "cannot copy tde - bin/resources"
 cd -
 
 # setup ZRTools 
 cd ../src/ZRTools
 make  || failure "cannot install ZRTools"
-cp plebdisc/build_index ${bin_dir} || failure "cannot copy ZRTools - build_index" 
-cp plebdisc/genproj ${bin_dir}     || failure "cannot copy ZRTools - genproj"
-cp plebdisc/lsh ${bin_dir}                  || failure "cannot copy ZRTools - lsh"
-cp plebdisc/plebdisc ${bin_dir}             || failure "cannot copy ZRTools - plebdisc"
-cp plebdisc/plebkws ${bin_dir}              || failure "cannot copy ZRTools - plebkws"
-cp plebdisc/rescore_singlepair_dtw ${bin_dir} || failure "cannot copy ZRTools - rescore_singlepair_dtw"
-cp plebdisc/standfeat ${bin_dir}            || failure "cannot copy ZRTools - standfeat"
+install plebdisc/build_index ${bin_dir} || failure "cannot copy ZRTools - build_index" 
+install plebdisc/genproj ${bin_dir}     || failure "cannot copy ZRTools - genproj"
+install plebdisc/lsh ${bin_dir}                  || failure "cannot copy ZRTools - lsh"
+install plebdisc/plebdisc ${bin_dir}             || failure "cannot copy ZRTools - plebdisc"
+install plebdisc/plebkws ${bin_dir}              || failure "cannot copy ZRTools - plebkws"
+install plebdisc/rescore_singlepair_dtw ${bin_dir} || failure "cannot copy ZRTools - rescore_singlepair_dtw"
+install plebdisc/standfeat ${bin_dir}            || failure "cannot copy ZRTools - standfeat"
 cp -rf scripts ${bin_dir}          || failure "cannot copy ZRTools - scripts/" 
 cd -
 
 # setup icsi (feacal)
 cd ../src/icsi-scenic-tools-20120105
 make || failure "cannot install feacal"
-cp ./feacalc-0.92/feacalc ${bin_dir} || failure "cannot copy featcalc - scripts/" 
+install ./feacalc-0.92/feacalc ${bin_dir} || failure "cannot copy featcalc - scripts/" 
 cd -
 
