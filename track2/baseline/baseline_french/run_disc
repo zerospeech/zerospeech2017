@@ -83,7 +83,7 @@ if [ "$PAR" == "par" ]; then
     echo "Running discovery tasks using with gnu-parallel"
     mkdir -p $EXPDIR/matches
     rm -rf $EXPDIR/matches/*
-    cat $EXPDIR/disc.cmd  | parallel --tmpdir $EXPDIR/matches --files -j $N_JOBS {}  
+    cat $EXPDIR/disc.cmd | parallel --tmpdir $EXPDIR/matches --files -j $N_JOBS {}  
     cat $EXPDIR/matches/*.par 1> $EXPDIR/matches/out.1
     rm -rf $EXPDIR/matches/*.par
 
