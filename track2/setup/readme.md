@@ -12,3 +12,5 @@ ubuntu (14.04):
     apt-get install gcc
     apt-get install sox
 
+# Environmental variables
+
