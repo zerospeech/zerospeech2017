@@ -7,3 +7,10 @@
 [submodule "features_extraction"]
 	path = track1/src/features_extraction
 	url = git@github.com:bootphon/features_extraction.git
+[submodule "track2/src/ZRTools"]
+	path = track2/src/ZRTools
+	url = https://github.com/arenjansen/ZRTools
+[submodule "track2/src/tde"]
+	path = track2/src/tde
+	url = https://github.com/bootphon/tde
+	branch = zerospeech2017
