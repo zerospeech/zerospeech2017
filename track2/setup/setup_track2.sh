@@ -52,10 +52,21 @@ cd -
 # setup ZRTools 
 cd ../src/ZRTools
 make  || failure "cannot install ZRTools"
+bin_dir=../../bin/
+mkdir -p ${bin_dir}
+cp plebdisc/build_index ${bin_dir} || failure "cannot copy ZRTools - build_index" 
+cp plebdisc/genproj ${bin_dir}     || failure "cannot copy ZRTools - genproj"
+cp plebdisc/lsh ${bin_dir}                  || failure "cannot copy ZRTools - lsh"
+cp plebdisc/plebdisc ${bin_dir}             || failure "cannot copy ZRTools - plebdisc"
+cp plebdisc/plebkws ${bin_dir}              || failure "cannot copy ZRTools - plebkws"
+cp plebdisc/rescore_singlepair_dtw ${bin_dir} || failure "cannot copy ZRTools - rescore_singlepair_dtw"
+cp plebdisc/standfeat ${bin_dir}            || failure "cannot copy ZRTools - standfeat"
+cp -rf scripts ${bin_dir}          || failure "cannot copy ZRTools - scripts/" 
 cd -
 
 # setup icsi (feacal)
 cd ../src/icsi-scenic-tools-20120105
 make || failure "cannot install feacal"
+cp ./feacalc-0.92/feacalc ${bin_dir} || failure "cannot copy featcalc - scripts/" 
 cd -
 
