@@ -49,8 +49,13 @@ cd ../src/tde
 python setup.py install || failure "cannot install tde"
 cd -
 
-# setup ABXpy
-cd ../src/ABXpy
-make install || failure "cannot install ABXpy"
+# setup ZRTools 
+cd ../src/ZRTools
+make  || failure "cannot install ZRTools"
+cd -
+
+# setup icsi (feacal)
+cd ../src/icsi-scenic-tools-20120105
+make || failure "cannot install feacal"
 cd -
 
