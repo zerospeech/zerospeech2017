@@ -71,6 +71,7 @@ cd -
 
 # setup icsi (feacal)
 cd ../src/icsi-scenic-tools-20120105
+./configure || failure "cannot configure ../src/icsi-scenic-tools-20120105" 
 make || failure "cannot install feacal"
 install ./feacalc-0.92/feacalc ${bin_dir} || failure "cannot copy featcalc - scripts/" 
 cd -
