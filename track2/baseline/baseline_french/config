@@ -1,0 +1,62 @@
+#!/bin/bash
+
+##############################
+# Baseline parameters 
+##############################
+
+# Plebdisc input parameters:
+S=64
+P=8
+B=50
+D=5
+
+# clustering parameters
+DTWTHR=0.88
+OLAPTHR=0.97  
+DEDUPTHR=0.9 
+DURTHR=100   
+RHOTHR=500   
+
+# other paramters used on run_disc
+PAR='par'
+FILELIST='./data/french.lst'
+
+##############################
+# Working directories
+##############################
+
+# Temporary file directory
+TMP=/tmp
+
+# Experiment folder (each discovery run will get its own subfolder under EXPDIR)
+EXPDIR=exp
+EXPNAME=$(printf "french_S%04d_P%04d_B%04d_D%04d" $S $P $B $D)
+echo $EXPNAME
+
+# Feature dimension (39-dim PLP are produced by default)
+DIM=39
+
+# directory where vad files are stored, if the vad file is found
+# it will be use instead of computing
+VAD_FILES=./data/vad
+
+# parallelization with gnu parallel: number of cores
+N_JOBS=25
+
+# cached files (no recompute what was done before!)
+CACHE=./data/cache
+
+
+##############################
+# External package executables
+##############################
+
+PATH=$PATH:~/bin/:~/bin/scripts/
+
+# sox, a standard linux tool
+SOXBIN=/usr/bin/sox
+
+# feacalc from the ICSI Sprachcore package
+FEACALCBIN=$HOME/bin/feacalc
+
+

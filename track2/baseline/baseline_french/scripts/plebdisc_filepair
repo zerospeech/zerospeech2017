@@ -1,0 +1,75 @@
+#!/bin/bash
+
+set -e
+
+
+#
+# Copyright 2011-2012  Johns Hopkins University (Author: Aren Jansen)
+#
+
+
+#USAGE: ./plebdisc_filepair <base1> <base2> <expdir> <dim>
+
+. config 
+
+# file names ...
+BASE1=$1
+BASE2=$2
+
+if [ -z "$DIM" ]; then
+    echo "Missing DIM in config file"; 
+    exit 1;
+fi
+
+if [ -z "$S" ]; then
+    echo "Missing S in config file"; 
+    exit 1;
+fi
+
+if [ -z "$P" ]; then
+    echo "Missing P in config file";
+    exit 1;
+fi
+
+if [ -z "$B" ]; then
+    echo "Missing B in config file"; 
+    exit 1;
+fi
+
+if [ -z "$D" ]; then
+    echo "Missing D in config file";    
+fi
+
+# all the hash and features are pre-computed
+LSH1=$CACHE/D${DIM}S${S}/lsh/${BASE1}.std.lsh64
+LSH2=$CACHE/D${DIM}S${S}/lsh/${BASE2}.std.lsh64
+
+FEAT1=$CACHE/D${DIM}S${S}/feat/${BASE1}.std.binary
+FEAT2=$CACHE/D${DIM}S${S}/feat/${BASE2}.std.binary
+
+ulimit -c 0
+
+# header of the discovery that will into out.1
+echo $BASE1 $BASE2 
+
+plebdisc -S $S \
+    -P $P \
+    -rhothr 0 \
+    -T 0.25 \
+    -B $B \
+    -D $D \
+    -dtwscore 0 \
+    -kws 0 \
+    -dx 25 \
+    -medthr 0.5 \
+    -twopass 1 \
+    -Tscore 0.5 \
+    -file1 $LSH1 -file2 $LSH2 | awk 'NF == 2 || $5 > 0. {print $0;}' > $TMP/${BASE1}_$BASE2.match
+
+if [[ -f $FEAT1 ]] && [[ -f $FEAT2 ]] && [[ ! -z "$DIM" ]]; then
+    rescore_singlepair_dtw -wmvn 0 -file1 $FEAT1 -file2 $FEAT2 -matchlist $TMP/${BASE1}_$BASE2.match -D $DIM
+else
+    cat $TMP/${BASE1}_$BASE2.match
+fi
+
+rm -f $TMP/${BASE1}_$BASE2.match

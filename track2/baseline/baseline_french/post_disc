@@ -1,0 +1,102 @@
+#!/bin/bash
+
+set -e
+
+#USAGE: ./post_disc <exp_name> <match_thr>
+
+#
+# Copyright 2011-2015  Johns Hopkins University (Author: Aren Jansen)
+#
+
+. config 
+
+ulimit -c 0
+
+TMP=${TMP:=/tmp}
+
+EXPDIR=$EXPDIR/$EXPNAME
+
+if [ -z "$DTWTHR" ]; then
+    echo "Missing DTWTHR in config file"
+    exit 1;
+fi
+
+if [ -z "$OLAPTHR" ]; then
+    echo "Missing OLAPTHR in config file"; 
+    exit 1;
+fi
+
+if [ -z "$DEDUPTHR" ]; then
+    echo "Missing DEDUPTHR in config file";
+    exit 1;
+fi
+
+if [ -z "$DURTHR" ]; then
+    echo "Missing DURTHR in config file";
+    exit 1;
+fi
+
+if [ -z "$RHOTHR" ]; then
+    echo "Missing RHOTHR in config file";
+    exit 1;
+fi
+
+if [ -z "$EXPNAME" ]; then
+    echo "Missing EXPNAME in config file"
+    exit 1;
+fi
+
+if [ ! -d "$EXPDIR" ]; then
+    echo "ERROR: experiment subfolder $EXPDIR does not exist"
+    exit
+fi
+
+echo "Post-processing experiment $EXPDIR"
+
+
+OLAPTHR_=$(echo $OLAPTHR | awk '{printf("%03d",$1*100.0)}')
+DTWTHR_=$(echo $DTWTHR | awk '{printf("%03d",$1*100.0)}')
+DEDUPTHR_=$(echo $DEDUPTHR | awk '{printf("%03d",$1*100.0)}')
+DURTHR_=$(printf '%03d' $DURTHR)
+RHOTHR_=$(printf '%03d' $RHOTHR)
+
+DIR_RES=OLAPTHR${OLAPTHR_}_DTWTHR${DTWTHR_}_DEDUPTHR${DEDUPTHR_}_DURTHR${DURTHR_}_RHOTHR${RHOTHR_}
+MASTER=master_match_OLAPTHR${OLAPTHR_}_DTWTHR${DTWTHR_}_DEDUPTHR${DEDUPTHR_}_DURTHR${DURTHR_}_RHOTHR${RHOTHR_}
+MASTER_GRAPH=master_graph_OLAPTHR${OLAPTHR_}_DTWTHR${DTWTHR_}_DEDUPTHR${DEDUPTHR_}_DURTHR${DURTHR_}_RHOTHR${RHOTHR_}
+
+echo "Generating master match file: $EXPDIR/matches/$MASTER"
+cat $EXPDIR/matches/out.* | cut -d ' ' -f1-6 | awk 'NF == 2 || ($6 < rhothr && $5 > dtwthr && $2-$1 > durthr && $4-$3 > durthr) {print $0;}' dtwthr=$DTWTHR durthr=$DURTHR rhothr=$RHOTHR | uniq | awk 'NF == 2 {lastpair=$0; lastNF=2; next;}  lastNF==2 {print lastpair; print $0; lastNF=6; next} {print $0; lastNF=6;}' > $EXPDIR/matches/$MASTER
+
+echo "Building adjacency graph"
+python scripts/build_graph.py --input=$EXPDIR/matches/$MASTER --probthr=$DTWTHR --olapthr=$OLAPTHR --output=$EXPDIR/matches/${MASTER_GRAPH} --list=$EXPDIR/files.base
+
+echo "Perform clustering"
+python ./scripts/conncomp_dfs.py --input=$EXPDIR/matches/${MASTER_GRAPH}.edges --output=$EXPDIR/matches/${MASTER_GRAPH}.clusters --thresh=0
+
+echo "Dedup clusters"
+python scripts/dedup_clusters.py --ninput=$EXPDIR/matches/${MASTER_GRAPH}.nodes --cinput=$EXPDIR/matches/${MASTER_GRAPH}.clusters --dedupthr=$DEDUPTHR --output=$EXPDIR/matches/${MASTER_GRAPH}.dedups
+
+echo "Remove garbage clusters"
+cat $EXPDIR/matches/${MASTER_GRAPH}.dedups | awk 'length($0) < 60000 && NF < 10000 {print $0;}' > $EXPDIR/matches/${MASTER_GRAPH}.dedupsfilt
+mv $EXPDIR/matches/${MASTER_GRAPH}.dedupsfilt $EXPDIR/matches/${MASTER_GRAPH}.dedups
+
+echo "Write the bags-of-pseudoterms feature file"
+python scripts/dump_pseudoterm.py --cinput=$EXPDIR/matches/${MASTER_GRAPH}.dedups --ninput=$EXPDIR/matches/${MASTER_GRAPH}.nodes --output=$EXPDIR/matches/${MASTER_GRAPH}.feats --listname=$EXPDIR/files.base
+
+cp $EXPDIR/matches/${MASTER_GRAPH}.dedups $EXPDIR/matches/${MASTER_GRAPH}.nodes $EXPDIR/matches/${MASTER_GRAPH}.feats $EXPDIR/results/
+
+echo '--- zrtools2eval '
+
+python scripts/zrtools2eval --nodes $EXPDIR/results/${MASTER_GRAPH}.nodes --dedups $EXPDIR/results/${MASTER_GRAPH}.dedups  --output $EXPDIR/results/${MASTER_GRAPH}.class
+
+# compress the files in matches
+bzip2 -f $EXPDIR/matches/$MASTER \
+      $EXPDIR/matches/${MASTER_GRAPH}.clusters \
+      $EXPDIR/matches/${MASTER_GRAPH}.dedups \
+      $EXPDIR/matches/${MASTER_GRAPH}.edges \
+      $EXPDIR/matches/${MASTER_GRAPH}.feats \
+      $EXPDIR/matches/${MASTER_GRAPH}.nodes
+
+
+
+
