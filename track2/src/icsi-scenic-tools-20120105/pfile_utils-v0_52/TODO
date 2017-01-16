@@ -1,0 +1,9 @@
+o Look into the -sent_check argument of pfile and
+  see how to re-implement.
+
+o Add a limits argument to limit in terms of
+  absolute number of frames.
+
+o Update pfile_gaussian to read in previously done
+  statistics rather than always working on the current
+  pfile.

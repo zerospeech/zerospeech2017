@@ -1,0 +1,33 @@
+. $Header: /u/drspeech/repos/quicknet2/matlab_weights.man,v 1.1 2010/11/03 00:55:25 davidj Exp $
+.TH MATLAB_WEIGHTS 5 "$Date: 2010/11/03 00:55:25 $" ICSI "ICSI SPEECH SOFTWARE"
+.SH NAME
+matlab_weights \- matlab-style weights file used by QuickNet
+.SH DESCRIPTION
+.LP
+The \fImatlab_weights\fP
+file format is used to store MLP weight as produced by recent versions
+of the QuickNet
+programs and utilities.  As of 2010, it is only used for
+densley-connected nets with 3-5 layers. 
+.P
+The actual details of the layout is the same
+as the matlab level 4 format as described in
+\fIhttp://www.mathworks.com/help/pdf_doc/matlab/matfile_format.pdf\fP.
+From matlab, a weight file for a 3-layer net can be created using the
+following command:
+
+.ta .5i
+.nf
+	save -v4 weight_name weights12 bias2 weights23 bias3
+.fi
+
+.SH NOTES/BUGS
+Either matlab, the matlab libraries on the QuickNet class
+.BR QN_MLPWeightFile_Matlab
+can be used to access the weight file.
+.SH AUTHOR
+David Johnson <davidj@ICSI.Berkeley.EDU>
+.SH SEE ALSO
+.BR qnmultitrn (1),
+.BR qnmultifwd (1),
+.BR weights (5).

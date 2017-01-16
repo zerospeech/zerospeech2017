@@ -1,0 +1,95 @@
+. $Header: /u/drspeech/repos/feacat/labcat.man,v 1.4 2004/12/03 00:54:52 gelbart Exp $
+.de EX		\" Begin Example
+.ie \\n(.$ .nr EX \\$1n
+.el \{\
+.	ie n .nr EX 0n
+.	el .nr EX 0n
+.\}
+.in +\\n(EXu
+.if n .sp 1
+.if t .sp .5v
+.nf
+.CW
+.ft CB
+..
+.de EE		\" End example
+.in -\\n(EXu
+.fi
+.}f             \" restore basic text attributes
+.if n .sp 1
+.if t .sp .5v
+..
+.de MS
+.ie t \&\f(CB\\$1\f(NR(\\$2)\\$3
+.el \fI\\$1\fP(\\$2)\\$3
+..
+.TH LABCAT 1 "$Date: 2004/12/03 00:54:52 $" ICSI "ICSI SPEECH SOFTWARE"
+.SH NAME
+labcat \- universal conversion between label stream formats
+.SH SYNOPSIS
+.B labcat 
+\[\fIoptions\fR\]
+\[\fI-o outfile\fR\]
+\[\fIinfile ...\fR\]
+.SH DESCRIPTION
+.I labcat
+is a `universal' label-file interconverter, created as a 
+slightly-modified version of 
+.MS feacat 1 ,
+the universal feature-file converter.  Almost everything is 
+the same as 
+.MS feacat 1  
+except that the files read and written are label archives, which 
+currently means one of the formats 
+.MS pfile 5 ,
+.MS prefile 5
+(which hasn't been tested and may not work) and the new 
+.MS ilab 5
+compressed ICSI label format. (Ascii input and output is supported too.)
+Although the first two of these formats can hold features as well as labels, the 
+feature widths of any files written by 
+.I labcat
+will be zero.
+.SH OPTIONS
+Only options which are different from 
+.MS feacat 1
+are listed here.
+.TP 1i
+.B -ip?format\fR ("ilab")
+The input file format, one of "ilab", "pfile", "pre", or "ascii".  The default 
+is "ilab" (unlike feacat, whose default is "pfile"). 
+.TP 1i
+.B -op?format\fR ("ilab")
+The output file format, one of "ilab", "pfile", "pre", or "ascii".  The default 
+is "ilab" (unlike feacat, whose default is "pfile"). 
+.TP 1i
+.B -lr|-l?abrange|-lab?elrange\fR ("all")
+A range specification for which labels to print (e.g. if a particular 
+file has several different label columns, which is not very common).  
+This takes the place of the -fr (feature range) option in 
+.MS feacat 1 .
+.TP 1i
+.B -ph?onesetfile \fIname\fR ("")
+The name of an ICSI-format phoneset file, mapping label index values 
+into ascii symbol.  If this is specified, any ascii-format output streams 
+will use the symbols so defined, and any ascii input streams will first 
+be searched for in this index file, then interpreted as integers.  
+Note that a dummy phoneset file that has phoneset symbols that look 
+like integers can be used as a quick-and-dirty way to shuffle 
+label index values.  Good luck constructing it, though!
+.P
+.SH NOTES/BUGS
+It seems wasteful to have two programs; it would be nice to have an extended 
+version of 
+.MS feacat 1
+that could handle labels as well, if the formats supported it.  Of course, 
+then it would begin to look a lot like 
+.MS pfile_cat 1 .
+.SH AUTHOR
+Dan Ellis  <dpwe@ICSI.Berkeley.EDU>
+.SH SEE ALSO
+.MS feacat 1 ,
+.MS Range 3 ,
+.MS pfile_cat 1 ,
+.MS cle 3 ,
+.MS qnnorm 1 .

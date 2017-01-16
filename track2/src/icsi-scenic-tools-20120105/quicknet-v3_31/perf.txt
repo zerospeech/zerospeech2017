@@ -1,0 +1,216 @@
+# $Header: /u/drspeech/repos/quicknet2/perf.txt,v 1.30 2006/03/02 04:12:07 davidj Exp $
+Some performance results for running QuickNet.  
+
+chezdj = AMD Sempron 2400 256KB L2 gcc 3.4.1
+guava = AMD Athlon 64 3000 (1.8GHz) 512KB L2 gcc 3.2.3-49
+haggis = dual P3 1.4GHz 512KB L2 gcc 3.2.3-39
+hero2/hero3 = dual Xeon 2.8GHz 512KB L2 gcc 3.2.3-39
+hefeweizen = dual Xeon 2.8GHz 512KB L2 gcc 3.2.3-39
+leftover = SunFire V240 dual UltraSPARC-IIIi (1.28GHz) 1MB L2 SUNWspro/gcc
+rock = Sun v20z dual Opteron 250 2.4GHz 1MB L2
+whopper = Sun v40z 8 cores 2.2GHz 1MB L2 RHEL3
+whopper4 = Sun v40z 8 cores 2.2GHz 1MB L2 RHEL4
+bigblue = IBM p5/690 8 cores/16 threads 1.9GHz
+bigblue2 = IBM p5/690 16 cores/32 threads 1.9GHz
+
+153x200x56 bunch 16			MCUPS		  MCPS
+v3_03 testdata_qnstrn.sh
+
+chezdj, ATHLONSSE1			320		  676
+guava, HAMMER32SSE2			500		 1044
+haggis, PIIISSE,			243		  509
+haggis, PIIISSE_2			228		  483
+haggis, PIIISSE th=2			206		  775
+hero2, P4SSE2(3.7.11)			487		  989
+hero2, P4SSE2(3.7.11) th=2		499		 1436
+hero2, P4SSE2(3.7.11) th=4		397		 1593
+leftover, SunUSIII gcc/atlas		179		  465
+leftover, SunUSIII SC/sunperf		333		  654
+rock, gcc+acml				251		  497
+rock, HAMMER32SSE2			647		 1375
+whopper4, HAMMER64SSE3			677		 1427
+
+153x1000x56 real bunch 16		MCUPS		  MCPS
+v3_03 testdata_qnstrn.sh
+
+guava, HAMMER32SSE2			485		  974
+haggis, PIIISSE				201		  392
+hero2, P4SSE2(3.7.11)			264		  819
+hero2, P4SSE2(3.7.11) th=2		404		 1039
+leftover, SunUSIII SC/sunperf		335		  695
+
+153x1000x56 real bunch 64		MCUPS		  MCPS
+v3_03 testdata_qnstrn.sh
+
+guava, HAMMER32SSE2			605		 1206
+haggis, PIIISSE				326		  495
+haggis, PIIISSE_2			335		  515
+haggis, PIIISSE th=2			296		  582
+hero3, P4SSE2				472		  939
+hero3, P4SSE2_2				495		  988
+hero3, P4SSE2_4				519		  987
+hero2, P4SSE2(3.7.11)			592		 1143
+hero2, P4SSE2(3.7.11) th=2		767		 1357
+hero2, P4SSE2(3.7.11) th=4		624		 1451
+leftover, SunUSIII SC/sunperf		384		  751
+leftover, SunUSIII SC/sunperf thr=2	570		  872
+whopper4, HAMMER64SSE3			741		 1521
+
+153x1000x56 real bunch 512		MCUPS		  MCPS
+v3_03 testdata_qnstrn.sh
+
+guava, HAMMER32SSE2			 824		 1210
+haggis, PIIISSE				 347		  496
+haggis, PIIISSE_2			 472		  512
+haggis, PIIISSE th=2			 559		  496
+hero3, P4SSE2				 742		  941
+hero3, P4SSE2_2				 964		  989
+hero3, P4SSE2_4				1004		  989
+hero2, P4SSE2(3.7.11)			 919		 1142
+hero2, P4SSE2(3.7.11) th=2		1350		 1137
+hero2, P4SSE2(3.7.11) th=3		1157		 1137
+hero2, P4SSE2(3.7.11) th=4		1587		 1134
+leftover, SunUSIII gcc			243		  508
+leftover, SunUSIII SC/sunperf		384		  731
+leftover, SunUSIII gcc thr=2		453		  485
+leftover, SunUSIII SC/sunperf thr=2	713		  700
+rock, gcc+acml				933		  934
+
+153x4000x56 real bunch 512		MCUPS		 MCPS
+v3_03 testdata_qnstrn.sh
+
+chezdj, ATHLONSSE1			 434		  706
+guava, HAMMER32SSE2			 862		 1252
+haggis, generic				 128		  274
+haggis, PIIISSE				 358		  492
+haggis, PIIISSE_2			 515		  562
+haggis, PIIISSE th=2			 546		  487
+hero3, generic				 216		  465
+hero3, P4SSE2				 781		  960
+hero3, P4SSE2_2				 955		 1082
+hero3, P4SSE2_4				1223		 1118
+hero2, P4SSE2(3.7.11)			 954		 1164
+hero2, P4SSE2(3.7.11) th=2		1625		 1159
+hero2, P4SSE2(3.7.11) th=4		1652		 1158
+leftover, SunUSIII SC/sunperf		 386		  705
+leftover, SunUSIII SC/sunperf thr=2	 725		  711
+leftover, SunUSIII gcc/at thr=2		 489		  491
+rock, P4SSE2				 838		 1041
+rock, gcc+acml				 989		  972
+rock, gcc+acml thr=2			1616		  888
+rock, psc+acml 				 943		  850
+rock, HAMMER32SSE2			1091		 1510
+rock, HAMMER32SSE2_2		        1567		 1597
+rock, HAMMER32SSE2 thr=2		1857		 1483
+whopper, HAMMER32SSE2			1043		 1505
+whopper, HAMMER32SSE2 thr=2		1776		 1380
+whopper, HAMMER32SSE2 thr=4		2753		 1427
+whopper, HAMMER32SSE2 thr=6		2641		 1381
+whopper, HAMMER32SSE2 thr=8		2690		 1494
+whopper4, HAMMER64SSE3			 977		 1527
+whopper4, HAMMER64SSE3 thr=2		1801		 1571
+whopper4, HAMMER64SSE3 thr=4		2719		 1475
+whopper4, HAMMER64SSE3 thr=8		2745		 1477
+bigblue, generic		         764		 1502	
+bigblue, generic, th=2		        1427		 1499
+bigblue, generic, th=4		        2664		 1498
+bigblue, generic, th=8			4270		 1500
+bigblue, generic, th=16			3809		 1936
+bigblue, 64PPCG5	                 996		 1606
+bigblue, 64PPCG5 th=2	                1803		 1603
+bigblue, 64PPCG5 th=4	                3248		 1598
+bigblue, 64PPCG5 th=8	                4427		 2033
+bigblue, 64PPCG5-vec th=8               5107		 2120
+bigblue, 64PPCG5 th=16	                3790		 2042
+bigblue, essl-64			 956		 1737
+bigblue, essl-64, th=2			1765		 1745
+bigblue, essl-64, th=4			3392		 1746
+bigblue, essl-64, th=8			4575		 1741
+bigblue, essl-64, th=16			4692		 2250
+bigblue, essl-64-vec			1061		 2134
+bigblue, essl-64-vec, th=8		5869		 2131
+
+
+153x8000x56 real bunch 512		MCUPS		  MCPS
+v3_03 testdata_qnstrn.sh
+
+
+leftover, SunUSIII SC/sunperf thr=2	 725		  718
+guava, HAMMER32SSE2			 776		 1298
+hero3, P4SSE2_4				1078		 1161
+hero2, P4SSE2(3.7.11)			 837		 1287
+hero2, P4SSE2(3.7.11) th=2		1494		 1294
+hero2, P4SSE2(3.7.11) th=4		1520		 1289
+rock, HAMMER32SSE2 thr=2		1700		 1596
+whopper, HAMMER32SSE2			 953		 1596
+whopper, HAMMER32SSE2_2			1490		 2056
+whopper, HAMMER32SSE2 thr=2		1717		 1624
+whopper, HAMMER32SSE2_2 thr=2		2444		 2036
+whopper, HAMMER32SSE2 thr=4		2808		 1612
+whopper, HAMMER32SSE2 thr=6		2719		 1586
+whopper, HAMMER32SSE2 thr=7 (b=511)	2888		 1554
+whopper, HAMMER32SSE2 thr=8		2972		 1615
+whopper4, HAMMER64SSE3			 957		 1476
+whopper4, HAMMER64SSE3 thr=8		3015		 1472
+bigblue, generic th=4	                2646		 1495
+bigblue, generic th=8	                3854		 1499
+bigblue, generic th=16	                3608		 1930
+bigblue, 64PPCG5 th=4	                3289		 1667
+bigblue, 64PPCG5 th=8	                5062		 1662
+bigblue, 64PPCG5 th=16	                3632		 2049
+bigblue, 64PPCG5-vec th=8               5659		 2164
+bigblue, essl-32, th=2			1742		 1711
+bigblue, essl-64, th=2			1778		 1760
+bigblue, essl-64, th=4			3339		 1758
+bigblue, essl-64, th=8			3677		 1765
+bigblue, essl-64, th=16			4536		 2284
+bigblue, essl-64-vec, th=8		5609		 2142
+bigblue, esslsmp-64, T=4		2278		 3354
+bigblue, esslsmp-64, T=8		2868		 3793
+bigblue, esslsmp-64, T=16		2944		 3513
+bigblue2, 64PPCG5 th=4			3383		 1645
+bigblue2, 64PPCG5 th=8			5083		 1650
+bigblue2, 64PPCG5 th=16			4223		 2034
+bigblue2, 64PPCG5-vec th=8		4995		 1650
+bigblue2, 64PPCG5-vec th=16		4203		 2029
+bigblue2, essl-64, th=8			3677		 1765
+bigblue2, essl-64, th=16		4536		 2284
+bigblue2, essl-64-vec, th=8		5689		 2160
+bigblue2, essl-64-vec, th=16		5694		 2840
+bigblue2, essl-64-vec, th=32		4185		 4978
+
+153x16000x56 real bunch 512		MCUPS		 MCPS
+
+whopper4, HAMMER64SSE3 thr=8		2926		 1544
+bigblue, 64PPCG5 th=8			4754		 1836
+bigblue, 64PPCG5 th=16	                3867		 2352
+bigblue2, 64PPCG5-vec th=8              5270		 2329
+bigblue2, 64PPCG5-vec th=16             6176 		 2842
+bigblue2, essl-64-vec, th=8		5663		 2074
+bigblue2, essl-64-vec, th=16		6158		 2301
+bigblue2, essl-64-vec, th=32		4154		 5089
+
+153x32000x56 real bunch 512		MCUPS		 MCPS
+
+bigblue2, essl-64-vec, th=8		5230		 2150
+bigblue2, essl-64-vec, th=16		5679		 2852
+bigblue2, essl-64-vec, th=32		5704		 2844
+
+
+----------------------------------------------------------------
+Theoretical single precision peak performance:
+
+IBM G5: 8flops (4 mulacc)/cycle
+IBM P5: 4flops/cycle?
+P4: 4flops (2 mulacc)/cycle
+
+----------------------------------------------------------------
+Asymptotic single performance using best compile/lib combo and
+MLP3_perf:
+
+						MCUPS	  MCPS
+Sun V240 1xUS3i 1.28GHz, studio10/sunperf	 452
+Sun V20z Single Opteron 250 2.4GHz 1MB L2	1286
+Sun V20z Dual Opteron 250 2.4GHz 1MB L2		2293
+
+

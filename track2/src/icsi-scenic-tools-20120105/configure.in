@@ -1,0 +1,41 @@
+dnl -*- sh -*-
+dnl $Header: /n/abbott/da/drspeech/src/SPRACHcore/RCS/configure.in,v 1.15 2001/12/05 17:53:18 dpwe Exp $
+dnl
+dnl configure.in for the icsi-scenic-tools distribution
+dnl Process this file with autoconf to produce a configure script.
+
+AC_INIT(icsi-scenic-tools,20120105,quicknet-bugs@ICSI.Berkeley.EDU,icsi-scenic-tools)
+#AC_CANONICAL_SYSTEM
+ACDPWE_SYSTEM
+AC_PREFIX_DEFAULT(/usr/local)
+ACDPWE_INIT_PREFIX
+
+dnl Checks for programs.
+#AC_PROG_CC
+#AC_PROG_CXX
+ACDPWE_PROG_CC_CXX
+
+# added 2012-01-05
+AC_SYS_LARGEFILE
+
+AC_PROG_INSTALL
+AC_PATH_PROG(AR,ar)
+AC_PATH_PROG(RANLIB,ranlib,:)
+
+# Set the overall package name (so descendents know the overall parent)
+AC_CACHE_CHECK(parent package name is set, acdpwe_cv_pkg_name, acdpwe_cv_pkg_name=icsi-scenic-tools)
+if test "$acdpwe_cv_pkg_name" = "icsi-scenic-tools" ; then
+  # We are the parent - reset the build paths
+  ## Start building a set of directories to search for pkgs in build-mode
+  AC_CACHE_CHECK(lib path is clear, acdpwe_cv_env_lib_path, acdpwe_cv_env_lib_path=)
+  acdpwe_cv_env_lib_path=
+  # Similarly for binary path
+  AC_CACHE_CHECK(path is clear, acdpwe_cv_env_path, acdpwe_cv_env_path=)
+  acdpwe_cv_env_path=
+fi
+
+dnl Packages included in the dist.
+# packages="quicknet-v3_20 dpwelib rasta feacalc feacat"
+#AC_CONFIG_SUBDIRS($packages)
+AC_CONFIG_SUBDIRS([quicknet-v3_31 dpwelib-1.01 rasta feacalc-0.92 feacat-1.02 pfile_utils-v0_52])
+AC_OUTPUT(Makefile)

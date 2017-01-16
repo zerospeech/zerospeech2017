@@ -1,0 +1,394 @@
+dnl -*- sh -*-
+dnl $Header: /u/drspeech/repos/quicknet2/configure.in,v 1.108 2011/05/24 01:32:14 davidj Exp $
+dnl configure.in for the QuickNet library
+dnl Process this file with autoconf to produce a configure script.
+
+AC_PREREQ(2.67)
+AC_INIT(QuickNet, v3_31, quicknet-bugs@ICSI.Berkeley.EDU, quicknet)
+AC_CONFIG_SRCDIR([QuickNet.h])
+AC_PREFIX_DEFAULT([/usr/local])
+qn_exec_prefix=${exec_prefix}
+test "x${qn_exec_prefix}" = "xNONE" && qn_exec_prefix=${prefix}
+AC_CANONICAL_SYSTEM
+AC_ARG_PROGRAM
+
+AC_ARG_VAR(LD, [Linker command])
+AC_ARG_VAR(NVCC, [CUDA compiler])
+AC_ARG_VAR(NVCCFLAGS, [CUDA compiler flags])
+
+ac_cv_use_blas=no
+AC_ARG_WITH([blas],
+    AC_HELP_STRING([--with-blas=ARG],[use blas library - no(default),blas,cblas,atlas,ptatlas,essl,esslsmp,sunperf,imkl,acml-gcc,acml-psc,macos]),
+    [ac_cv_use_blas=$withval],
+    [ac_cv_use_blas=no] )
+case $ac_cv_use_blas in
+  no|blas|cblas|atlas|ptatlas|essl|esslsmp|sunperf|imkl|acml-gcc|acml-psc|macos)
+    ;;
+  *)
+    AC_MSG_ERROR([invalid value for --with-blas])
+    ;;
+esac
+
+AC_ARG_WITH([veclib],
+    AC_HELP_STRING([--with-veclib=ARG],[use vector library - no(default),mass]),
+    [ac_cv_use_veclib=$withval],
+    [ac_cv_use_veclib=no] )
+case $ac_cv_use_veclib in
+  no|mass)
+    ;;
+  *)
+    AC_MSG_ERROR([invalid value for --with-veclib])
+    ;;
+esac
+
+AC_ARG_WITH([testdata],
+    AC_HELP_STRING([--with-testdata=ARG],[find QuickNet test data in specified directory]),
+    [ac_cv_testdata=$withval],
+    [ac_cv_testdata=${prefix}/share/quicknet_testdata] )
+
+AC_ARG_WITH([rtst],
+    AC_HELP_STRING([--with-rtst=ARG],[find rtst test library in specified directory]),
+    [ac_cv_rtst=$withval],
+    [ac_cv_rtst=${qn_exec_prefix}/lib] )
+
+AC_ARG_WITH([pthread],
+    AC_HELP_STRING([--with-pthread=ARG],[use Posix Threads default=yes]),
+    [with_pthread=$withval],
+    [with_pthread="yes"] )
+
+AC_ARG_WITH([cuda],
+    AC_HELP_STRING([--with-cuda=ARG],[include CUDA functionality default=no]),
+    [with_cuda=$withval],
+    [with_cuda="no"] )
+AC_CONFIG_HEADER([config.h])
+
+
+dnl Checks for programs.
+AC_PROG_CC
+AC_PROG_CXX
+AC_PROG_INSTALL
+AC_PROG_RANLIB
+
+dnl CUDA tools check
+AC_CHECK_PROG(NVCC,nvcc,nvcc)
+if test $with_cuda != "no"; then
+    AC_MSG_CHECKING(CUDA setup)
+    if test "$enable_shared" = "yes"; then
+        AC_MSG_ERROR([cannot have --with-cuda and --enable-shared])
+    fi
+    if test "$NVCC" = "no"; then
+        AC_MSG_ERROR([cannot enable CUDA without a suitable nvcc])
+    fi
+    AC_DEFINE(CUDA,[], [have CUDA functionality])
+    AC_MSG_RESULT(yes)
+    LIBS="-lcublas -lcudart ${LIBS}"
+    dnl A bit of a hack to find the CUDA libraries
+    AC_PATH_PROG(NVCCPATH,${NVCC})
+    nvccbindir=`dirname ${NVCCPATH}`
+    cudadir=`dirname ${nvccbindir}`
+    if test -d ${cudadir}/lib64 ; then
+        LDFLAGS="-L${cudadir}/lib64 -Wl,-rpath=${cudadir}/lib64 ${LDFLAGS}"
+    fi
+    if test -d ${cudadir}/lib ; then
+        LDFLAGS="-L${cudadir}/lib -Wl,-rpath=${cudadir}/lib ${LDFLAGS}"
+    fi
+fi
+
+test -z "$LD" && LD='${CXX}'
+dnl AC_DISABLE_SHARED
+AC_PROG_LIBTOOL
+
+
+
+#================================================================
+dnl Checks for libraries.
+#
+#--------------------------------------------------------------------
+#	math
+#--------------------------------------------------------------------
+AC_CHECK_LIB([m], [sqrt])
+#--------------------------------------------------------------------
+#	Sun math
+#--------------------------------------------------------------------
+AC_CHECK_LIB([sunmath], [standard_arithmetic])
+#--------------------------------------------------------------------
+#       Posix Threads
+if test "$with_pthread" = "yes"; then
+    AC_CHECK_LIB([pthread], [pthread_create])
+fi
+#--------------------------------------------------------------------
+#--------------------------------------------------------------------
+#	rtst
+#--------------------------------------------------------------------
+if test -f ${ac_cv_rtst}/pkgconfig/rtst.pc; then
+    RTST_DFLT_PC=${ac_cv_rtst}/pkgconfig
+elif test -f ${ac_cv_rtst}/rtst.pc; then
+    RTST_DFLT_PC=${ac_cv_rtst}
+else
+    RTST_DFLT_PC=${qn_exec_prefix}/lib/pkgconfig
+fi
+old_PKG_CONFIG_PATH=${PKG_CONFIG_PATH}
+PKG_CONFIG_PATH="${RTST_DFLT_PC}:${PKG_CONFIG_PATH}"
+export PKG_CONFIG_PATH
+PKG_CHECK_MODULES(RTST,rtst,,:)
+PKG_CONFIG_PATH=${old_PKG_CONFIG_PATH}
+
+old_CFLAGS=${CFLAGS}
+old_LIBS=${LIBS}
+CFLAGS="${CFLAGS} ${RTST_CFLAGS}"
+LIBS="${LIBS} ${RTST_LIBS}"
+AC_CHECK_LIB([rtst], [rtst_exit], [have_librtst=yes], [have_librtst=no])
+CFLAGS=${old_CFLAGS}
+LIBS=${old_LIBS}
+AC_SUBST(have_librtst)
+
+
+#----------------------------------------------------------------
+dnl The default mlp3_blas flag for the test scripts
+default_mlp3_blas=false
+
+dnl note that we've alrady checked valid values for ac_cv_use_blas by here
+case $ac_cv_use_blas in
+  blas)
+    AC_CHECK_HEADERS([blas.h])
+    AC_CHECK_LIB([blas], [sgemm],
+		 [AC_DEFINE(HAVE_LIBBLAS, [], [have libblas])
+		   LIBS="-lblas $LIBS"
+		   default_mlp3_blas=true],
+		AC_MSG_FAILURE([could not find the blas library]) )
+    ;;
+  cblas)
+    AC_CHECK_HEADERS([cblas.h])
+    AC_CHECK_LIB([cblas], [cblas_sgemm],
+		 [AC_DEFINE(HAVE_LIBCBLAS, [], [have libcblas])
+		  AC_DEFINE(HAVE_LIBBLAS, [], [have libblas])
+		  LIBS="-lcblas $LIBS"
+		  default_mlp3_blas=true],
+		AC_MSG_FAILURE([could not find the cblas library]) )
+    ;;
+  atlas)
+    AC_CHECK_HEADERS([cblas.h atlas_buildinfo.h atlas/atlas_buildinfo.h])
+    AC_CHECK_LIB([atlas], [ATL_buildinfo], ,
+		AC_MSG_FAILURE([could not find the atlas library]) )
+    AC_CHECK_LIB([cblas], [cblas_sgemm],
+		 [AC_DEFINE(HAVE_LIBCBLAS, [], [have libcblas])
+		  AC_DEFINE(HAVE_LIBBLAS, [], [have libblas])
+		   LIBS="-lcblas $LIBS"
+		   default_mlp3_blas=true],
+		AC_MSG_FAILURE([could not find the cblas library]) )
+    ;;
+  ptatlas)
+    AC_CHECK_HEADERS([cblas.h])
+    AC_CHECK_LIB([atlas], [ATL_buildinfo], ,
+		AC_MSG_FAILURE([could not find the atlas library]) )
+    AC_CHECK_LIB([pthread], [pthread_create], ,
+		AC_MSG_FAILURE([could not find the pthread library]) )
+    AC_CHECK_LIB([ptcblas], [cblas_sgemm],
+		 [AC_DEFINE(HAVE_LIBCBLAS, [], [have libcblas])
+		  AC_DEFINE(HAVE_LIBBLAS, [], [have libblas])
+		  LIBS="-lptcblas $LIBS"
+		  default_mlp3_blas=true],
+	    	 [AC_MSG_FAILURE([could not find the ptcblas library])],
+		 )
+    ;;
+  essl)
+    AC_CHECK_HEADERS([essl.h],,AC_MSG_FAILURE([could not find essl.h]))
+    LIBS="-lessl -lxlf90_r -lxlomp_ser -lxlfmath $LIBS"
+    AC_CHECK_LIB([essl], [sgemm],
+		 [AC_DEFINE(HAVE_LIBBLAS, [], [have libblas])
+		  AC_DEFINE(HAVE_LIBESSL, [], [have libessl])
+		  default_mlp3_blas=true],
+		AC_MSG_FAILURE([could not find the essl library]) )
+    ;;
+  esslsmp)
+    AC_CHECK_HEADERS([essl.h],,AC_MSG_FAILURE([could not find essl.h]))
+    LIBS="-lesslsmp -lxlf90_r -lxlsmp -lxlfmath $LIBS"
+    AC_CHECK_LIB([esslsmp], [sgemm],
+		 [AC_DEFINE(HAVE_LIBBLAS, [], [have libblas])
+		  AC_DEFINE(HAVE_LIBESSL, [], [have libessl])
+		  AC_DEFINE(HAVE_LIBESSLSMP, [], [have libesslsmp])
+		  AC_CHECK_HEADERS([omp.h])
+		  AC_CHECK_FUNCS([omp_get_max_threads omp_set_num_threads omp_get_num_threads])
+		  default_mlp3_blas=true],
+		AC_MSG_FAILURE([could not find the esslsmp library]) )
+    ;;
+  sunperf)
+    # Should check that we are not using gcc here
+    AC_CHECK_HEADERS([sunperf.h],,AC_MSG_FAILURE([could not find sunperf.h]))
+    # Here we get rid of other -l stuff as it seems to break with -xlic_lib
+    LIBS=`echo $LIBS | sed -e 's/-lpthread//' -e 's/-lsunmath//' -e 's/-lm//'`
+    LIBS="$LIBS -library=sunperf"
+    CPPFLAGS="-dalign $CPPFLAGS"
+    AC_CHECK_LIB([sunperf], [sgemm],
+		 [AC_DEFINE(HAVE_LIBBLAS, [], [have libblas])
+		  default_mlp3_blas=true],
+		AC_MSG_FAILURE([could not find the sunperf library]) )
+    ;;
+
+  imkl) dnl Intel math kernel libraries
+    AC_CHECK_HEADERS([mkl.h],,AC_MSG_FAILURE([could not find mkl.h]))
+    AC_CHECK_LIB([mkl_rt], [mkl_get_version_string],
+		 [AC_DEFINE(HAVE_LIBBLAS, [], [have libblas])
+		  AC_DEFINE(HAVE_LIBCBLAS, [], [have libcblas])
+		  AC_DEFINE(HAVE_LIBMKL, [], [have libmkl])
+		  LIBS="-lmkl_rt $LIBS"
+                  if test "$GCC" = yes; then
+                      LIBS="$LIBS -fopenmp -lpthread"
+                      AC_DEFINE(MKL_THREADING_GCC, [], [using MKL gcc threads])
+                  fi
+		  default_mlp3_blas=true],
+		AC_MSG_FAILURE([could not find the Intel mkl_rt library])
+               )
+    ;;
+  acml-gcc) dnl AMD-optimized libraries with gcc
+    # Should check that we are not using gcc here
+    AC_CHECK_HEADERS([acml.h],,AC_MSG_FAILURE([could not find acml.h]))
+    AC_CHECK_LIB([acml], [acmlinfo],
+		 [AC_DEFINE(HAVE_LIBBLAS, [], [have libblas])
+		  LIBS="-lacml $LIBS"
+		  default_mlp3_blas=true],
+		AC_MSG_FAILURE([could not find the AMD acml library])
+               )
+    ;;
+  acml-psc) dnl AMD-optimized libraries with pathscale compiler
+    # Should check that we are not using gcc here
+    AC_CHECK_HEADERS([acml.h],,AC_MSG_FAILURE([could not find acml.h]))
+    LIBS="-lpathfortran $LIBS"
+    AC_CHECK_LIB([acml], [acmlinfo],
+		 [AC_DEFINE(HAVE_LIBBLAS, [], [have libblas])
+		  LIBS="-lacml $LIBS"
+		  default_mlp3_blas=true],
+		AC_MSG_FAILURE([could not find the AMD acml library])
+               )
+    ;;
+  macos)
+    dnl Need to check for cblas.h as we do not have it!
+    AC_CHECK_HEADERS([vecLib/cblas.h cblas.h])
+    LIBS="$LIBS -framework vecLib"
+    AC_CHECK_FUNC(cblas_sgemm,
+	[AC_DEFINE(HAVE_LIBCBLAS, [], [have libcblas])
+         AC_DEFINE(HAVE_LIBBLAS, [], [have libblas])
+         default_mlp3_blas=true],
+	AC_MSG_FAILURE([could not find the vecLib framework]) )
+    ;;
+esac
+AC_SUBST(default_mlp3_blas)
+
+dnl Which vector transcendental library to use
+case $ac_cv_use_veclib in
+   mass)
+     AC_DEFINE(HAVE_LIBMASS, [], [have libmass])
+     AC_CHECK_HEADERS([massv.h])
+     LIBS="-lmassvp4_64 ${LIBS}"
+     ;;
+esac
+
+dnl Sort out which libraries etc to use for CUDA
+qnlib_opt_objs=""
+if test $with_cuda != "no"; then
+    qnlib_opt_objs="${qnlib_opt_objs} \$(qnlib_cuda_objs)"
+fi
+AC_SUBST(qnlib_opt_objs)
+
+dnl Check for quicknet_testdata - just informational
+AC_MSG_CHECKING([for quicknet_testdata dir])
+if test -f $ac_cv_testdata/small.pfile; then
+    AC_MSG_RESULT([$ac_cv_testdata])
+else
+    AC_MSG_RESULT([not found])
+fi
+
+
+dnl Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS([fcntl.h limits.h float.h errno.h sys/time.h sys/param.h sys/stat.h sunmath.h])
+dnl Checks for typedefs, structures, and compiler characteristics.
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_C_INLINE
+AC_C_BIGENDIAN
+AC_CHECK_TYPES([long long, unsigned long long])
+AC_CHECK_SIZEOF(size_t)
+AC_SYS_LARGEFILE
+
+dnl Checks for standard library functions.
+
+dnl This must happen before setting up libs that might not actually
+dnl be built at configure time.
+AC_FUNC_VPRINTF
+AC_FUNC_FSEEKO
+AC_CHECK_FUNCS(strerror strstr fsetpos gethostname gettimeofday fileno isatty set_new_handler popen sqrtf expf tanhf setvbuf)
+AC_CHECK_DECLS([drand48, srand48, fseek, sys_nerr, sys_errlist])
+
+dnl All local libraries create a library config shell script which sets 
+dnl approprite shell variables.  Use a cached value for the name so a top level
+dnl config file can override the location.
+AC_SUBST(INCS)
+AC_SUBST(CPPFLAGS)
+AC_SUBST(CFLAGS)
+AC_SUBST(LDFLAGS)
+
+dnl This specifies the directory holding test data
+testdata_dir=${ac_cv_testdata}
+AC_SUBST(testdata_dir)
+
+dnl Decide which libraries to make
+all_libs=
+if test "$enable_shared" = "yes"; then
+    all_libs="${all_libs} \$(all_shlibs)"
+fi
+if test "$enable_static" = "yes"; then
+    all_libs="${all_libs} \$(all_stlibs)"
+fi
+AC_SUBST(all_libs)
+
+dnl stuff for building the QN3Config.sh scripts
+# The expanded source dir for the package config file
+QN_SRCDIR=`cd $srcdir; pwd`
+AC_SUBST(QN_SRCDIR)
+QN_BUILDDIR=`pwd`
+AC_SUBST(QN_BUILDDIR)
+QN_BUILD_LIB_SPEC="-L${QN_BUILDDIR} -lquicknet3 ${LIBS}"
+QN_INSTALL_LIB_SPEC="-L\${libdir} -lquicknet3 ${LIBS}"
+QN_BUILD_INC_SPEC="-I${QN_BUILDDIR} -I${QN_SRCDIR}"
+QN_INSTALL_INC_SPEC="-I\${exec_prefix}/include/quicknet3"
+
+# Record in the cache where other peer packages can find us
+AC_MSG_CHECKING(qn path is saved in cache)
+AC_CACHE_VAL(acdpwe_cv_path_qn, acdpwe_cv_path_qn=$QN_BUILDDIR)
+# Do it again in case it didn't do it before because it was already in cache
+acdpwe_cv_path_qn=$QN_BUILDDIR
+AC_MSG_RESULT($acdpwe_cv_path_qn)
+
+# Record the build directory for the binaries
+
+# Append our build dir to the growing list of build lib path dirs
+AC_CACHE_CHECK(drspeech build lib path, acdpwe_cv_env_lib_path, 
+		acdpwe_cv_env_lib_path=)
+if echo $acdpwe_cv_env_lib_path | fgrep -v $QN_BUILDDIR > /dev/null ; then
+    acdpwe_cv_env_lib_path="$QN_BUILDDIR $acdpwe_cv_env_lib_path"
+fi
+
+# Append our build dir to the growing list of build path dirs
+AC_CACHE_CHECK(drspeech build path, acdpwe_cv_env_path, 
+		acdpwe_cv_env_path=)
+if echo $acdpwe_cv_env_path | fgrep -v $QN_BUILDDIR > /dev/null ; then
+    acdpwe_cv_env_path="$QN_BUILDDIR $acdpwe_cv_env_path"
+fi
+
+
+AC_SUBST(QN_BUILD_LIB_SPEC)
+AC_SUBST(QN_INSTALL_LIB_SPEC)
+AC_SUBST(QN_BUILD_INC_SPEC)
+AC_SUBST(QN_INSTALL_INC_SPEC)
+
+
+AC_OUTPUT(QN3Config.sh 
+	Makefile testsuite/Makefile perfsuite/Makefile
+	quicknet3.pc quicknet3-install.pc
+	qndo.sh testdata_qnnorm.sh testdata_qnstrn.sh testdata_qnsfwd.sh
+	testdata_qnstrn_ps.sh testdata_qnsfwd_ps.sh
+	testdata_qnmultitrn.sh testdata_qnmultifwd.sh,
+	echo timestamp > stamp-h; chmod +x *.sh)
+

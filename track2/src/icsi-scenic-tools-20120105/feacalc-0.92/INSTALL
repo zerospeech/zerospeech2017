@@ -1,0 +1,22 @@
+$Header: /u/drspeech/repos/feacalc/INSTALL,v 1.2 2006/03/11 00:19:03 davidj Exp $
+
+Install Instructions for feacalc
+================================
+
+This package needs a lot of pieces.  Build in this order:
+
+ - get libdat.  configure.  make. (?? Still needed? ??)
+ - get farray_otcl; configure it --with-dat=<dat build dir> --without-otcl. 
+   It's ok that it skips the Tcl interface. make lib . (?? Still needed? ??)
+ - get quicknet.  configure. make.
+ - get rasta.  configure.  build librasta.a
+ - get dpwelib. configure. build.
+
+ - You can now configure feacalc:
+     --with-dpwelib=<dir containing libdpwe.a, if not $exec_prefix/lib>
+     --with-rastalib=<dir containing librasta.a, if not $exec_prefix/lib>
+     --with-rastainc=<rasta src directory>
+
+ - "make test" attempts to run the RASTA testsuite with a tcl wrapper 
+   on feacalc that emulates rasta.  This is a pretty good test, although 
+   it doesn't check feacalc-specific enhancements (like range lists etc).

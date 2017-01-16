@@ -1,0 +1,80 @@
+$Header: /u/drspeech/repos/quicknet2/INSTALL-icsi,v 1.21 2011/02/25 02:52:20 davidj Exp $
+
+The install procedure for QuickNet at ICSI is something like:
+
+ - Create an appropriate release - see "Releasing Quicknet" in README-hacker.
+
+ - For each of the following architectures, configure, build, test and install
+
+	sun4-sunos5-generic (taco)
+	i586-linux-atlas-HAMMER32 (octopusX)
+	i586-linux-atlas-P4SSE2 (?)
+	i586-linux-atlas-PIIISSE1 (lamb)
+	i586-linux-generic (lamb)
+
+   Note that it's generally best to do the generic versions last.
+
+   The commands to build are e.g.:
+
+	ssh 
+	mkdir H-drspeech-i586-linux-atlas-HAMMER32
+	sh ../iconfigure.sh drspeech-i586-linux-atlas-P4SSE2 |& tee config.out
+	gmake |& tee make.out
+
+   The commands to test are:
+
+	gmake check
+	./testdata_qnstrn.sh
+	./testdata_qnsfwd.sh
+	./testdata_qnmultitrn.sh
+
+   The commands to install are (non-generic version):
+
+	sux drspeech
+	gmake install-progs
+
+   The commands to install are (generic versions):
+
+	sux drspeech
+	gmake install
+	exit
+	cd ..
+
+ - Install non-sufficed versions of the man pages, e.g.
+
+        mkdir H-drspeech-man
+	../configure --prefix /tmp/qnman-v3_20 --program-suffix=-v3_20
+	gmake
+	sux drspeech
+	gmake install-progs mandir=/u/drspeech/share/man
+        gmake install-progs transform='s,x,x,' mandir=/u/drspeech/share/man
+	rm -fr /tmp/qnman-v3_20
+	exit
+	cd ..
+
+ - Remove sufficed versions of the man pages
+
+	sux drspeech
+	rm /u/drspeech/share/man/*/*-v3_20-{generic,HAMMER32SSE2,P4SSE2,PIIISSE1}*.[12345678]
+
+ - Removed suffixed versions of qndo and generate an unsufficed-version
+
+	sux drspeech
+	cd /u/drspeech/i586-linux/bin
+	mv qndo-v3_20-generic qndo-v3_20
+	cd /u/drspeech/sun4-sunos5/bin
+	mv qndo-v3_20-generic qndo-v3_20
+        rm /u/drspeech/{i586-linux,sun4-sunos}/bin/qndo-v3_20-*
+
+ - Generate qndo links for sun4-sunos5 and i586-linux
+	sux drspeech
+	cd /u/drspeech/i586-linux/bin
+	ln -s qndo-v3_20 qncopy-v3_20
+	ln -s qndo-v3_20 qncopywts-v3_20
+	ln -s qndo-v3_20 qnmultifwd-v3_20
+	ln -s qndo-v3_20 qnmultitrn-v3_20
+	ln -s qndo-v3_20 qnnorm-v3_20
+	ln -s qndo-v3_20 qnsfwd-v3_20
+	ln -s qndo-v3_20 qnstrn-v3_20
+
+When the version has been proven stable, it can be made the default:

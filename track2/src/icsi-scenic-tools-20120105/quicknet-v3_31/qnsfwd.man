@@ -1,0 +1,347 @@
+. $Header: /u/drspeech/repos/quicknet2/qnsfwd.man,v 1.40 2007/02/19 09:03:32 davidj Exp $
+.TH qnsfwd 1 "$Date: 2007/02/19 09:03:32 $" ICSI "ICSI SPEECH SOFTWARE"
+.SH NAME
+qnsfwd \- MLP forward pass program
+.SH SYNOPSIS
+.B qnsfwd
+[
+.I options
+]
+.SH DESCRIPTION
+.I qnsfwd
+is a program for running MLPs (Multi Layer Perceptrons - a.k.a.
+Neural Nets).  In particular, it is useful for using MLPs in
+speech recognition and other signal processing tasks.  Essentially, it
+takes a file containing weights for the MLP and others containing
+features and produces a file containing the outputs from the MLP.
+.SH OPTIONS
+.I qnsfwd
+can take the following options:
+.P
+.PD 0
+.BI ftr1_file= filename1
+.TP
+.PD 1
+.BI ftr2_file= filename2
+Specify the files containing feature information for passing through the
+net.  The features in each file are normalized, selected (to eliminate
+unwanted features) and windowed separately, before being combined to
+form the input to the MLP.  If \fBftr2_file\fR is the empty string (the
+default), only one feature file is used.
+.P
+.PD 0
+.BI ftr1_format= format
+.TP
+.PD 1
+.BI ftr2_format= format
+Specify the format of the respective feature files.  The format can be
+\fBpfile\fR (the ICSI feature file format - see \fBpfile\fR(5))
+. \fBpre\fR (the Cambridge compressed feature file format)
+or \fBonlftr\fR (the ICSI format used for real time recognitions).  The
+default is \fBpfile\fR.
+.P
+.PD 0
+.BI ftr1_width= integer
+.TP
+.PD 1
+.BI ftr2_width= integer
+Specify the number of features in the respective feature files.  The
+default \- \fB0\fR
+\- means use the number of features specified in the feature file header.
+A non-zero value must be given for feature files that are in a format
+that does not include a header, e.g. online feature files.
+.TP
+.BI unary_file= filename
+Specify the pfile containing label information for providing a one-hot
+unary input to the net.  The default value is the empty string, which
+means use no unary input file.
+.TP
+.BI hardtarget_file= filename
+Specify the pfiles containing label information for comparing the
+output of the net with the correct label.  This argument is optional but if it
+is supplied then frame-level accuracy information will be output.
+.TP
+.BI hardtarget_format= format
+Specify the format of the files containing target labels.  The format can be
+\fBpfile\fR (the ICSI feature file format - see \fBpfile\fR(5)),
+\fBpre\fR (the Cambridge compressed feature file format) or 
+\fBilab\fR (the ICSI compressed label file format).  The
+default is \fBpfile\fR.  If the \fBpre\fR format is specified
+\fBhardtarget_file\fR and \fBftr1_file\fR must be the same.
+.P
+.PD 0
+.BI ftr1_norm_file= filename1
+.TP
+.PD 1
+.BI ftr2_norm_file= filename2
+Specify a file containing normalization parameters for the values in
+the corresponding feature files. A null string results in no
+normalization.  See \fBftr1_norm_mode\fR below.
+.P
+.PD 0
+.BI ftr1_ftr_start= integer
+.TP
+.PD 1
+.BI ftr2_ftr_start= integer
+Specify the column number of the first feature to use from the
+corresponding feature file (possibly augmented by delta_order).  
+\fB0\fR means start with the first
+feature column.
+.P
+.PD 0
+.BI ftr1_ftr_count= integer
+.TP
+.PD 1
+.BI ftr2_ftr_count= integer
+Specify the number of feature to use from the corresponding feature
+file (including added feature columns).  
+The default \- \fB0\fR means use all remaining features.
+.TP
+.BI hardtarget_lastlab_reject= bool
+Usually if the net has \fIn\fR outputs, then the valid range of hardtarget
+label values is \fI0\fR through \fIn - 1\fR.  However, if
+\fBhardtarget_lastlab_reject\fR is set to \fBtrue\fR then a label
+value of \fIn\fR means the frame will
+be passed through the net but any frame-level accuracy
+calculations will ignore it.
+.TP
+.BI window_extent= integer
+Specify the number of frames, from both feature and label files, that
+must be combined to form one presentation to the net.
+.P
+.PD 0
+.BI ftr1_window_offset= integer
+.TP
+.PD 1
+.BI ftr2_window_offset= integer
+Specify the offset, in frames, of the window on each feature file from
+the base of the overall window.  Typically,
+\fBftr1_window_offset\fR is \fB0\fR.
+.TP
+.BI unary_window_offset= integer
+Specify the offset, in frames, of the window on the unary input file from
+the base of the overall window.  Note that the length of the unary input
+file window is always \fB1\fR for normal hard training.
+.TP
+.BI hardtarget_window_offset= integer
+Specify the offset, in frames, of the window on the label file from
+the base of the overall window.  Note that the length of the label
+file window is always \fB1\fR for a normal hard-labelled net.
+.P
+.PD 0
+.BI ftr1_window_len= integer
+.TP
+.PD 1
+.BI ftr2_window_len= integer
+Specify the length, in frames, of the window on each feature file.
+Often, the value of \fBftr1_window_len\fR will be the same as
+the value of \fBwindow_extent\fR.
+.P
+.PD 0
+.BI ftr1_delta_order= integer
+.TP
+.PD 1
+.BI ftr2_delta_order= integer
+Specify the order of delta-calculations to be applied to each 
+feature file.  Currently, this is applied
+.I before
+feature selection 
+via \fBftr_start\fR and \fBftr_count\fR, effectively 
+doubling or tripling the width of the 
+input feature stream.  \fBftr_start\fR and \fBftr_count\fR 
+can then be used to select columns from the net aggregate feature set.
+Acceptable values are 0 (no action), 1 (just deltas) 
+and 2 (deltas and double-deltas).
+Note that the filters are not scaled by the sum of squares, so
+mean-variance normalization is recommended.
+.P
+.PD 0
+.BI ftr1_delta_win= integer
+.TP
+.PD 1
+.BI ftr2_delta_win= integer
+Number of points in the FIR discrete-differentiators used to 
+calculate deltas and double deltas.  Default value is 9.
+.P
+.PD 0
+.BI ftr1_norm_mode= mode
+.TP
+.PD 1
+.BI ftr2_norm_mode= mode
+Specifies normalizataion applied to each pfile as 
+"file", "utts" or "online", for constant normalization, 
+per-utterance normalization (in which case the norm_file 
+is ignored), or online normalization (reset to values from 
+the norm file at the start of each utterance). Setting e.g.
+\fBftr1_norm_mode\fR to "file" and setting \fBftr1_norm_file\fR to the
+null string results in no normalization.   See 
+qncopy(1) for more description.  Note that per-utterance 
+normalization involves reading each utterance twice, 
+which can incur considerable performance penalties, 
+especially when combined with online delta calculation
+on a SPERT.
+.P
+.PD 0
+.BI ftr1_norm_alpha_m= val
+.P
+.BI ftr2_norm_alpha_m= val
+.P
+.BI ftr1_norm_alpha_v= val
+.TP
+.PD 1
+.BI ftr2_norm_alpha_v= val
+Update constants for the mean and variance estimates for the online 
+normalization (if selected) for the two feature streams.  Default is 
+0.005.  See qncopy(1).
+.TP
+.BI fwd_sent_start= integer
+The number of the first sentence in the feature file to use
+.RB ( 0
+means use the first sentence in the feature file).
+.TP
+.BI fwd_sent_count= integer
+The total number of sentences in the feature file to use.  Specifying
+a value of \fB2147483647\fR (the default) will result in the remaining
+sentences being used.
+.TP
+.BI fwd_sent_range= range-spec-string
+The sentences to process, specified by a Range token in 
+one of the formats defined by QN_Range(3).  This is an alternative 
+to using fwd_sent_start and fwd_sent_count.  
+.TP
+.BI init_weight_file= filename
+Specify the file containing the weights for the net.  By default,
+the format of this file is a RAP style weights file \- see
+.BR weights (5).
+.TP
+.BI unary_enumerate= bool
+If true, enable a mode where for each presentation to the net, the
+unary inputs are cycled through each input being high, with the
+outputs from each attempt being concatenated to form an output vector
+with \fBunary_size\fR x \fBmlp3_output_size\fR values.
+.TP
+.BI unary_size= integer
+The number of inputs to the MLP that use a one-high encoding.
+For previous state training, this
+should be set to the number of states.  The default value \- \fB0\fR \-
+disables the unary input to the net.  Note that when using a unary
+input for training with previous state, the results from cross
+validation may well not mean much.
+.TP
+.BI mlp3_input_size= integer
+Number of input units in the MLP.
+.TP
+.BI mlp3_hidden_size= integer
+Number of hidden units in the MLP.
+.TP
+.BI mlp3_output_size= integer
+Number of output units in the MLP.
+.TP
+.BI mlp3_output_type= unittype
+Specify the type of non-linearity to use for the MLP output layer.
+Allowable values are \fBsigmoid\fR, \fBsigmoidx\fR (same as \fBsigmoid\fR), 
+\fBlinear\fR, and \fBsoftmax\fR (the default).
+.TP
+.BI mlp3_pp= bool
+Use high-performance internal matrix and transcendental routines for the MLP if
+.BR true .
+This is enabled by default and turning it off is
+only really useful for debugging or
+performance tuning.  Note that the transcendental routines are only
+approximations and so there are slight numerical differences in the
+result depending on how this option is set.
+.TP 
+.BI mlp3_blas= bool
+Use blas matrix routines for the MLP if
+.BR true .
+Setting this to true will generate an error if there is no BLAS
+library linked with the executable.  Note that having
+mlp3_blas and mlp3_pp both true is reasonable as some internal
+optimized routines are not available in the BLAS library.
+.TP 
+.BI mlp3_bunch_size= integer (16)
+Process this many patterns at each step.  
+Unlike for qnstrn, only bunch-mode routines can be used and 
+a mlp3_bunch_size of 0 is illegal.  Note that, unlike with training,
+changing the bunch size for the forward pass shouldn't have a
+signficant affect on the value of the net outputs.
+.TP
+.BI mlp3_threads= integer
+Set the number of CPU threads to use.  Note that this only works for a
+bunch size >1.  For good performance, the number of threads should be
+a small fraction of the bunch size and less than or equal to the
+number of unused processors. 
+.TP
+.BI realtime= bool
+If true, perform real-time recognition.  This results in output frames
+appearing before the end of an input sentence is reached, and ensures
+that at the end of a sentence all output is flushed.
+.TP
+.BI realtime_latency= integer
+Control the latency versus throughput tradeoff for real-time
+recognition.  The number does not map directly to frame latency.  The
+range \fB10\fR (minimum latency) through \fB100\fR (maximim
+throughput) is probably most useful.
+.TP
+.BI activation_file= filename
+The file in which to store the resulting activation outputs.  Specifying a
+filename of
+.B \-
+sends the results to standard output.
+.TP
+.BI activation_format= format
+The format used for outputting the results.  This can be one of
+.BR rapascii ,
+.BR raphex ,
+.BR rapbin ,
+.BR onlftr ,
+.BR pfile ,
+.BR lna8 ,
+or
+.BR ascii .
+For realtime recognitions, only \fBrapbin\fR and \fBlna8\fR are supported.
+The default is
+.BR rapascii ,
+the ASCII phoneme probability format used by the RAP.  Note that the
+LNA format uses scaling constants as specified by CUED (i.e. a scaling
+factor of 24), not the slightly different format erronously use by
+ICSI for many years (which had a scaling factor of 20).
+.TP
+.BI log_file= filename
+The file in which to log status messages.  Specifying a
+filename of
+.B \-
+sends the results to standard output. Specifying a null filename sends
+the output to standard error.
+.TP
+.BI debug= integer
+Set the level of debugging output.  \fB0\fR means none, \fB6\fR means lots!
+.TP
+.BI verbose= bool
+Output more log information if
+.BR true .
+
+.SH ENVIRONMENT
+.TP 20
+.B TZ
+Time Zone.  On some systems, this is used for displaying times during
+the run \- if times seem to be wrong by several hours, it is
+because this environment variable is not set.
+
+. .SH FILES
+
+.SH AUTHOR
+David Johnson  <davidj@ICSI.Berkeley.EDU>
+.SH SEE ALSO
+.BR qnstrn (1),
+.BR qnnorm (1),
+.BR qncopy (1),
+.BR qncopywts (1),
+.BR lna (5),
+.BR norms (5),
+.BR weights (5),
+.BR pfile (5),
+.BR ilab (5)
+.BR online_ftrs (5).
+.SH BUGS
+

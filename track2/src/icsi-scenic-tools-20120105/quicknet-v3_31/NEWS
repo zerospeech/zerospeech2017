@@ -1,0 +1,966 @@
+# $Header: /u/drspeech/repos/quicknet2/NEWS,v 1.114 2011/05/24 01:31:39 davidj Exp $
+
+======================
+=== QuickNet v3_31 ===
+======================
+New features:
+ - The 'use_fe' argument is now set to 'false' by default.  It also
+   gives a warning if enabled in conjuction with 'use_cuda=true'.
+   Note that this will change numerical results in runs where this
+   argument is not explicitly set (and probably for the better!) but
+   it may slow down some runs on non-CUDA hardware.
+ - Improved CUDA forward pass and training performance.  Maybe 30%
+   increase in performance for bigger nets, possibly more on smaller nets.
+ - Tidied up system status messages in log, including addition of
+   CPU speed/type/number of cores.
+ - Added support for Intel Math Kernel Library using build option
+   --with-blas=imkl
+Minor changes:
+ - Fixed a build issue with gcc 4.4.3 on Ubuntu.
+ - Added new QN_math_init() function.
+ - Fixed a typo in the configure usage message.
+ - More logging and error checking for CUDA.
+Bug fixes:
+ - Previously, using large layer sizes with large bunch sizes could
+   overflow some system variables when running on CUDA.  Specifically,
+   if max_layer_size * bunch_size > 65535*256 then data could be
+   corrupted in a random fashion.  This has not been fixed yet but
+   checks have been put in to test for this potential overflow and
+   trigger an error if the bunch size is too big.  The fix is to reduce the
+   bunch size as suggested by the error message.
+
+======================
+=== QuickNet v3_30 ===
+======================
+New features
+ - Added CUDA support - performance up to 25GCUPS with large nets on Tesla
+    - --with-cuda build option
+    - use_cuda command line flag
+    - QN_MLP_BunchCudaVar MLP class
+    - CUDA hardware reporting in log
+    - support for CUDA version in perfsuite and testdata scripts
+Minor changes:
+ - Machine wordsize now printed in logs.
+ - Updated to work with recent versions of AMD's ACML blas library.
+ - Added sphinx.txt describing sphinx file format.
+ - Added hardware.txt, describing some performance-related hardware
+   notes.
+ - Some work on MLP3_perf to bring it up to date.
+Bug fixes:
+ - "Large PFiles:" log entry now correctly says "enabled" on 64 bit OSs
+
+======================
+=== QuickNet v3_21 ===
+======================
+Minor changes:
+ - Requires more recent version of autoconf
+ - Added matlab_weights (5) man page.
+ - Fixed some build and configure time issues, especially related to having
+   a different top_builddir.
+ - Minor type fixes to work with recent version of gcc (from dpwe)
+ - Test suite builds on systems without expf again.
+ - Fixed declaration error in QN_fir.h which broke builds on some versions
+   of gcc. 
+ - Fixed so atlas_buildinfo.h only used with versions of Atlas that have it.
+ - Fixed build problems with more recent versions of ATL_buildinfo.h
+ - Fixed so large pfiles status reporting works on 64 bit machines.
+ - Minor man page fixes.
+ - INSTALL-icsi included in the install, which details how ICSI installs
+   QuickNet.
+ - README-hacker now less out of date.
+
+======================
+=== QuickNet v3_20 ===
+======================
+Bug fixes:
+ - Fixed the fast exponent code to handle issues with large and small inputs.
+   This could generate NaNs on large nets, ill conditioned training data or
+   >3 layers (or some combination thereof).  As a result of this change,
+   CUPS performance may be reduced slightly.
+ - Fixes in QN_fir.cc for delta calculation - buggy qn_pp_convol_vfvf_vf
+   disabled, buggy version of fir code disabled and memory allocation
+   bug fixed.
+ - Fixed QN_OutFtrLabStream_Ascii to use %g for output by default, with %f as
+   a constructor-time option.  Fixes loss of precision.
+ - Fixed a problem with error exits causing segfaults in test programs.
+ - Fixed issues with spurious characters on the end of file names in logging
+   output (QN_FILE2NAME at the source level)
+ - Actual program name now printed after argument dump, rather than "progname"!
+ - Fixed MLPWeightFile_RAP3 so it has a sensible output routine and doesn't
+   break with NaNs.
+ - Fixed a possible lower-order bits noise problem in the pp_
+   optimized exp() function. 
+ - Added a warning when the random buffer cache is bigger than available
+   memory, potentially fixing a segfault.
+ - QN_SRIfeat.h now included in QuickNet.h
+ - Fixed a non-trivial bug in writing SRI features. 
+   QN_OutFtrStream_SRI::write_ftrs(cnt, ftrs) wrote repeated data if cnt>1.
+   Note that in feacat and feacalc cnt==1 at all times and this object is
+   not used by the qn* programs so this didn't exhibit
+   itself in any of the centrally-maintained QuickNet-based executables!
+
+Major changes:
+ - new programs qnmultifwd/qnmultitrn.  Differences from qnstrn/qnsfwd are:
+    - 2->5 layer MLPs supported.
+    - matlab weights file format supported and set as default, with rap3
+      optionally available.
+    - various old, unused command line arguments removed.
+    - mlp specification args reworked.
+    - only range-based fwd/train/cv sentence selection.
+    - no unary_enumerate for forward pass.
+    - several argument defaults changed
+    - mlp_blas/mlp_pp -> use_blas/use_pp
+    - new mlp_lrmultiplier argument to qnmultitrn
+    - support tanh output units
+    - new arg use_fe to disable fast exponent approximation for 
+      sigmoid, softmax and tanh. use_pp can still be used to disable
+      other optimized routines
+ - qnsfwd (and qnmultifwd) now support "ascii" and "onlftr" as activation
+   formats. "onlftr" allows simple piping into feacat.
+ - ckpt_weight_file and ckpt_hours added to qnmultitrn and qnstrn to facilitate
+   periodic weight file checkpointing (also ckpt_weight_format in qnmulititrn)
+ - qncopywts now works, but does not do anything too exciting yet, other
+   than trivial conversions.
+ - "matlab" is now a weight file format (class QN_MLPWeightFile_Matlab)
+ - Most weightfile-related classes and utility functions now handle 2->5
+   layer MLPs. 
+ - New classes QN_MLP_BunchFlVar and QN_MLP_ThreadFlVar that do a 2->5 layer
+   MLPs. These are used by qnmultifwd and qnmultitrn for unthreaded/threaded
+   trainings, replacing QN_MLP_BunchFl3 and QN_MLP_ThreadFl3.
+ - Support for SRI sparse feature files in library.
+Minor changes:
+ - '%h' (hostname) and '%t' (time) now available in log and ckpt weight
+   file names
+ - New vector functions:
+     qn_ltoh_vd_vod
+     qn_htol_vd_vd
+     qn_ltoh_vf_vf
+     qn_htol_vf_vf
+     qn_copy_z_vz
+     qn_copy_vz_vz
+     qn_tanh_f_f
+     qn_tanh_vf_vf
+     qn_dtanh_vf_vf
+ - New matlab matrix read/write functions
+     QN_Mat_read
+     QN_Mat_write
+ - Fixed MLPWeightFile interface so get_weightmaj takes no arguments.
+ - HardSentTrainer and SoftSentTrainer now support weightfile types.
+ - qnxor no longer installed by default.
+ - Fixed build problem of variable-length local arrays in threaded net.
+ - Fixed library name in sunperf build version.
+ - Various changes to MLP initializations to make bugs more apparent
+   (NULLs for pointers, NaNs for values)
+ - QN_MLP_BunchFl3, QN_MLP_ThreadFl3, QN_MLP_BunchFlVar,
+   QN_MLP_ThreadFlVar optimized for 0.0 learning rates.
+ - QN_MLP_BunchFlVar, QN_MLP_ThreadFl3 and QN_MLP_ThreadFlVar now all use
+   a common base class.
+ - Extensions to QN_open and improvements to .gz handling, setvbuf stuff
+   and how QN_build_ftrstream works.
+ - Programs now display MLP object name.
+ - "--with-blas=acml" superceded by "--with-blas=acml-gcc" and
+   "--with-blas=acml-psc" 
+ - Fixed some problems that made testsuite fail on 64 bit machines.
+ - New type of math routing optimiztion "FE", encompasing scalar and vector
+   routines based on fast, approximate, exponent code.
+
+
+======================
+=== QuickNet v3_11 ===
+======================
+Major Changes:
+ - Supports more blas libraries
+    - blas without cblas
+    - essl and esslsmp
+    - sunperf
+    - acml
+ - Incompatible changes to MLPW format to remove fixed point (possible
+   'cos MLPW was never used).  Not suitable for use yet.
+Bug fixes:
+ - Fixed a problem with training when the number of cached frames between
+   approx 4x10^6 and 8x10^6.  Net would fail to train with these cache
+   sizes.
+ - Fixed obvious bug in qndo.sh.
+ - Fixed typo in QN_PFile.h that only appeared on machines without fseeko().
+ - Fixed pkgconfig files so they reference BLAS libraries
+Minor stuff:
+ - Fixed some name space pollution in QN_utils.{cc,h} by renaming routines.
+ - Fixed some error messages to use file names using QN_File2Name class.
+ - Added iconfigure.sh script with example configure command lines.
+ - Add back the perfsuite subdir and got it working.
+ - Documentation installed into version-numbered directory.
+ - Lots of changes to MLP3_perf
+ - Now use libtool to build static libraries too.
+ - Fixed some QN_fltvec prototypes and compile warnings.
+ - New library routine QN_output_sysinfo(), used by qnsfwd and qnstrn.
+ - Some minor vector routine optimizations. 
+ - Misc portability updates.
+
+======================
+=== QuickNet v3_10 ===
+======================
+Major changes:
+ - Added threaded MLP object and mlp3_threads argument.  Implementation uses
+   native Posix Threads, hence precluding the need to use a threaded
+   BLAS library.
+ - Added "--with-blas=macos" to use the MacOS X native version of blas.
+   Feedback on the performance of this is welcomed.
+Bug fixes:
+ - Fixed a bug that prevented files >~16GB from being opened.
+ - Fixed a minor bounds error in the QN_open() routine that trip valgrind.
+Minor stuff:
+ - New "qndo.sh" script for doing architecture-specific executable selection
+ - Details of atlas library included in the log output for qnstrn and qnsfwd
+ - The weight log file now includes the process number, which can overcome
+   problems when two qnstrn processes are running in the same directory and
+   overwrite their own log files.
+ - Some minor performance improvements in the included matrix/vector library.
+ - Added better usage info for mlp3_output_type arg.
+ - Fixed some minor linux build issues.
+ - Configure options --with-blas=icsi and --with-blas=pticsi no longer
+   supported.
+ - Added perf.txt, which includes some benchmarking results.
+
+======================
+=== QuickNet v3_03 ===
+======================
+Major changes
+ - Added support for 64 bit PFiles.  Note that the number of frames
+   must still be <2^31-1.  Check the qnstrn/qnsfwd log output for
+   "Large PFiles: enabled" to see if this is supported with any given
+   executable.
+ - Added a BSD-ish licence.
+
+Bug fixes:
+ - --with-blas=ptatlas didn't work.  It should now!
+ - fixed qn_mulsum_vfvf_f so it returns a value (not actually used in quicknet)
+ - Fixed the value of num_labs() for LNA8 streams.
+
+Minor stuff:
+ - added quicknet3-install.pc and modified quicknet3.pc so it should allow
+   linking from the source directory as well as linking when installed
+   in the libdir/includedir directory.
+ - The testsuite has been updated to work for quicknet3, including the
+   removal of fltvec dependencies.
+ - Addition of configure-time selection of quicknet_testdata directory, 
+   --with-testdata=<dir>.  Defaults to $(prefix)/share/quicknet_testdata/
+   rather than ../quicknet_testdata.
+ - Addition of configure-time selection of rtst location,
+   --with-rtst=<dir>.  Defaults to $(exec_prefix)/lib, where rtst v0_26
+   and later puts the needed rtst.pc file.  I.e. you need to upgrade
+   rtst to use it.
+ - Fixed build problems associated with gethostname function.
+ - Fixed some warnings for -Wall.
+
+======================
+=== QuickNet v3_02 ===
+======================
+Bug fixes:
+ - Fixed a non-trivial bug in QN_OutFtr_stream_SRI.  The problem was that
+   writing multiple feature frames in one call to write_ftrs on
+   little-endian machines would write garbage.  This would have been
+   a major issue were it not for the fact that both feacalc and feacat 
+   appear to write data one frame at a time.  Also added some logging
+   and fixed an unchecked return code in the process.
+ - Fixed configure bugs for --with-blas=cblas and --with-blas=atlas
+ - Removed configure reference to perfsuite.
+Minor stuff:
+ - Fixed some minor warnings as reported by Olivier.
+ - Fixed frame number issues in QN_InFtrStream_List and QN_InFtrStream_ListSRI.
+ - Fixed a possible bad return value in QN_InFtrStream_Raw::get_pos()
+ - Renamed urand48_ff_vf to qn_urand48_ff_vf.
+ - Renamed findexp_f_i to qn_findexp_f_i
+ - Minor documentation updates.
+ - Added "COPYING" file.
+
+======================
+=== QuickNet v3_01a ===
+======================
+
+Minor stuff:
+ - Fixed pkgconfig file.
+ - Fixed typos in doc.
+
+======================
+=== QuickNet v3_01 ===
+======================
+
+Bug fixes:
+ - Fixed a major back propagation bug in v3_00.  v3_00 should not be used!
+
+Major changes:
+ - Added the "hardtarget_lastlab_reject" argument to both qnstrn and qnsfwd.
+   If hardtarget_lastlab_reject is set to true then an extra
+   label value is allowed that means "do not train on this frame".
+   This prevents the features from being presented to the net and also
+   means the frame will be ignored when calculating frame-level
+   accuracy on forward passes.  A similar feature is implement in
+   recent versions of QuickNet v0_99 but without command-line control and
+   status reporting.
+ - Added library support for SRI "featurefiles" to complement the SRI
+   "cepfiles" support that's already included (based on a patch from
+   Andreas Stolcke)
+
+Minor stuff:
+ - Fixed an install problem with man3 pages on machines with older shells.
+ - Fixed some build problems related to errno.h
+ - Better documentation on the testdata_* scripts in INSTALL
+ - quicknet3.pc package config file created and installed
+
+======================
+=== QuickNet v3_00 ===
+======================
+
+
+QuickNet version v3_00 is the first release of the new QuickNet
+version 3.  Version v3_00 is based upon QuickNet v0_98 but with
+numerous changes.  None of the v0_99 changes were included in this
+train directly, i.e. v0_99 has effectively become a branch and the
+v0_98->v3_00 version chain is now the mainstream.
+
+Changes from /u/drspeech/src/ version v0_98 to this version include:
+
+ - Some files have gained a "3" suffix.
+ - The intvec and fltvec libraries are no longer needed to build
+   QuickNet.  All of the necessary routines have been incorporated into
+   QuickNet.
+ - Support for fixed point nets, SPERT and multi-SPERT has been
+   removed, as has any dependencies on fxlib.
+ - QuickNet now has "nv" (naive) and "pp" (portable performance)
+   versions of many key vector/matrix library routines.  Specifically
+   pp versions of the main matrix and non-linearity functions have
+   been included.  The pp versions can be considerably faster than the
+   naive routines.  The  decision on which version to use is
+   controlled from the command line.
+ - Incorporation of v0_99's optimized sigmoid/softmax routines.
+ - Addition of support for BLAS bunch-mode routines at the
+   vector/matrix library level.
+   (c.f. v0_99, where it's a switch at the MLP level rather than the
+   vector/matrix routine level).  BLAS routine use can be controlled
+   at configure time and run time.
+ - mlp3_bunch_size now defaults to 16, i.e. bunch-mode is the default
+   training mode.
+ - qnsfwd now respects the value of mlp3_bunch_size.
+ - The maximum number of feature streams that can be opened has been 
+   increased from 16 to 1024
+ - qnforward and qntrain have been completely removed from the distribution.
+ - libtool shared library generation has been included, replacing some
+   of the SPRACHcore shared library functionality.  
+ - Several configuration changes, including:
+    o use of more recent autoconf
+    o support for building shared and non-shared libraries in parallel
+    o various blas library configure options
+    o SPRACHcore stuff is broken
+    o removal of RCS commands from the Makefile
+ - Libary header files are now installed in a separate subdir
+ - The QNConfig.sh file has been renamed QN3Config.sh, the contents
+   have changed slightly and no longer include the SHLIB stuff
+ - The code in the perfsuite directory no longer depends on rprf.
+ - There may be some issues with testsuite, specifically finding the rtst
+   library and some checks that fail
+ - The doc files are now put in a separate subdir
+ - Several minor fixes to e.g. man pages
+
+Note that "QuickNet v3_xx" is a seperate CVS tree from the later v0_xx
+releases, specifically v0_99.  The module name is "quicknet2"
+(c.f. "quicknet" for v0_99 and below) and the CVS archive was built
+from the original RCS files rather than imported text files.  In
+"quicknet2" it's possible to see an extended history but missing the
+v0_99 branch.
+
+
+
+    ======================
+    === QuickNet v?_?? ===
+    ======================
+
+    As of May 2004, there are multiple versions of QuickNet installed
+    in personal and shared directories at ICSI, including several
+    based on v0_99 which may well have the same version number.  These are not
+    necessarily of release quality.  Also the CVS version is still
+    called v0_99 but has had some changes added that don't appear in
+    installed versions.
+    Some of these may or may not include:
+     - support for sub-epochs (a.k.a. interim weight files)
+     - support for multiple "unary_file"-like inputs (a.k.a. code books)
+     - a fix so that bunch mode bunch size works for forward passes.
+
+    ======================
+    === QuickNet v2_01 ===
+    ======================
+    *** Not documented at time of release - added later by David Johnson ***
+
+    Something called QuickNet 2_01 appeared in the drspeech tree in
+    October 2002.  Little is known about this.
+
+    ======================
+    === QuickNet v0_99 ===
+    ======================
+    *** Not documented at time of release - added later by David Johnson ***
+
+    QuickNet v0_99 was released in September 2002 by Chris Oei.  Before
+    the release, the code from the original RCS files in
+    ICSI:/u/drspeech/src/quicknet/ was imported as an initial revision into a
+    new CVS repository.  Chris added the following features:
+
+     - use of "tao_of_icsi.sh" to set paths (only works at ICSI)
+     - fast bunch-mode operation using externally-supplied blas libraries
+       with command-line enabling (but not documented in man pages!)
+     - optimized vector routines with approximations for softmax and sigmoid
+     - inclusion of "reject" label in hard target training
+     - addition of profiling code to main quicknet routines
+     - % of CV time displayed
+
+    It is possible that multiple versions of QuickNet v0_99 were installed at
+    ICSI.
+
+=============================
+=== QuickNet v0_98/v0_98a ===
+=============================
+*** Not documented at time of release - added later by David Johnson ***
+*** Some intermediate releases may have been missed ***
+
+QuickNet version v0_98 and v0_98a were released sometime in July 2000 by Dan
+Ellis.  There were more significant additions of functionality:
+
+ - support for sentence range selection added to command line
+ - support for multiple types of normalization (per utterance, per file,
+   online) and command line control of normalization constants
+ - addition of Ranges to library
+
+It is possible that other versions of v0_98a were installed at ICSI, maybe
+with some command-line support for SRI format feature files that was
+added by Chuck Wooters.
+
+=======================
+=== QuickNet v0_97a ===
+=======================
+
+*** Not documented at time of release - added later by David Johnson ***
+*** Note no records of v0_97 can be found in logs, only info on v0_97a ***
+*** Some intermediate releases may have been missed ***
+
+QuickNet version v0_97a was released sometime in October 1999 by Dan
+Ellis.  The were a lot of additions, some of which no doubt I am
+unaware of.  Some big changes from v0_96 include:
+
+ - multispert support added
+ - support for bunch-mode fixed-point nets with 32 bit weights added
+ - addition of online delta calculation
+ - support for lists of float arguments added, including use for biases
+ - ILab label file format added to library and qns* programs
+ - lna and onlftr file format added to qnstrn
+ - bunch size added to qnsfwd
+ - some additions to learning rate controls
+ - shared library support for SPRACHcore
+ - support for feature file pasting added
+ - support for ASCII streams added to library
+ - support for HTK streams added to library
+ - support for fir filters added to library
+
+======================
+=== QuickNet v0_96 ===
+======================
+
+The main justification for releasing v0_96 is to provide a stable
+released version of quicknet for everyone currently using
+prereleases. There are only minor differences between v0_96 and
+v0_95i.
+
+QuickNet v0_96 needs fltvec-v0_05, fxlib-v0_03 and intvec-v0_04.
+However, as-yet-unreleased versions of the libraries will be needed to
+use quicknet in an integrated package like SPRACHworks.
+
+It also needs quicknet_testdata-v0_06 and rtst-v0_24 if you want to
+run the library test programs.
+
+Changes include:
+
+programs:
+ - renamed swbtrain and swbforward to qnstrn and qnsfwd (think of the
+   "s" as meaning stream)
+ - added new options "ftr1_format", "ftr1_width", "ftr2_format", "ftr2_width"
+   to qnsfwd and qnstrn, with "pre" format added in both programs
+   and "onlftr" added in qnsfwd.
+ - added new option "hardtarget_format" in qnstrn, with "pre" format
+   support added
+ - improved status reporting - errors & warnings now appear in log
+   files in all programs
+ - qnsfwd can now direct status messages to standard error
+ - increased range for 32-bit fixed-point weights
+ - new options "realtime" & "realtime-latency" in qnsfwd for improved
+   interactive response
+ - new options "softtarget_file", "softtarget_format",
+   "softtarget_width" & "softtarget_window_offset" in qnstrn to
+   facilitate training with soft targets
+
+libraries:
+ - some old, unused classes (basically all those without the "QN"
+   suffix) have been removed
+
+testsuite:
+ - some tests for qnsfwd have been added to the testsuite, but the
+   corresponding data files are not yet in the testdata distribution
+
+perfsuite:
+
+distribution/scripts/documentation:
+ - the mechanism used to access libraries, eg fltvec, has been
+   improved. This allows for the combining of quicknet with libraries to
+   form packages a la SPRACHworks
+ - man pages updated appropriately
+
+======================
+=== QuickNet v0_95 ===
+======================
+
+The main justification for releasing v0_95 is improvements in
+training, specifically better performance in fixed point trainings
+(using 32 bit weights) and a bug fix in floating-point bunch-mode
+training.
+
+QuickNet v0_95 needs fltvec-v0_05, fxlib-v0_03 and intvec-v0_04.  It
+also needs quicknet_testdata-v0_06 and rtst-v0_24 if you want to run
+the library test programs.
+
+Changes include:
+
+programs:
+ - qntrain now uses 32 bit weights with a weight exponent of 2
+ - swbtrain now has "mlp3_weight_bits" option to switch between 16 bit and
+   32 bit weights
+ - fixed bunch mode training bug in qntrain and swbtrain (as previously
+   released patch)
+ - default weight exponents now 2 in qnforward and swbforward
+ - qnxor now uses 32 bit weights
+
+libraries:
+ - new clas "QN_MLP_Online1632Fx3" - fixed point MLP with weights accumulated
+   in 32 bits but used as 16 bits
+
+testsuite:
+ - added tests for "QN_MLP_Online1632Fx3"
+
+perfsuite:
+ - updated MLP3_perf to support bunch mode and 32 bit weight nets
+
+distribution/scirpts/documentation:
+ - fixed broken example scripts (later arguments were ignored due to # chars)
+ - sorted out "configure.in"/"Makefile.in" to allow better overriding of eg.
+   LIBS and CFLAGS
+ - documented how to add to library/include paths in INSTALL
+ - removed some lies fro README-hacker
+
+======================
+=== QuickNet v0_94 ===
+======================
+
+There are two changes of importance in this release - some
+improvements in fixed-point performance and the addition of
+floating-point bunch-mode training.  ["bunch mode" is the term
+used to describe a method of training whereby multiple frames of data
+are passed forward through the MLP before errors are back propagated
+and weights updated.  This often allows faster training when used with
+optimized matrix operations such as those in fltvec.]  There are also
+several other minor improvements and bug fixes.
+
+QuickNet v0_94 needs fltvec-v0_05 and intvec-v0_03.  It also needs
+quicknet_testdata-v0_06 and rtst-v0_19 if you want to run the library test
+programs.
+
+Changes include:
+
+programs:
+ - new "mlp3_bunch_size" option in swbtrain
+ - new "bunch_size" option in qntrain
+ - better fixed point performance in qntrain and swbtrain
+ - default hid2out_exp value now 1 in swbtrain
+ - fixed spurious error message in swbforward when working with no
+   hardtarget file
+ - swbforward and qnforward should now both produce good "rapbin" format
+   output on little-endian machines - no known endian-dependent code
+   remains
+ - fixed a bug that could potentially result in one extra frame in the
+   first sentence of an LNA file
+
+libraries:
+ - new files "QN_mat.{cc,h}" - preliminary version of Matlab format
+   output routines
+ - new class "QN_MLP_OnlineFl3Diag" - as yet unfinished MLP class with
+   internal value logging
+ - "QN_OutFtrStream_Rapact.{cc,h}" renamed "QN_RapAct.{cc.h}".
+ - "QN_MLP_BunchFl3" now completed.
+ - Half-finished implementation of QN_InFtrStream_Rapact - a class for
+   reading RAP activation files.
+
+distribution:
+ - added new options to test scripts
+
+testsuite:
+ - Added "mat_test.cc" - currently just tests Matlab output routines
+
+
+======================
+=== QuickNet v0_93 ===
+======================
+
+The main change in this release is the enhancement of "swbforward".
+Specifically, forward passes with unary (i.e. one-of-n) inputs are now
+supported, as well as forward passes which hypotheses of all previous
+states.
+
+QuickNet v0_93 needs fltvec-v0_05 and intvec-v0_03.  It also needs
+quicknet_testdata-v0_06 and rtst-v0_19 if you want to run the library test
+programs.
+
+Changes include:
+
+programs:
+ - swbforward now has working "unary_file" option
+ - swbforward now has "unary_enumerate" option for hypothesizing all
+   values of unary input (for "previous state" forward pass)
+ - swbforward and qnforward support "lna8" (8 bit LNA files with
+   scaling factors as used at Cambridge) as an activation file format
+   (note that this is so slow on SPERT as to be unusable - to be fixed
+   in a future release of the fixed point libraries!)
+ - swbforward can now work without a hardtarget file
+ - swbforward supports "pfile" as a valid activation file format
+   (don't ask why!!)
+ - swbtrain reports best training accuracy as well as best CV accuracy
+ - new "log_file" argument for swbforward
+ - fixed a bug in swbforward logging
+ - programs now give warnings when using fixed point on workstation or
+   floating point on SPERT
+
+libraries:
+ - fixed a couple of minor bugs in pfile I/O routines
+ - removed old debugging code from QN_MLP_OnlineFx3
+ - new class "QN_OutFtrStream_LNA8" in "QN_camfiles.{cc,h}"
+
+distribution:
+ - new scripts "testdata_swbtrain_ps.sh" and
+   "testdata_swbforward_ps.sh" for testing use of unary inputs for
+   "previous state" training
+
+testsuite:
+ - Added "LNA8_test2" test for "QN_OutFtrStream_LNA8"
+
+======================
+=== QuickNet v0_92 ===
+======================
+
+This release contains a new training program, "swbtrain", and a new
+forward pass program "swbforward".  These new programs are pretty much
+a superset of "qntrain" and "qnforward", although some minor options
+(specifically some file formats) are not included in the new program
+yet.  It is intended that these new programs will eventually replace
+"qntrain" and "qnforward" (maybe in version v1_00).
+
+New features in swbtrain and swbforward (on top of qntrain/qnforward
+v0_91 functionality) include:
+ - support for two feature files with separate windowing on each file
+ - support for separate target label files
+ - a new method for specifying windowing options
+ - new, more logical, option names
+ - separate seed options for each type of random operation
+ - better specification of fixed point exponents 
+ - support for "unary" input files (which can be used for "previous
+   state trainings"
+
+Check out the man pages for more details.
+
+Other changes include:
+
+programs:
+ - Better warnings on many fixed point errors
+ - Changed some exponents so less chance of fatal saturation with
+   large fixed point nets
+ - Improved misc. error messages
+ - Yet more checks for broken PFiles
+ - Argument printing routine now includes "\" at end of lines - now
+   much easier to copy arguments with mouse
+
+libraries:
+ - New class "QN_InFtrStream_JoinFtrs" for merging two feature streams
+ - New class "QN_InFtrStream_OneHot" for converting a label stream
+   into a feature stream
+ - Support for strided versions of "read_ftrs()" and "read_labs()" in
+   input stream classes
+ - Separation of input2hidden and hidden2output weight exponents in
+   QN_MLP_OnlineFx3.
+ - Now compiles with SPARCCompiler 4.0 C/C++ (but still need "LD=CC"
+   on the make command line)
+
+testsuite:
+ - Test for "QN_InFtrStream_OneHot"
+
+distribution:
+ - Addition of swbtrain and swbforward, along with man pages and
+   example scripts
+ - Slight change in the way version numbering works
+ - New file "newargs.txt" containing details of command line arguments
+
+======================
+=== QuickNet v0_91 ===
+======================
+
+This release is to fix a subtle and unpleasant bug.  All the recent
+versions (from before v0_12) of "qnforward" have used _softmax_
+non-linearities on the output layer of the MLP.  Unfortunately,
+"qntrain" had been hard coded to perform training and cross validation
+using nets with _sigmoid_ units (and relative entropy error criteria).
+This has been fixed in v0_91 by making the output layer nonlinearity
+user-selectable.
+
+Note that the bug doesn't seem to have had any significant effect on
+frame level error rates (which is why it went unnoticed!).  There is a
+possibility of some effect on word level error rates - this is being
+investigated and I'll let people know any effects when we have
+completed our experiments.
+
+programs:
+ - Added mlp_output_type option.
+
+libraries:
+ - Fixed a couple of compilation problems.
+
+======================
+=== QuickNet v0_90 ===
+======================
+
+This release includes the completely restructured feature and label
+file handling functionality.  The net effect is to support multiple
+streams of training data in a flexible way, including supporting
+different windowing on each stream. Note that most of the changes are
+only in the library - the actual programs (qntrain,qnforward) haven't
+been changed to use the new features yet.
+
+QuickNet v0_90 needs fltvec-v0_04, intvec-v0_03.  It also needs
+quicknet_testdata-v0_05 rtst-v0_19 if you want to run the library test
+programs.
+
+programs:
+ - Despite massive internal reorganization, programs are fundamentally
+   unchanged.
+ - "qntrain" now needs the training cache size specified in frames,
+   rather than sentences.  Choosing a value for this is now much less
+   hit and miss.
+ - "qntrain" now outputs status information on each cache fill.
+ - New "list" learning rate schedule type, and new "learnrate" option
+   ("initial_learnrate" option is superceded by this).  Default
+   learning rate schedule now named "newbob".
+ - Higher resolution timers used to calculate performance (e.g. MCUPS),
+   relieves accuracy problems caused by quantization.
+ - Fixed bug in specifying stdio buffer sizes - should speed things
+   up for smaller net sizes.
+ - Changed some default values.
+ - "qnnorm" sentence selection reinstated.
+ - "input_normfile" option changed - a null value now means use no norm
+    file.
+ - New options "ftrfile_num_ftrs" (qnforward) and
+   "train_ftrfile_num_ftrs" (qntrain).  Useful when using headerless
+   feature files (e.g. Cambridge "pre" format).  "first_ftr" and
+   "num_ftrs" now work correctly with headerless feature files.
+
+libraries:
+ - Millions of new classes for handling streams:
+   QN_InFtrStream_Norm - normalize a stream
+   QN_InFtrStream_Narrow - take a contiguous subset of the features in a stream
+   QN_InFtrStream_SplitFtrLab - efficiently split a combined feature
+	and label stream into its constituent parts
+   QN_In{Ftr,Lab}Stream_Cut - split a stream "vertically"
+	into two (possibly overlapping) new streams
+   QN_In{Ftr,Lab}Stream_SeqWindow - apply a window to a stream
+   QN_In{Ftr,Lab}Stream_RandWindow - randomize and window a stream
+	(like the old FrameSentCursor_Cache class
+   QN_InLabStream_FrameInfo - return a stream of {epoch,segno,frameno}
+	triples - useful for testing
+ - "QN_OutFtrLabStream_PFile" now writes indexed PFiles.
+ - New streams-based training class - QN_HardSentTrainer
+ - New streams-based forward pass function - QN_HardForward
+ - New rate schedule class for list of learning rates -
+   QN_RateSchedule_List
+ - QN_RateSchedule_NewBoB now handles maximum number of epochs
+ - New class QN_ClassLogger that can be used to add logging to a class
+ - Sequence generators renamed - now QN_SeqGen_RandomNoReplace etc.
+ - New time functions - QN_time() and QN_timestr().
+ - QN_Arg functions now accept lists of floats as a type.
+
+testsuite:
+ - New test programs for new classes.
+
+installation/distribution:
+ - Tidied up INSTALL document a little.
+ - Should install on Irix5 out of the box.
+
+======================
+=== QuickNet v0_50 ===
+======================
+
+This release is an intermediate release, including some of the
+restructuring that replaces sentence databases ("SentDB"s) with
+streams-based interfaces ("InFtrStream"s, "InLabStream"s etc).  For
+production use of the actual programs such as "qntrain", v0_12 is
+still the preferred version (although people should try the new
+versions to make sure I haven't broken anyone's favourite feature).
+However, for library users, v0_50 is a better version to use, as it is
+closer in form to the approaching QuickNet 1.0.
+
+QuickNet v0_50 needs fltvec-v0_03, intvec-v0_03.  It also needs
+quicknet_testdata-v0_05 rtst-v0_19 if you want to run the library test
+programs.
+
+programs:
+ - "qntrain" and "qnforward" can now read Cambridge "pre" feature files.
+   This is not yet fully tested due to lack of suirtable data files.
+   Could someone try them and let me know how it goes?
+ - All programs used streams-based input, although with some hacks as
+   not all the required streams classes are available (hopefully no
+   user-visible change).
+ - "qnnorm" has now regressed! Now it can only normalize whole
+   PFiles, rather than a given range of sentences.  Use "qnnorm-v0_12"!
+
+libraries:
+ - New header file "QN_streams.h" with definitions of various stream
+   interfaces for input and output (note - these aren't C++ streams,
+   but rather QuickNet streams designed to handle sentence data. The
+   principle is the same, though!).
+ - New stream based classes for reading and writing PFiles -
+   "QN_InFtrLabStream_PFile" and "QN_OutFtrLabStream_PFile".
+ - New classes for reading LNA files ("QN_InFtrLabStream_LNA8"),
+   Cambridge format feature files ("QN_InFtrLabStream_PreFile") and
+   ICSI online feature files ("QN_InFtrLabStream_OnlFtr").
+ - The old normalization routine ("QN_statdb") has been replaced with 
+   a streams-based version ("QN_ftrstats").
+ - Many things previously called "sentences" are now called
+   "segments" - just trying to keep things general.
+ - New QN_LOG constants in QN_Logger.h to be used for specifying
+   debugging levels.
+ - New routines QN_open() and QN_close() - preferred way of opening
+   and closing files.
+
+testsuite:
+ - New test programs for new classes.
+
+installation/distribution:
+ - "INSTALL" document updated.
+
+======================
+=== QuickNet v0_12 ===
+======================
+
+library:
+ - Fixed some build problems.
+
+testsuite:
+ - Fixed so that some tests that were previously not run by default are now
+   run
+ - Fixed some tests that were breaking
+
+installation/distribution:
+ - Updated "INSTALL" with more details on building for SPERT
+ - "testdata" scripts now use fixed point by default on SPERT
+
+======================
+=== QuickNet v0_11 ===
+======================
+
+all programs:
+ - New "debug" command line argument.  Setting this to a number
+   between 0 and 6 will control the amount of debugging messages issued
+ - Some messages changed, error messages and warnings improved
+ - Potential bug in selecting weight ranges fixed
+ - Now works if all sentences are one frame long
+
+qnforward:
+ - New "mlp_weightexp" command line argument for controlling fixed
+   point weight exponents.  Useful for forward passes with floating point
+   trained weights
+
+library:
+ - All modules now use QN_config.h
+
+installation/distribution:
+ - This NEWS file now included, and also installed as QuickNet-NEWS.txt
+ - New example program for using the net - "qnxor.cc" - included
+ - Library now installed
+
+======================
+=== QuickNet v0_10 ===
+======================
+
+all programs:
+ - PFile reading now uses sentence index data - should be much faster
+   for forward pass, especially if executions pmaked across networks
+ - MCUPS/MCPS ratings slightly more accurate
+
+library:
+ - Many warnings during build eliminated
+ - New `QN_SentDB*' classes replace old `FrameSentDB' equivalents.
+   These use the standard conventions for argument passing, logging
+   etc.
+ - New `QN_FtrOutStream' base class and derived `QN_FtrOutStream_Rapact' for
+   outputting activations, replacing old output functions in
+   `QN_utils'.  Paves the way for a variety of output file formats
+   (LNA next...).
+ - `QN_MLP' classes now have a member function indicating the number
+   of connections.
+
+distribution:
+ - Now includes `testsuite' subdirectory - check the README-hacker
+   file for details (plus a few more details on the `perfsuite' directory).
+ - `quicknet_testdata-v0_02' now needed for testsuite
+
+======================
+=== QuickNet v0_09 ===
+======================
+
+qntrain:
+
+ - Several escape characters added to the `log_weightfile' command line
+   argument.  From the man page:
+
+               Three special substrings can be used to in the log
+               weightfile  filename. The string %p is replaced by
+               the process number of the  qntrain  process.   The
+               string %e is replaced by the number of the current
+               epoch (allowing weight logs from all epochs to  be
+               retained).   The string %% is replaced by a single
+               %.
+   Note that epoch numbers start from 1, unlike BoB which starts from 0.
+
+ - The `max_epochs' command line argument now works correctly - use a
+   value of 1 if you want one epoch!
+ - The intial weights are never saved as the "best" weights, even if
+   the error increases in subsequent epochs (suggested by John
+   Lazzaro).
+ - Slight performance increase in training small nets on SPERT.
+
+all:
+
+ - Status logs now line buffered on SPERT.
+ - Now prints host name in log file (which also includes
+   details of which spert board if appropriate).
+ - The libraries and programs can now be built _without_ the fixed
+   point library.  Executables built in this fashion will fail with an
+   error if the `use_fx=true' command line argument is used.
+ - Numerous changes to Makefiles and configure scripts, including
+   support for building distributions, better RCS handling, better
+   rebuilding of Makefiles etc, more portable.
+ - Increased source portability and misc. tidy ups.
+ - Inclusion of some basic developer-level documentation (`INSTALL',
+   `INSTALL-icsi',`README', `README-hacker').
+
+======================
+=== QuickNet v0_08 ===
+======================
+
+ - Completed some restructuring that reduced memory usage and tidied up
+   the MLP classes.
+ - Various tweaks in the fixed point MLP class.  These changes improve
+   frame level error by almost 1% on digits - your mileage may vary.
+ - A bug in the MLP training class was fixed.  Previously, invalid
+   labels in a feature file could cause memory corruption (sorry you
+   had to find this one, Jean Marc!).
+ - The usage message now includes the version number.
+

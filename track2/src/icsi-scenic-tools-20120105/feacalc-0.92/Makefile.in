@@ -1,0 +1,313 @@
+#
+# Makefile.in for feacalc
+# 
+# Feature calculation based on RASTA
+#
+# 1997jul23 dpwe@icsi.berkeley.edu
+# $Header: /u/drspeech/repos/feacalc/Makefile.in,v 1.22 2012/01/05 20:30:15 dpwe Exp $
+#
+
+# Stuff from autoconf
+
+# Default top-level directories in which to install architecture-
+# specific files (exec_prefix) and machine-independent files such
+# as scripts (prefix).  The values specified here may be overridden
+# at configure-time with the --exec-prefix and --prefix options
+# to the "configure" script.
+prefix =		@prefix@
+exec_prefix =		@exec_prefix@
+
+# Used to add prefixes and suffices to program names
+transform = @program_transform_name@
+
+# The following definition can be set to non-null for special systems
+# like AFS with replication.  It allows the pathnames used for installation
+# to be different than those used for actually reference files at
+# run-time.  INSTALL_ROOT is prepended to $prefix and $exec_prefix
+# when installing files.
+INSTALL_ROOT =
+
+# Directory in which to install the binary library:
+#LIB_INSTALL_DIR =	$(INSTALL_ROOT)$(exec_prefix)/lib
+
+# Where to install executables
+BIN_INSTALL_DIR =	$(INSTALL_ROOT)$(exec_prefix)/bin
+
+# Where to install man pages for executables
+MAN1_INSTALL_DIR =	$(INSTALL_ROOT)$(prefix)/man/man1
+
+# To change the compiler switches, for example to change from -O
+# to -g, change the following line:
+CFLAGS = @CFLAGS@
+CXXFLAGS = @CXXFLAGS@
+
+# Some versions of make, like SGI's, use the following variable to
+# determine which shell to use for executing commands:
+SHELL =		/bin/sh
+
+# The symbol below provides support for dynamic loading and shared
+# libraries.  See configure.in for a description of what it means.
+# The values of the symbolis normally set by the configure script.
+
+SHLIB_CFLAGS = @SHLIB_CFLAGS@
+SHLIB_CXXFLAGS = @SHLIB_CXXFLAGS@
+SHLIB_LDXX = @SHLIB_LDXX@
+SHLIB_LDXX_LIBS = @SHLIB_LDXX_LIBS@
+SHLIB_SUFFIX = @SHLIB_SUFFIX@
+
+SHLD_RANLIB = @SHLD_RANLIB@
+
+#----------------------------------------------------------------
+# The information below is modified by the configure script when
+# Makefile is generated from Makefile.in.  You shouldn't normally
+# modify any of this stuff by hand.
+#----------------------------------------------------------------
+
+AC_FLAGS =		@DEFS@
+srcdir =		@srcdir@
+
+VPATH = 		@srcdir@
+
+#----------------------------------------------------------------
+
+# Programs we use.
+
+AR = @AR@
+RANLIB = @RANLIB@
+INSTALL = @INSTALL@
+INSTALL_PROG = $(INSTALL)
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_LIB = $(INSTALL_DATA)
+MKINSTALLDIRS =		$(srcdir)/mkinstalldirs
+
+#DPWELIB_INC_SPEC = -I$(DPWELIB_INC_DIR)
+DPWELIB_INC_SPEC = @DPWELIB_INC_SPEC@
+
+# The location of Sound.[CH]
+DPWELIB_SRC_DIR		=	@DPWELIB_SRC_DIR@
+
+CC = @CC@
+CC_SWITCHES = $(CFLAGS) $(SHLIB_CFLAGS) $(IFLAGS) $(AC_FLAGS)
+
+CXX = @CXX@
+CXX_SWITCHES = $(CXXFLAGS) $(SHLIB_CXXFLAGS) $(IFLAGS) $(AC_FLAGS)
+
+LD = $(CXX)
+
+# String to pass to linker to pick up dpwelib & whatever else is 
+# needed to get that functionality
+DPWELIB_LIB_SPEC = @DPWELIB_LIB_SPEC@
+# Other libs ..? some shared linkers like to see
+LIBS = @LIBS@
+
+#QN_INC_SPEC = @QN_INC_SPEC@
+#QN_LIB_SPEC = @QN_LIB_SPEC@
+QN_INC_SPEC = @QN_CFLAGS@
+QN_LIB_SPEC = @QN_LIBS@
+
+RASTA_INC_SPEC = @RASTA_INC_SPEC@
+RASTA_LIB_SPEC = @RASTA_LIB_SPEC@
+RASTA_SRC_DIR  = @RASTA_SRC_DIR@
+
+compile.c = $(CC) $(CC_SWITCHES)
+compile.cxx = $(CXX) $(CXX_SWITCHES)
+
+.c.o:
+	$(compile.c) -c $<
+
+.C.o:
+	$(compile.cxx) -c $<
+
+.cc.o:
+	$(compile.cxx) -c $<
+
+config_srcs	=	configure.in Makefile.in aclocal.m4
+config_utils	=	config.sub config.guess install-sh mkinstalldirs
+config_outfiles	=	configure
+
+# ------------------------------------------------------------
+
+all: feacalc wavs2onlaudio
+
+HDRS		=	$(srcdir)/OutputFile.H $(srcdir)/InputFile.H \
+			$(srcdir)/FileList.H $(srcdir)/CmdLineStuff.H \
+			$(srcdir)/FtrCalc.H $(srcdir)/Rasta.H \
+			$(srcdir)/Percept.H \
+			$(srcdir)/ExecUtils.H \
+			$(srcdir)/floatVec.H $(srcdir)/ParamListFile.H
+
+SRCS		=	$(srcdir)/feacalc.C $(srcdir)/OutputFile.C \
+			$(srcdir)/InputFile.C $(srcdir)/FileList.C \
+			$(srcdir)/CmdLineStuff.C \
+			$(srcdir)/FtrCalc.C $(srcdir)/Rasta.C \
+			$(srcdir)/Percept.C \
+			$(srcdir)/ExecUtils.C  $(srcdir)/ParamListFile.C \
+			$(srcdir)/wavs2onlaudio.C
+
+DOCS		=	$(srcdir)/feacalc.man $(srcdir)/wavs2onlaudio.man \
+			$(srcdir)/README $(srcdir)/NEWS $(srcdir)/INSTALL \
+			$(srcdir)/COPYING $(srcdir)/TODO $(srcdir)/INSTALL-icsi
+
+OTHERS		=	$(srcdir)/rasta.tcl
+
+IFLAGS		=	$(QN_INC_SPEC) $(RASTA_INC_SPEC) $(DPWELIB_INC_SPEC)
+
+LIBS		=	$(QN_LIB_SPEC) $(RASTA_LIB_SPEC) $(DPWELIB_LIB_SPEC) -lm
+
+feacalcobjs 	= 	feacalc.o OutputFile.o InputFile.o FileList.o \
+			CmdLineStuff.o FtrCalc.o Rasta.o \
+			ExecUtils.o ParamListFile.o
+
+pcpcalcobjs 	= 	pcpcalc.o OutputFile.o InputFile.o FileList.o \
+			CmdLineStuff.o FtrCalc.o Rasta.o \
+			ExecUtils.o ParamListFile.o \
+			FtrCalc.o Percept.o
+
+wavsobjs	=	wavs2onlaudio.o FileList.o ExecUtils.o Sound.o
+
+feacalc: $(feacalcobjs)
+	$(LD) -o feacalc $(feacalcobjs) $(LIBS)
+
+pcpcalc: $(pcpcalcobjs)
+	$(LD) -o pcpcalc $(pcpcalcobjs) $(LIBS)
+
+# 2nd program is drspeech_featools drop-in
+wavs2onlaudio: $(wavsobjs)
+	$(LD) -o wavs2onlaudio $(wavsobjs) $(LIBS)
+
+feacalc.o: $(srcdir)/feacalc.C $(HDRS)
+	$(compile.cxx) -c $(srcdir)/feacalc.C -o $@
+
+pcpcalc.o: $(srcdir)/pcpcalc.C $(HDRS)
+	$(compile.cxx) -c $(srcdir)/pcpcalc.C -o $@
+
+wavs2onlaudio.o: $(srcdir)/wavs2onlaudio.C $(srcdir)/FileList.H $(DPWELIB_SRC_DIR)/Sound.H
+	$(compile.cxx) -I$(DPWELIB_SRC_DIR) -c $(srcdir)/wavs2onlaudio.C -o $@
+
+Sound.o: $(DPWELIB_SRC_DIR)/Sound.C $(DPWELIB_SRC_DIR)/Sound.H
+	$(compile.cxx) -c $(DPWELIB_SRC_DIR)/Sound.C -o $@
+
+OutputFile.o: $(srcdir)/OutputFile.C $(srcdir)/OutputFile.H
+	$(compile.cxx) -c $(srcdir)/OutputFile.C -o $@
+
+InputFile.o: $(srcdir)/InputFile.C $(srcdir)/InputFile.H
+	$(compile.cxx) -c $(srcdir)/InputFile.C -o $@
+
+FileList.o: $(srcdir)/FileList.C $(srcdir)/FileList.H $(srcdir)/ExecUtils.H
+	$(compile.cxx) -c $(srcdir)/FileList.C -o $@
+
+ParamListFile.o: $(srcdir)/ParamListFile.C $(srcdir)/ParamListFile.H
+	$(compile.cxx) -c $(srcdir)/ParamListFile.C -o $@
+
+CmdLineStuff.o: $(srcdir)/CmdLineStuff.C $(srcdir)/CmdLineStuff.H
+	$(compile.cxx) -c $(srcdir)/CmdLineStuff.C -o $@
+
+FtrCalc.o: $(srcdir)/FtrCalc.C $(srcdir)/FtrCalc.H $(srcdir)/CmdLineStuff.H
+	$(compile.cxx) -c $(srcdir)/FtrCalc.C -o $@
+
+Rasta.o: $(srcdir)/Rasta.C $(srcdir)/Rasta.H $(srcdir)/CmdLineStuff.H $(srcdir)/FtrCalc.H
+	$(compile.cxx) -DDIRECT_PLPCEP -c $(srcdir)/Rasta.C -o $@
+
+Percept.o: $(srcdir)/Percept.C $(srcdir)/Percept.H $(srcdir)/CmdLineStuff.H $(srcdir)/FtrCalc.H
+	$(compile.cxx) -c $(srcdir)/Percept.C -o $@
+
+ExecUtils.o: $(srcdir)/ExecUtils.C $(srcdir)/ExecUtils.H
+	$(compile.cxx) -c $(srcdir)/ExecUtils.C -o $@
+
+#### Test programs ####
+
+ExecUtils: $(srcdir)/ExecUtils.C $(srcdir)/ExecUtils.H
+	$(compile.cxx) -DMAIN $(srcdir)/ExecUtils.C -o $@
+
+#### Utility targets #####
+
+# We can test at least by running the RASTA tests on it (except ESPS)
+test-rasta: feacalc
+	r=`cd $(srcdir); pwd`; \
+	(cd $(RASTA_SRC_DIR)/testsuite; make RASTA=$$r/rasta.tcl feacalc)
+
+test-feacalc: feacalc
+	$(srcdir)/testsuite/test.tcl
+
+test-wavs2onl: wavs2onlaudio
+	$(srcdir)/testsuite/test-wavs2onl.tcl
+
+test: test-rasta test-feacalc test-wavs2onl
+
+
+install: feacalc $(srcdir)/feacalc.man wavs2onlaudio $(srcdir)/wavs2onlaudio.man
+	@$(MKINSTALLDIRS) $(BIN_INSTALL_DIR) $(MAN1_INSTALL_DIR)
+	@echo "Installing programs"
+	for i in feacalc wavs2onlaudio; do \
+		$(INSTALL_PROG) \
+			$$i \
+			$(BIN_INSTALL_DIR)/`echo $$i|sed '$(transform)'`; \
+	done
+	@echo "Installing man pages"
+	for i in feacalc wavs2onlaudio; do \
+		$(INSTALL_DATA)  \
+			$(srcdir)/$$i.man \
+			$(MAN1_INSTALL_DIR)/`echo $$i|sed '$(transform)'`.1; \
+	done
+
+rmbak:
+	-rm -f *~ *.bak core \#*
+
+clean: rmbak
+	-rm -f *.o feacalc wavs2onlaudio
+
+realclean: clean
+
+distclean: clean
+	rm -f Makefile config.status config.log config.cache
+
+depend:
+	makedepend -- $(CC_SWITCHES) -- $(SRCS)
+
+$(srcdir)/configure: $(srcdir)/configure.in
+	cd $(srcdir) && autoconf
+	./config.status --recheck
+
+Makefile: $(srcdir)/Makefile.in $(srcdir)/configure
+	$(SHELL) config.status
+
+#################################################################
+## Package distribution.
+#################################################################
+
+# The name of the distribution
+name = @PACKAGE_NAME@
+version = @PACKAGE_VERSION@
+distname = $(name)-$(version)
+
+# The file name of the compressed tar file
+distfile = $(distname).tar.gz
+
+# Where to build the disttree
+distroot = .
+
+# The directory in which the distribution is built
+distdir = $(distroot)/$(distname)
+
+# Build a distribution
+dist: $(distfile)
+
+# Build the file that contains the distribution
+$(distfile): disttree
+	rm -f $(distfile); \
+	(cd $(distroot); tar cvf - $(distname) ) | gzip >$(distfile)
+
+dist_files =	$(HDRS) $(SRCS) $(DOCS) $(OTHERS) \
+		$(config_srcs) $(config_utils) $(config_outfiles)
+
+# Build a directory tree that can be tared and gzipped to form the distribution
+disttree: $(dist_files)
+	rm -fr $(distdir); \
+	mkdir $(distdir); \
+	chmod a=rwx $(distdir); \
+	for i in $(dist_files) ; do \
+		file=`echo $$i | sed -e "s^$(srcdir)/^^"`; \
+		cp -p $(srcdir)/$$file $(distdir)/$$file || exit 1; \
+	done;
+
+# DO NOT DELETE THIS LINE -- make depend depends on it.

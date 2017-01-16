@@ -1,0 +1,310 @@
+.de Sh
+.br
+.ne 5
+.PP
+\fB\\$1\fR
+.PP
+..
+.de Sp
+.if t .sp .5v
+.if n .sp
+..
+.               \" Path Name
+.               \"      uses Courier fonts for V4.0
+.de PN
+.ie t \&\f(CB\\$1\f(NR\\$2
+.el \fI\\$1\fP\\$2
+..
+.		\" The following macros added by dpwe for Ultrix 4..
+.               \" Manual section reference
+.               \"      uses Courier fonts for V4.0
+.de MS
+.ie t \&\f(CB\\$1\f(NR(\\$2)\\$3
+.el \fI\\$1\fP(\\$2)\\$3
+..
+.de EX		\" Begin Example
+.ie \\n(.$ .nr EX \\$1n
+.el \{\
+.	ie n .nr EX 0n
+.	el .nr EX 0n
+.\}
+.in +\\n(EXu
+.if n .sp 1
+.if t .sp .5v
+.nf
+.CW
+.ft CB
+..
+.de EE		\" End example
+.in -\\n(EXu
+.fi
+.}f             \" restore basic text attributes
+.if n .sp 1
+.if t .sp .5v
+..
+.TH SNDRFMT 1 "3 Dec 1991" dpwe   \" $Header: /u/drspeech/repos/dpwelib/sndrfmt.man,v 1.7 1999/09/29 01:32:14 dpwe Exp $
+.SH NAME
+sndrfmt - Perform various format modifications to SNDF soundfiles
+.SH SYNOPSIS
+\fBsndrfmt
+[\-c \fIchansMODE\fB]
+[\-f \fIoutformat\fB]
+[\-F \fIinformat\fB]
+[\-r \fIrate\fB]
+[\-i \fIinfo\fB]
+[\-g \fIgain\fB]
+[\-d \fIdurn\fB]
+[\-d \fIdurnfr\fB]
+[\-e \fIend\fB]
+[\-E \fIendfr\fB]
+[\-k \fIskip\fB]
+[\-K \fIskipfr\fB]
+[\-X \fIskipby\fB]
+[\-S \fIsffmt\fB]
+[\-T \fIsffmt\fB]
+[\-q]
+[\-h]
+[\-s]
+[\-a]
+[\-o]
+[\-v]
+[\-V]
+[\-A]
+\fIinputSoundFile\fB
+[\fIoutputSoundFile\fB]
+\fR
+.SH DESCRIPTION
+.PN sndrfmt
+is provided to perform a wide variety of modifications to a soundfile 
+concerned with how it is stored on disk, i.e. without changing how it 
+sounds if correctly rendered.  In conjunction with the 
+.MS sndf 3 
+multi-format soundfile library, it can also be used to translate 
+soundfiles between different formats and machine architectures, a 
+role formerly performed by 
+.MS sndcvt 1 .
+.P
+.PN sndrfmt
+will take an input sound file 
+.I inputSoundFile
+(raw data with -a), and change its data format (e.g. short to float), the 
+number of channels (e.g. stereo to mono), the sampling rate (by 
+resampling - but see BUGS), 
+the information string, apply a constant gain, drop sound from the beginning, 
+force the length to a certain duration, and add or remove a soundfile 
+header.  It writes output to the 
+.I outputSoundFile
+specified, or to the input filename's stem + `.rf' + the default soundfile 
+extension if no name is given, or to stdout if the output filename is '\-'.
+.P
+.PN sndfrmt 
+is built on the
+.MS sndf 3
+soundfile system library, which means it works with a variety of different 
+native soundfile formats depending on compilation platform and options.  
+Current support includes NeXT, AIFF and Csound/IRCAM soundfiles.
+.SH OPTIONS
+The options define the desired properties of the output soundfile.  
+.PN sndrfmt
+compares these to the details in the header of the input sounds and 
+performs the necessary conversions.
+.TP 12
+\fB\-f \fIformat\fR
+Output file format.  This is a single character chosen from
+.P
+.ta .5i 1.0i
+.nf
+	c	linear bytes (chars) (8 bit/sample)
+	o	offset unsigned linear bytes (8 bit/sample, centered at 0x80)
+	a	a-law bytes (8 bit/sample)
+	u	u-law bytes (8 bit/sample)
+	s	linear short ints (16 bits/sample)
+	l	linear long ints (32 bit/sample)
+	f	floating point (32 bit/sample)
+	d	double precision floats (64 bit/sample)
+.fi
+.IP
+Note that not all formats are available in all soundfile environments.
+For instance, AIFFs can only support linear data formats (c/s/l). 
+The conversion between different formats seeks to equate the full 
+scale deflection in each representation, but this is taken as 1.0 
+for the floating point formats.  This can be changed using the -g 
+(gain) option.
+.TP 12
+\fB\-F \fIinformat\fR
+If specified, this will force the interpretation of the input file 
+to be the specified format (codes as above).  This can be useful 
+when headers are incorrect due to limitations i.e. mu-law coded 
+files held as AIFFs.
+.TP 12
+\fB\-c \fIchansMODE\fR
+Number of output channels, and channel-conversion policy.  
+.I chans
+is a digit specifying the number of output channels, and 
+.I MODE
+is a string of characters directly following that digit (without 
+an intervening space) specifying where each output channel comes 
+from.  If
+.I MODE
+is not specified, a simple distribution algorithm is used to map 
+n input channels onto m output channels.  In particular, converting 
+to mono adds all channels together, dividing by the number of channels 
+to avoid overflow; converting mono to stereo sets each stereo channel 
+to the input signal.  When 
+.I MODE 
+is present, it has one letter to specify the source of each output 
+channel according to the following table:
+.P
+.ta .5i 1.2i
+.nf
+	L	copy this channel from the left (first) input channel
+	R	copy this channel from the right (2nd) input channel
+	S	copy this channel from the third input channel (if any)
+	T	copy this channel from the fourth input channel (if any)
+	Z	make this channel all zeros
+.fi
+.IP
+(Future extensions may also provide for sums, differences and negations).  
+Thus to swap the left and right channels of a stereo sound, specify
+.EX
+sndrfmt -c 2RL insnd outsnd
+.EE
+.TP 12
+\fB\-r \fIrate\fR
+Output sampling rate.  If necessary, the sound is resampled using a 
+nine-multiply sinc lowpass interpolator.  The algorithm internally 
+adjusts the required sample rate ratio to allow the use of tabled 
+coefficients.  The error will always be less that 1%, and will be 
+zero where the resampling ratio corresponds to simple integers. 
+(see BUGS).
+.TP 12
+\fB\-i \fIinfo\fR
+Many sound file formats allow storage of extra, unformatted information. 
+Any string specified with this option will be written into that area.
+.TP 12
+\fB\-g \fIgain\fR
+Apply a (floating point) gain multiplier to the whole sound.
+.TP 12
+\fB\-d \fIdurn\fR
+Truncate or zero pad the sound so that the output file has the exact 
+duration specified (regardless of skip).
+.TP 12
+\fB\-D \fIdurnfr\fR
+As -d, but specifying the output duration in terms of sample frames 
+rather than seconds.
+.TP 12
+\fB\-e \fIend\fR
+Truncate or zero pad the sound so that the output file extends up 
+to the specified absolute time in the input file.  Thus the duration 
+of the output file will be <end>-<skip>.  This is an alternative 
+to using -d.
+.TP 12
+\fB\-E \fIendfr\fR
+As -e, but specifying the end point in terms of sample frames 
+rather than seconds.
+.TP 12
+\fB\-k \fIskip\fR
+Skip over this much time at the start of the input sound.  Use in 
+conjunction with -d to extract subsounds from the middle of larger 
+files.  If the skiptime is negative, this much silence is inserted 
+in front of the output sound; the total length of the output sound 
+is still determined by -d; if -d plus -k is less that zero, the 
+output file will consist of -d's worth of artificial silence alone.
+.TP 12
+\fB\-k \fIskip\fR
+Skip over this much time at the start of the input sound.  Use in 
+conjunction with -d to extract subsounds from the middle of larger 
+files.  If the skiptime is negative, this much silence is inserted 
+in front of the output sound; the total length of the output sound 
+is still determined by -d; if -d plus -k is less that zero, the 
+output file will consist of -d's worth of artificial silence alone.
+.TP 12
+\fB\-K \fIskipfr\fR
+Like -k, except specify an exact number of sample frames to skip, 
+rather than a duration in seconds (will pad if negative).
+.TP 12
+\fB\-X \fIskipby\fR
+Skip over the specified number of bytes on the input file or stream 
+before doing anything i.e. even before attempting to read a header 
+if one is expected.  Use this in conjunction with -a (and perhaps -V) 
+to strip and rebuild an otherwise unknown soundfile header.
+.TP 12
+\fB\-S \fIsffmt\fR
+Force the input soundfile to be treated as the type specified by 
+the keyword.  This only applies if the 
+.MS sndf 3
+library has been compiled to use run-time determination of soundfile 
+type; otherwise this option is ignored.  When it is active, the 
+available soundfile keywords are listed in the usage message:
+.EX
+sndrfmt --
+.EE
+but currently include "AIFF" (Mac/SGI), "NeXT" (Sun/NeXT *.au/*.snd), 
+"MSWAVE" (Microsoft RIFF/WAVE), "NIST" (NIST/SPHERE) and "PCM" 
+(raw data, format optionally controlled by PCMFORMAT environment 
+string, see
+.MS sndf 3
+).
+.TP 12
+\fB\-T \fIsffmt\fR
+Under the runtime-dynamic version of the soundfile library, forces 
+the output soundfile to be treated as the type specified by 
+the keyword (see the -S option above).  If not specified, the 
+output soundfile type will match the input.
+.TP 12
+.B \-q
+Query existing soundfile.  Simply reports header information of input 
+sound.
+.TP 12
+.B \-h
+Change header information ONLY, according to the -c, -f, -r and -i flags.  
+Does 
+.I not
+change the sound data.
+.TP 12
+.B \-s
+Strip off the header, only write the raw data to the output file.  
+However, if other flags such as -c, -f, -r, -d or -k are specified, 
+the data is modified before being written.
+.TP 12
+.B \-a
+Add a new header at the front of what is assumed to be a raw data file.
+The entries in the header are taken from the -c, -f and -r flags, or 
+default to mono short ints sampled at 44.1 kHz.  The data is not 
+modified, since nothing is known about its prior format.
+.TP 12
+.B \-o
+Write output to standard output rather than a file.  Note:  this option 
+is obsolete;  we now specify this with an output filename of '\-'.  But 
+it is still supported for the time being for compatibility with older scripts.
+.TP 12
+.B \-v
+Verbose mode - report header information for both input and output sounds.
+.TP 12
+.B \-V
+Swap (reverse) bytes in two-byte data words (big-endian - little-endian, 
+or Mac to DEC).
+.TP 12
+.B \-A
+Clip output to be compatible with Abbot-style online files i.e. simply 
+ensure that any 0x8000's are mapped to 0x8001,
+.SH BUGS
+Resampling is not currently implemented - use
+.MS sndrsmp 1
+for now (sorry).
+.P
+Cannot detect inappropriate formats - will go ahead and write a float aiff 
+file if so compiled.
+.P
+Should perhaps provide a mechanism for specifying format of raw input 
+files to allow one stage conversion of raw floats to headered shorts, 
+for instance.  (But see new additions to PCMFORMAT in 
+.MS sndf 3 )
+.P
+Channel conversion syntax rather weak - no way to ask that output 
+channel be difference of two input channels etc.
+.SH SEE ALSO
+sndrsmp(1), res(1), sndf(3)
+.SH AUTHOR
+Dan Ellis, 
+.B dpwe@media.mit.edu

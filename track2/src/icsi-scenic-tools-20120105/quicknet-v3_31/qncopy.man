@@ -1,0 +1,155 @@
+. $Header: /u/drspeech/repos/quicknet2/qncopy.man,v 1.5 2007/02/19 09:03:32 davidj Exp $
+.de EX		\" Begin Example
+.ie \\n(.$ .nr EX \\$1n
+.el \{\
+.	ie n .nr EX 0n
+.	el .nr EX 0n
+.\}
+.in +\\n(EXu
+.if n .sp 1
+.if t .sp .5v
+.nf
+.CW
+.ft CB
+..
+.de EE		\" End example
+.in -\\n(EXu
+.fi
+.}f             \" restore basic text attributes
+.if n .sp 1
+.if t .sp .5v
+..
+.de MS
+.ie t \&\f(CB\\$1\f(NR(\\$2)\\$3
+.el \fI\\$1\fP(\\$2)\\$3
+..
+.TH qncopy 1 "$Date: 2007/02/19 09:03:32 $" ICSI "ICSI SPEECH SOFTWARE"
+.SH NAME
+qncopy \- Copy QuickNet data files, possibly with modifications
+.SH SYNOPSIS
+.B qncopy
+[
+.I options
+]
+.SH DESCRIPTION
+.I qncopy
+is a simple program for copying one speech feature archive 
+to another.  It is really just a wrapper around the QuickNet 
+"feature stream" classes, to allow access to some of the 
+enhanced functions they provide.  It mirrors many of the 
+feature processing options provided by 
+.MS qnstrn 1
+and
+.MS qnsfwd 1 .
+.SH OPTIONS
+.I qncopy
+can take the following options (defaults in parens):
+.TP 1i			\" Indent the paragraph
+.BI ftr_file= filename (required)
+Specify the input speech feature archive file.
+.TP
+\fBftr_format\fR=\fItype\fR ("pfile")
+The format of the input feature file.  Supported formats include 
+"pfile" (see
+.MS pfile 5 )
+"pre" and "lna" (see
+.MS lna 5 ).
+.TP
+\fBftr_width\fR=\fIwidth\fR (0)
+The number of feature columns in the feature file.  This can be 
+left at zero for pfiles, which specify their feature width in 
+the header, but must be specified for pre and lna files, which 
+do not.
+.TP
+\fBftr_norm_file\fR=\fIfilename\fR 
+If specified, means and standard deviations for each feature column 
+(including any that are calculated on-line) are read from this file 
+and applied as normalization.  See \f4norm_mode\f1 below.
+.TP
+\fBoutftr_file\fR=\fIfilename\fR ("-")
+The file that is written by the program.  "-" means to write to 
+standard output.
+.TP
+.BI delta_order= order (0)
+The highest order of delta features to calculate.  0 means that no 
+delta caculation is performed.  1 means to calculate just the 1st order
+derivatives.  2 means to calculate both first and second order (curvature 
+or acceleration) derivatives.
+Note that the filters are not scaled by the sum of squares, so
+mean-variance normalization is recommended.
+.TP
+.BI delta_win= size (9)
+The size of the window used to calculate first- and second-order derivatives, 
+in samples.
+.TP
+.BI ftr_start= num (0)
+Of the internally-constructed feature stream (i.e. including any deltas), 
+this is the first column to be written.
+.TP
+.BI ftr_count= num (0)
+The total number of features from the internal feature stream which 
+are written.
+.TP
+.BI sent_start= integer (0)
+The number of the first sentence in the feature file to use
+(0 means the first).
+.TP
+.BI sent_count= integer
+The total number of sentences in the feature file to use.  Specifying
+more than the available number of sentences will result in all remaining 
+sentences being used, which is the default.
+.TP
+.BI sent_range= range-spec-string
+The sentences to process, specified by a Range token in 
+one of the formats defined by 
+.MS QN_Range 3 .  
+This is an alternative 
+to using sent_start and sent_count.  
+.TP
+\fBnorm_mode\fR=\fImode\fR ("file")
+Feature normalization mode.  The default of \f4file\f1 means to use global 
+normalization constants, read from \f4ftr_norm_file\f1, for 
+the entire data set.  (If \f4ftr_norm_file\f1 is empty, no 
+normalization is performed).  \f4utts\f1 means to normalize each utterance 
+individually, similar to 
+.MS pfile_normutts 1 ,
+such that within each utterance each 
+feature dimension is separately scaled and shifted to have zero 
+mean and unit variance (this is actually accomplished, 
+through the QN_InFtrStream_NormUtts class, by reading through 
+each utterance twice - once to gather the normalization constants, 
+the second time to actually process the features).  \f4online\f1 
+means to apply online normalization, initializing at the start of 
+each utterance to the values read from \f4ftr_norm_file\f1, but 
+then adapting with smoothed estimates of the means and variances 
+of each feature dimension, according to the smoothing constants 
+\f4norm_alpha_m\f1 and \f4norm_alpha_v\f1.
+.TP
+\fBnorm_alpha_m\fR=\fIval\fR (0.005)
+Update constant for the recursive mean estimates when \f4norm_mode=onl\f1.
+At each step, the mean estimate is update to (1-alpha)*oldmean + alpha*x.
+.TP
+\fBnorm_alpha_v\fR=\fIval\fR (0.005)
+Update constant for the recursive variance estimates when \f4norm_mode=onl\f1.
+.TP
+\fBindexedop\fR=\fIbool\fR (1)
+Controls whether the output file is created in 'indexed' mode i.e. a 
+random-access index will be written to the end of the output file 
+when it is closed.  (I think this is only supported for pfiles).
+.TP
+.BI debug= integer
+Set the level of debugging output.  \fB0\fR means none, \fB6\fR means lots!
+.TP
+.BI verbose= bool
+Output more log information if
+.BR true .
+.SH BUGS
+Doesn't support label fields or pure-label pfiles.
+.SH AUTHOR
+Dan Ellis  <dpwe@icsi.berkeley.edu>, making extensive use of the 
+original QuickNet classes by David Johnson <davidj@icsi.berkeley.edu>
+.SH SEE ALSO
+.MS pfile_normutts 1 ,
+.MS feacat 1 ,
+.MS lna 5 ,
+.MS pfile 5 .

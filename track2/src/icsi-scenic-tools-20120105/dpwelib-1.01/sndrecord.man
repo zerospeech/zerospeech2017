@@ -1,0 +1,136 @@
+.de Sh
+.br
+.ne 5
+.PP
+\fB\\$1\fR
+.PP
+..
+.de Sp
+.if t .sp .5v
+.if n .sp
+..
+.               \" Path Name
+.               \"      uses Courier fonts for V4.0
+.de PN
+.ie t \&\f(CB\\$1\f(NR\\$2
+.el \fI\\$1\fP\\$2
+..
+.		\" The following macros added by dpwe for Ultrix 4..
+.               \" Manual section reference
+.               \"      uses Courier fonts for V4.0
+.de MS
+.ie t \&\f(CB\\$1\f(NR(\\$2)\\$3
+.el \fI\\$1\fP(\\$2)\\$3
+..
+.de EX		\" Begin Example
+.ie \\n(.$ .nr EX \\$1n
+.el \{\
+.	ie n .nr EX 0n
+.	el .nr EX 0n
+.\}
+.in +\\n(EXu
+.if n .sp 1
+.if t .sp .5v
+.nf
+.CW
+.ft CB
+..
+.de EE		\" End example
+.in -\\n(EXu
+.fi
+.}f             \" restore basic text attributes
+.if n .sp 1
+.if t .sp .5v
+..
+.TH SNDRECORD 1 "1996 nov 19" dpwe   \" $Header: /u/drspeech/repos/dpwelib/sndrecord.man,v 1.5 2000/03/14 22:13:23 dpwe Exp $
+
+.SH NAME
+sndrecord - record a soundfile from the audio hardware.
+.SH SYNOPSIS
+\fBsndrecord 
+[\-d \fIduration\fB]
+[\-r \fIsampleRate\fB]
+[\-c \fIchannels\fB]
+[\-b \fIbufferSize\fB]
+[\-k \fIchunkSize\fB]
+[\-m] 
+[\-v] 
+[\-T \fIformat\fB]
+[\fIoutputSoundFile\fB]
+\fR
+.SH DESCRIPTION
+.PN sndrecord
+reads from the audio input hardware and writes the data to a 
+soundfile.
+Although most 
+systems provide their own command to do this, 
+.PN sndrecord 
+provides a single interface to this function that has been ported 
+over a number of Unix implementations, and can be compiled to generate 
+a range of soundfile formats (using the 
+.MS sndf 3
+sound file interface library).
+.SH OPTIONS
+.TP 12
+.B \-d \fIduration\fR
+Record sound for this many seconds (specified as a decimal).  
+Recording can be stopped -- cleanly -- earlier than this 
+with SIGINT (i.e. control-c) which is trapped to ensure the 
+output soundfile headers are written correctly.  (default 1.0 sec).
+.P
+As a special case, a duration of zero is interpreted as infinite time, 
+so that recording continues until the program is interrupted (or 
+all the disk space is consumed, in which case the soundfile will 
+NOT be cleanly closed).
+.TP 12
+.B \-r \fIsampleRate\fR
+Configure the audio hardware and write the output soundfile with 
+this sampling frequency.  (default 16000 Hz).
+.TP 12
+.B \-c \fIchannels\fR
+Configure the audio hardware and write the output soundfile with 
+this many channels (i.e. 1 for mono, 2 for stereo) (default is 1).
+.TP 12
+.B \-b \fIbufferSize\fR
+Request that the audio hardware employs a buffer of this size on input.  
+This controls the maximum number of samples that the hardware-operating 
+system can get ahead of the program, and hence the maximum latency that 
+will be observed. (defaults to the equivalent of 250 ms).
+.B \-k \fIchunkSize\fR
+Transfer data from the operating system interface in buffers of this size.  
+Normally, these are half the size of the OS buffer, although they could 
+be closer to that buffer size for lower-latency operation on a suitably 
+fast machine.
+.TP 12
+\fB\-T \fIsffmt\fR
+Force the output soundfile to be created as the type specified by 
+the keyword.  This only applies if the 
+.MS sndf 3
+library has been compiled to use run-time determination of soundfile 
+type; otherwise this option is ignored.  When it is active, the 
+available soundfile keywords 
+currently include "AIFF" (Mac/SGI), "NeXT" (Sun/NeXT *.au/*.snd), 
+"MSWAVE" (Microsoft RIFF/WAVE), "NIST" (NIST/SPHERE) and "PCM" 
+(raw data, format optionally controlled by PCMFORMAT environment 
+string, see
+.MS sndf 3
+).
+.TP 12
+.B \-m
+Monitor the recording by copying the input data to the audio output 
+at the same time.
+.TP 12
+.B \-v
+Verbose mode - print diagnostic messages.
+.TP 12
+.B OutputSoundFile
+The name of the soundfile to be written to.  If this is absent, 
+.PN sndrecord
+can write live audio data into a pipe.
+.SH BUGS
+.SH SEE ALSO
+.MS sndf 3
+.SH AUTHOR
+Dan Ellis, 
+.B dpwe@icsi.berkeley.edu (written as dpwe@media.mit.edu)
+

@@ -1,0 +1,12 @@
+$Header: /u/drspeech/src/rasta/RCS/TODO,v 1.6 1997/06/27 04:21:34 dpwe Exp $
+
+Some things to do in Rasta:
+
+- #defines to make executables that look like plp, lograsta, and full-blown
+  rasta
+
+- STRUT I/O
+- fft.c - PI should use ifdef - can be in math.h
+
+
+- support for Matlab 5 (currently matlab4 specific)

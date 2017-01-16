@@ -1,0 +1,98 @@
+dnl -*- sh -*-
+dnl
+dnl $Header: /u/drspeech/repos/feacat/configure.in,v 1.16 2012/01/05 20:28:26 dpwe Exp $
+dnl
+dnl	This file is an input file used by the GNU "autoconf" program to
+dnl	generate the file "configure", which is run during installation
+dnl	to configure the system for the local environment.
+
+dnl	configure.in for feacat
+
+AC_PREREQ(2.57)
+AC_INIT(feacat, 1.02, quicknet-bugs@ICSI.Berkeley.EDU, feacat)
+AC_CONFIG_SRCDIR([feacat.C])
+AC_PREFIX_DEFAULT([/usr/local])
+feacat_exec_prefix=${exec_prefix}
+test "x$feacat_exec_prefix" = xNONE && feacat_exec_prefix=${prefix}
+
+# Sort out program_transform_name
+AC_ARG_PROGRAM
+
+# Set up prefix to actually hold defaults (for use later)
+ACDPWE_INIT_PREFIX
+
+AC_PROG_INSTALL
+AC_PROG_RANLIB
+
+ACDPWE_PROG_CC_CXX
+# added 2012-01-05
+AC_SYS_LARGEFILE
+
+ACDPWE_LIB_MATH
+
+#
+# Does the C++ compiler have the "bool" type? (used by Jeff's range)
+#
+ACDPWE_CXX_BOOL
+
+# Large file stuff
+AC_SYS_LARGEFILE
+AC_FUNC_FSEEKO
+
+### Ask the user for the quicknet lib dir, defaulting to the exec_prefix/lib
+AC_CACHE_VAL(acdpwe_cv_path_qn, acdpwe_cv_path_qn=${qn_exec_prefix/lib})
+AC_ARG_WITH([quicknet],
+    AC_HELP_STRING([--with-quicknet=ARG],[find quicknet3 library in specified directory]),
+    [qn_dir=$withval],
+    [qn_dir=${acdpwe_cv_path_qn}] )
+
+### If we cannot find the user-specified dir, then default to exec_prefix/lib
+if test -f ${qn_dir}/pkgconfig/quicknet3.pc; then
+    QN_DFLT_PC=${qn_dir}/pkgconfig
+elif test -f ${qn_dir}/quicknet3.pc; then
+    QN_DFLT_PC=${qn_dir}
+else
+    QN_DFLT_PC=${feacat_exec_prefix}/lib/pkgconfig
+fi
+
+### Put the new pacakge config dir at the front of the pkg config path
+### and then check for the library
+old_PKG_CONFIG_PATH=${PKG_CONFIG_PATH}
+PKG_CONFIG_PATH="${QN_DFLT_PC}:${PKG_CONFIG_PATH}"
+export PKG_CONFIG_PATH
+PKG_CHECK_MODULES(QN,quicknet3,,:)
+PKG_CONFIG_PATH=${old_PKG_CONFIG_PATH}
+
+QN_INC_SPEC=$QN_CFLAGS
+QN_LIB_SPEC=$QN_LIBS
+AC_SUBST(QN_INC_SPEC)
+AC_SUBST(QN_LIB_SPEC)
+
+#--------------------------------------------------------------------
+#   See if there was a command-line option for where dpwelib is;  if
+#   not, assume that its top-level directory is a sibling of ours.
+#--------------------------------------------------------------------
+DPWELIB_DFLT_DIR=$srcdir/../dpwelib
+if test ! -d $DPWELIB_DFLT_DIR ; then
+  DPWELIB_DFLT_DIR=$exec_prefix/lib
+fi
+
+ACDPWE_CONFIG_PKG(dpwelib, DPWELIB, $DPWELIB_DFLT_DIR, $DPWELIB_DFLT_DIR)
+
+AC_SUBST(DPWELIB_INC_SPEC)
+AC_SUBST(DPWELIB_LIB_SPEC)
+
+#--------------------------------------------------------------------
+
+# Append our build dir to the growing list of build path dirs
+fullBuildDir=`pwd`
+AC_CACHE_CHECK(drspeech build path, acdpwe_cv_env_path, 
+		acdpwe_cv_env_path=)
+if echo $acdpwe_cv_env_path | fgrep -v $fullBuildDir > /dev/null ; then
+    acdpwe_cv_env_path="$fullBuildDir $acdpwe_cv_env_path"
+fi
+
+AC_SUBST(CFLAGS)
+AC_SUBST(CXXFLAGS)
+
+AC_OUTPUT(Makefile)

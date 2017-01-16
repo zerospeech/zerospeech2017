@@ -1,0 +1,90 @@
+. $Header: /u/drspeech/repos/pfile_utils/ilab_create.man,v 1.1.1.1 2002/11/08 19:47:06 bdecker Exp $
+.de EX		\" Begin Example
+.ie \\n(.$ .nr EX \\$1n
+.el \{\
+.	ie n .nr EX 0n
+.	el .nr EX 0n
+.\}
+.in +\\n(EXu
+.if n .sp 1
+.if t .sp .5v
+.nf
+.CW
+.ft CB
+..
+.de EE		\" End example
+.in -\\n(EXu
+.fi
+.}f             \" restore basic text attributes
+.if n .sp 1
+.if t .sp .5v
+..
+.de MS
+.ie t \&\f(CB\\$1\f(NR(\\$2)\\$3
+.el \fI\\$1\fP(\\$2)\\$3
+..
+.TH ILAB_CREATE 1 "$Date: 2002/11/08 19:47:06 $" ICSI "ICSI SPEECH SOFTWARE"
+.SH NAME
+ilab_create \- create an ICSI label file from a stream of ascii information
+.SH SYNOPSIS
+.B ilab_create 
+\fI-o outfile\fR
+\[\fI-m maxlabel\fR\]
+\[\fIother options\fR\]
+\[\fI-i infile\fR\]
+.SH DESCRIPTION
+.I ilab_create
+converts a stream of label information represented in ASCII into the 
+compressed binary ICSI Label 
+.MS ilab 5 
+format.  It is meant as a drop-in replacement for 
+.MS pfile_create 1 
+when files consist of just a single column of labels.  ilab files 
+are typically 20-30x smaller than the same information represented 
+in a pfile.
+.SH OPTIONS
+.I labcat
+accepts the following options (with defaults in parens). 
+.TP 1i
+.B -o \fIname\fR (required)
+The name of the output ilab file.  Writing an ilab file 
+requires seeks, thus this must be a real file and not a pipe.
+.TP
+.B -i \fIname\fR ("-")
+The name of the input file containing the label data in ASCII.  
+The default value of "-" means to read this information from 
+standard input.  Each line of this file must consist of 
+exactly three numbers; the first is the utterance number, the 
+second is the frame number within that utterance, and the third 
+is the label index for that frame.  Frame numbers must be contiguous 
+from zero within each utterance, and utterance numbers must be 
+contiguous from zero.
+.TP 
+.PD 0
+.B -l \fInum\fR (1)
+.TP
+.PD 1
+.B -f \fInum\fR (0)
+The number of labels and features in each frame.  If specified, these 
+must match the default values, since an Ilab file can, by definition, 
+carry just a single label channel and no feature information.
+Included for compatibility with 
+.MS pfile_create 1 .
+.TP
+.B -m \fImaxlabel\fR (255)
+The largest label value that must be accommodated.  The ilab file 
+specification can use between one and four bytes to store each label 
+value, depending on the size of the label set.  The default value 
+leads to the smallest label size of 1 byte, which is suitable 
+for most context-independent label types.
+.TP
+.B -b 
+If -b is specified, the input data is assumed to be stored in 
+binary i.e. each frame is represented by 3 4-byte binary integers, 
+.SH NOTES/BUGS
+Binary input hasn't been tested.
+.SH AUTHOR
+Dan Ellis  <dpwe@ICSI.Berkeley.EDU>
+.SH SEE ALSO
+.MS pfile_create 1 ,
+.MS ilab 5 .

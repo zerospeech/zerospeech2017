@@ -1,0 +1,153 @@
+$Header: /u/drspeech/src/rasta/RCS/INSTALL,v 1.6 1999/03/25 01:58:07 dpwe Exp $
+
+Installing `RASTA'
+==================
+
+Introduction
+------------
+
+This file contains instructions for installing the `RASTA', a feature
+extraction program for speech recognition systems.  For more details
+about the package, read the associated `README' file.
+
+Note that the build process relies on facilities not present in all
+versions of make.  Although several versions of make work, the
+recommended programs are `pmake' and `gnumake'.   In the example
+below it is assumed that `gnumake' is being used.
+
+
+Unpacking the Distribution
+--------------------------
+
+The many files in the RASTA distribution are combined into one
+compressed tar file.  An appropriate command for extracting the source
+directory is:
+
+	gunzip -c rasta-2_x.tar.gz | tar xvf -
+
+But if you are reading this, you've probably worked this out already...
+
+
+Basic Installation
+------------------
+
+1.  `cd' to the directory containing the package's source code and type
+`./configure'.  Running configure takes a while.  Whilst running, it
+prints information as to programs and features it is checking for.
+
+2.  Type `gnumake' to compile the package.
+
+3.  Type `gnumake install' to install the executables and man pages
+    `/usr/local/bin/' and `/usr/local/man/'.
+
+5.  Type `gnumake clean' to remove unwanted derived files.
+
+
+
+Advanced Installation
+---------------------
+
+`RASTA' uses the gnu `autoconf' configuration utilities - consult the
+`autoconf' documentation for more details.  Some of the more advanced
+installation options are described below.
+
+
+i) Using a Different Build Directory
+
+You can compile the package in a different directory to the one
+containing the source code.  To do this, `cd' to the directory where
+you want the object files to be created, then run the `configure' script
+from the `RASTA' source directory.  If `configure' fails to find the
+source files, you can specify the requisite directory using the
+`-srcdir' command line option.
+
+	mkdir H-sun4
+	cd H-sun4
+	../configure
+
+
+ii) Selecting Installation Directories
+
+By default, `gnumake install' will install the package's files in
+`/usr/local/bin' and `/usr/local/man/man1', etc.  You can specify an
+installation prefix other than `/usr/local' by giving `configure' the
+option `--prefix=PATH'.  Alternatively, the argument `prefix=PATH' can
+be used with the `make install' command.
+
+Some sites have separate directory trees for architecture-independent
+files and architecture-dependent files.  The `--exec-prefix' can be
+used to override the base directory used for architecture-dependent files.
+
+	../configure -prefix /usr/local -exec-prefix /usr/local/sun4
+
+Again, the `exec_prefix=PATH' option can be used at make time if required.
+
+
+iii) Selecting Compilers and Compile Options
+
+By default, the configuration process uses `gcc' as the C
+compiler if that is available on your system, otherwise it uses
+whatever else it can find.  You can override the selection of compiler
+and flags using environment variables on the configuration command
+line.  Using a Bourne-compatible shell, you would, for example, use:
+
+	CC=acc CFLAGS=-O2 ./configure
+
+Or when using a csh-like shell, you can use the `env' program to
+achieve the same result.
+
+	env CC=acc CFLAGS=-O2 ./configure
+
+At ICSI, the following flags are used with gcc to achieve reasonable
+performance on recent SPARC workstations:
+
+	CFLAGS='-O2 -funroll-loops -msupersparc'
+
+
+iv) Using Libraries for Additional File Formats
+
+`RASTA' can optionally use externally supplied libraries to supplement
+the range of file formats supported.  The three optional formats are
+matlab, NIST SPHERE and ESPS.  By default, if either of the matlab or
+SPHERE libraries are found in the `$exec_prefix/lib' directory (with
+headers in the `$prefix/include' directory), they are automatically
+used.  To enable ESPS I/O, the ESPS libraries must be accessible as
+above and the "--with-esps" option must be used at configure time.
+The ESPS libraries include SPHERE support, so linking with separate
+SPHERE libraries is disabled when ESPS libraries are used.  Note that
+when ESPS I/O libraries are used, an ESPS library manager must be
+accessible at run time.
+
+v) Finding Libraries in Non-Standard Locations
+
+In many cases, the SPHERE, matlab and ESPS libraries are not installed
+in the main lib and include directories.  In these situations, the
+CFLAGS and LIBS environment variables must be set appropriately at
+configure time in order to find the libraries.  For example, the full
+configure line used at ICSI is:
+
+	env CFLAGS='-O2 -funroll-loops -msupersparc  -I/u/drspeech/opt/esps/esps51.sun4-sunos5/include -I/u/drspeech/src/sphere/include -I/usr/4local/lang/matlab4.2c/extern/include' \
+	    LDFLAGS='-L/u/drspeech/opt/esps/esps51.sun4-sunos5/lib -L/usr/4local/lang/matlab4.2c/extern/lib/sol2' \
+	../configure --with-esps
+
+
+1999mar24:  NOTE: Although the above instructions might still hold (at 
+	    least for ESPS and SPHERE), I've actually changed the way 
+	    it's supposed to work, by adding three new configure flags:
+
+  --with-esps[=DIR]         use the ESPS libraries (in DIR)
+		--with-esps alone means to test for ESPS in the default 
+		CFLAGS/LDFLAGS.  Specifying a dir tells configure where 
+		to find the libexv library; the include dir is constructed
+		by analogy.
+
+  --with-sphere-lib[=DIR]   use the SPHERE libraries (in DIR)
+		as --with-esps except for sphere.  sphere is only tested 
+		if --with-esps is NOT specified (since ESPS includes sphere).
+		The sphere include dir should have a subdirectory sp/.
+
+  --with-matlab=DIR       use matlab rooted at DIR
+		Where to find the matlab install.  This should be the 
+		root of the matlab install i.e. the directory *containing*
+		extern.  Also, the RASTA Matlab interface is compatible 
+		only with Matlab 4, not Matlab 5.

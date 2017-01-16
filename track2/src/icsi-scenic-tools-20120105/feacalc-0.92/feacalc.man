@@ -1,0 +1,465 @@
+.de Sh
+.br
+.ne 5
+.PP
+\fB\\$1\fR
+.PP
+..
+.de Sp
+.if t .sp .5v
+.if n .sp
+..
+.               \" Path Name
+.               \"      uses Courier fonts for V4.0
+.de PN
+.ie t \&\f(CB\\$1\f(NR\\$2
+.el \fI\\$1\fP\\$2
+..
+.		\" The following macros added by dpwe for Ultrix 4..
+.               \" Manual section reference
+.               \"      uses Courier fonts for V4.0
+.de MS
+.ie t \&\f(CB\\$1\f(NR(\\$2)\\$3
+.el \fI\\$1\fP(\\$2)\\$3
+..
+.de EX		\" Begin Example
+.ie \\n(.$ .nr EX \\$1n
+.el \{\
+.	ie n .nr EX 0n
+.	el .nr EX 0n
+.\}
+.in +\\n(EXu
+.if n .sp 1
+.if t .sp .5v
+.nf
+.CW
+.ft CB
+..
+.de EE		\" End example
+.in -\\n(EXu
+.fi
+.}f             \" restore basic text attributes
+.if n .sp 1
+.if t .sp .5v
+..
+.\" feacalc.1 - feacalc man page
+.\" 1997sep07 dpwe@icsi.berkeley.edu
+.\" $Header: /u/drspeech/repos/feacalc/feacalc.man,v 1.20 2007/08/30 20:30:51 janin Exp $
+.TH feacalc 1 "$Date: 2007/08/30 20:30:51 $" ICSI
+.SH NAME
+feacalc \- Improved command-line interface to the RASTA-PLP feature 
+calculation routines
+.SH SYNOPSIS
+\fBfeacalc\fR 
+\fR[\fIoptions\fR]
+\fR[\fIinput files ...\fR]
+.SH DESCRIPTION
+.PP
+.PN feacalc
+is a new command-line front-end to the speech feature calculation 
+functions available in 
+.MS rasta 1 .
+It actually uses most of the core subroutines directly from the 
+.MS rasta 1
+sources, so its results should be identical in comparable situations.  
+However, it incorporates the following advantages:
+.PP
+* improved mnemonic command-line options (via 
+.MS cle 3 ).
+.PP
+* orthogonal combination of processing stages, encompassing all the 
+outputs available from 
+.MS rasta 1
+as well as new possibilities such as PLP spectra.
+.PP
+* intelligent processing of the important soundfile formats (via the 
+.MS sndf 3 
+library), including online streams of any compatible format.
+.PP
+* direct output to 
+.MS pfile 5
+feature archives (via the PFile access objects of
+.MS quicknet 3).
+.PP
+* direct output to SRI feature files (via a QuickNet streams object in
+.MS quicknet 3 ).
+One caveat about the SRI format. Since the SRI format 
+is just a NIST Sphere headered file, it doesn't support multiple
+utterance per file. The output stream will not complain if you try to
+write multiple utterances into a single file, it will just concatenate the
+utterances together one after the other, each with its own 1024-byte
+header. Currently, though such files can't be read by the SRI input
+stream in
+.MS quicknet 3 .
+.PP
+* integrated mapping of utterance IDs to filenames through 
+.PN DBASE_file 
+style commands (as specified in the DRSPEECH BABYLON documentation)
+.PP
+* Clean and transparent main loop to form a pleasant basis for future 
+offshoot feature calculation programs.
+.PP
+For a description of the fundamental processing stages, see 
+.MS rasta 1 .
+Here we describe only the features unique to 
+.PN feacalc .
+.PP
+Feacalc is intended to provide a straightforward and compact way to make 
+the feature files we use most commonly at ICSI, while providing access to a 
+few new variants as a by-product of the orthogonal structure.  However, 
+for more exotic feature calculations, or for a more flexible feature 
+calculation framework (including distributing calculations around the 
+network), see
+.MS dr_featools 1 .
+.SH ARGUMENTS
+The following arguments are accepted by 
+.PN feacalc .
+The "?" character shows the minimum acceptable abbreviation for any 
+option or value.  The "|" character separates alternative tokens.  
+Angle brackets surround variable options. Default 
+values are shown in parentheses.  Related 
+.MS rasta 1 
+options are shown in square brackets.  
+In all cases, "true" and "false" may be 
+substituted by "yes" and "no" or "1" and "0" respectively.
+.PP
+RASTA-PLP PROCESSING OPTIONS
+.TP 12
+\fB-r?asta\fR \fBt?rue|l?og|j?ah|c?jah|f?alse\fR (no) [-L, -J, -C]
+Selects the kind of Rasta processing - log rasta, J-rasta or constant-J - 
+or disables Rasta filtering with "no" or by default.
+.TP 12
+\fB-plp\fR \fBt?rue|f?alse|<\fIorder\fR> (8) [-m]
+Specifies the order of the LPC model used in LPC processing.  "true" 
+selects the default model order, and "false" omits the PLP stage.
+.TP 12
+\fB-com?press\fR \fBt?rue|f?alse\fR (yes)
+Determines whether the stage of "equal-loudness" weighting and cube-root 
+compression should be used directly before the PLP modelling.
+.TP 12
+\fB-dom?ain\fR \fBlin?ear|log?arithmic|cep?stra\fR (lin)
+Final processing applied to spectra - "linear" means no processing; plain 
+spectral energy values (after any Rasta or PLP processing) are output.  
+"logarithmic" takes the log of these spectral values.  "cepstra" 
+outputs the Discrete Cosine Transform of the log spectral values.
+.TP 12
+\fB-cep?sorder\fR <\fIorder\fR> (plp order + 1) [-n]
+When the output domain is cepstra, selects the number of cepstral 
+coefficients which are retained.
+.TP 12
+\fB-nu?mFilts\fR <\fInum\fR> (Nyquist frequency in Bark, rounded up) [-c]
+How many filters to use in the auditory filterbank.
+.TP 12
+\fB-slim?spect\fR \fBtrue|false\fR (yes)
+For spectral output formats, discard the `junk' channels which are 
+replicated at the edges after the Rasta processing stage.  This is the 
+only kind of spectral output offered by 
+.MS rasta 1 ,
+but becomes an option in this program, because the edge channels are not 
+simple repeats of their neighbors once the spectrum has been put through 
+the PLP modeling stage.
+.TP 12
+\fB-j?ah\fR <\fIval\fR> (0.000001) [-j]
+Value of J for constant-J Rasta processing.
+.TP 12
+\fB-up?perrasfrq\fR <\fIval\fR> (29.02 Hz) [-u]
+Frequency of the smoothing zero in the FIR portion of the RASTA filter. 
+This is specified in Hz so that it will track the step size (RASTA framerate). 
+The default frequency results in the `classic' RASTA filter coefficients 
+at the default step size of 10 ms.
+.TP 12
+\fB-lo?werrasfrq\fR <\fIval\fR> (0.956 Hz) [-x]
+Frequency of the -3dB rolloff point for the zero-frequency pole-zero 
+pair in the RASTA filter.  The RASTA filter has a gain of zero at d.c., 
+but it rapidly rises owing to the `integrating zero'.  Classically, 
+the behavior of this zero has been defined by direct specification 
+of its magnitude, and the default lower cutoff frequency results in 
+the default pole magnitude of 0.94 at the default framerate of 100 Hz.  
+However, by specifying as a frequency, the RASTA filter will approximately 
+track changes in framerate.
+.TP 12
+\fB-frq?axis\fR \fBb?ark|a?ud|m?el|h?tk\fR (bark) [-Z]
+Choose the warping of the initial frequency axis to be either 
+the conventional PLP Bark/Auditory scale, or alternatively the 
+slightly different, slightly narrower Mel/Htk axis. 
+The Mel scale is taken from the HTK documentation as being 
+defined by Mel = 2595 * log10(1 + frqHz/700) .
+.TP 12
+\fB-vt?nfile\fR <\fIfilenname\fR> ("") [-V]
+Name of an optional file defining vocal-tract warping factors for each 
+utterance in the list of input files (i.e. before -sent_start is 
+applied).  The file contains a sequence of white-space separated 
+floating-point values with no additional information.  It's OK to 
+have too many warp factors in this file, but an error if there are 
+fewer warp factors than input utterances.  This factor is passed to 
+RASTA as with rasta's -V option; a larger factor stretches out the spectrum 
+(prior to the auditory warping), to compensate for a longer vocal tract
+length (with correspondingly lowered - i.e. bunched-up - formants).
+.TP 12
+\fB-hist?ory\fR <\fIfilename\fR> ("") [-H]
+Name of the file used to store the J-Rasta state.
+.TP 12
+\fB-readh?istory\fR [-h]
+Specifying this option makes the program attempt to read the J-Rasta state 
+history file, as well as writing it.
+.TP 12
+\fB-map?pingfile|-mapf?ile\fR <\fIfilename\fR> ("") [-f]
+Filename for the J-Rasta mapping file.
+.TP 0
+OTHER CALCULATION OPTIONS
+.TP 12
+\fB-win?dowtime\fR <\fItime\fR> (25.0) [-w]
+Duration of the spectral analysis window in milliseconds.
+.TP 12
+\fB-step?time\fR <\fItime\fR> (10.0) [-s]
+Time space between the start of successive analysis windows in 
+milliseconds.  NOTE: If this does not correspond to an exact number of samples, the old behavior was to round down to an exact number of samples, and work from there.  The new behavior is to calculate the step time to a resolution of 1/100th of a sample and use that instead, so non-integer sample hops (e.g. 16ms at 44100Hz) should work correctly.
+.TP 12
+\fB-pad\fR [-y]
+If specified, pad each end of every soundfile with 'reflections' of the 
+sound data such that the first and last analysis windows are centered as 
+close as possible to the first and last blocks of <steptime> samples in 
+the sound.  Thus, the total number of frames will be 
+floor(fileduration/steptime);  without this option, the number of frames is 
+1+floor((fileduration - windowtime)/steptime).
+.TP 12
+\fB-zero?padtime\fR <\fItime\fR> (0)
+Mutually exclusive with -pad, this option adds potentially multiple-windows' 
+worth of zeros to each end of the input sound (similar to a function 
+previously in make_pfile).  The duration of exact-silence that will be applied
+to both ends of the sound is specified in milliseconds.
+.TP 12
+\fB-hpfilter\fR <\fIfreq\fR> [-F, -G]
+If specified, pass the input sound through a simple one pole - one zero 
+high-pass filter to remove any DC offset in the data.  If a second argument 
+is given, the high-pass filter cutoff frequency is set to this frequency in 
+Hz.  The default cutoff, as with rasta, is 44.7598 Hz.
+.TP 12
+\fB-dith?er\fR [-M]
+If specified, add a small constant value to the spectral magnitude values 
+equivalent to a small amount of random noise in the input signal, which 
+avoids numerical problems in files containing stretches of artificial 
+silence.
+.TP 12
+\fB-delta?order\fR <\fIorder\fR> (2) [-q]
+Specifies the highest order of delta-features to be applied to the output 
+features.  0 causes just the base features to be output.  1 appends 
+first-order deltas (slope estimates).  2 further appends second-order 
+deltas (curvature or acceleration).
+.TP 12
+\fB-deltawin\fR <\fIwindowsize\fR> (9) [-Q]
+The window length over which linear and second-order deltas are calculated.
+.TP 0
+INPUT/OUTPUT OPTIONS
+.TP 12
+\fB-list?s\fR
+Treat the filenames appended to the command lines as names of files full 
+of utterance IDs, rather than soundfiles or utterance IDs.
+The list file format should have at most one ID per line 
+as the first token.  Blank lines, lines beginning with "#", and tokens 
+after the first on each line (except for ranges as described under -range), 
+will be ignored.
+.IN 12
+If -list is not specified, extra arguments on the command line are 
+interpreted as soundfile names or utterance IDs (if -filecmd is defined)
+As a special case, a 
+single "-" on the command line means that input soundfile data (or utids if 
+-list) should be 
+read from the standard input as an online stream (see EXAMPLES).
+.TP 12
+\fB-range?rate\fR <\fIrate\fR> (0)
+Treat the filename specifications as "ranged" i.e. each filename is 
+followed by two numbers specifying the start and end indices of the 
+portion of that file to actually process, plus an optional third 
+argument indicating which channel to use (of a multichannel file).  
+The start and end "indices" are 
+assumed to be counting frames at some clock rate, and the nonzero 
+argument \fIrate\fR defines the number of frames per second, solely 
+used to convert this index to time.  If the values are in seconds, 
+rangerate should be 1; if they are centiseconds, it should be 100; 
+if they are sample frames of 8kHz sampled wav files, it should be 
+8000.  If it is zero, range specification is disabled.  If it is 
+not zero, ranges \fImust\fR be provided.  However, ranges are 
+only supported in -list mode; currently, for other methods of 
+specifying the input filenames, rangerate is ignored.
+Thus 
+to get exactly the first 1000 samples from the left channel of 
+an 8kHz stereo file, specify 
+"-rangerate 8000" and have your list line look like "<utid> 0 1000 A".  
+(see EXAMPLES).
+.TP 12
+\fB-rngst?artoffset\fR <\fIval\fR> (0)
+When reading "range" indices, add this constant to all the start 
+values (prior to converting to times via rangerate).
+.TP 12
+\fB-rngend?offset\fR <\fIval\fR> (0)
+When reading "range" indices, add this constant to all the end 
+values (prior to converting to times via rangerate).
+.TP 12
+\fB-sent_s?tart\fR <\fIuttnum\fR> (0)
+In a list of utterances (file names), skip this many before starting. 
+Useful in conjunction with sent_count to subset an existing file list.
+(formerly -firstutt).
+.TP 12
+\fB-sent_c?ount\fR <\fIuttcount\fR> (-1)
+In a list of utterances (file names), stop after processing this many 
+files (if the list is long enough). 
+Useful in conjunction with sent_start to subset an existing file list.
+The default value of -1 means keep going to the end of the list.
+(formerly -nutts).
+.TP 12
+\fB-ip?format\fR <\fISNDF token\fR> ("")
+Specifies that input soundfiles should be treated as being in the 
+corresponding format, using one of the token strings defined in 
+.MS sndf 3
+(e.g. "NIST" for SPHERE/NIST and "PCM/Abb" for Abbot online raw data).  
+If this is not specified, the sndf library will divine the soundfile 
+type automatically.  However, certain file formats (such as ESPS) 
+cannot be auto-identified and must be explicitly requested.
+.TP 12
+\fB-sam?plerate\fR <\fIrate\fR> (8000.0) [-S]
+The sampling rate of the input sound data.  An error rate will be reported 
+if this does not agree with the value retrieved from the soundfile header; 
+however, the value specified in the command line will be the one used by 
+the algorithm (even if it is the default value).
+.TP 12
+\fB-nyq?uistrate\fR <\fIrate\fR> (0) [-Y]
+Optionally, 
+.PN feacalc
+can perform an effective downwards resampling on-the-fly, by discarding 
+some upper bins of the initial spectral analysis.  This option, if 
+specified, determines the effective highest frequency used.  If it is 
+not specified, it defaults to sampling rate / 2.  This is typically 
+used to simulate 8kHz-sampled data from 16kHz samples, in which case 
+the Nyquist rate should be set to 4000 (half of 8kHz).  Although 
+it doesn't exactly match the results of downsampling (e.g. with 
+.MS sndrsmp 1 )
+followed by analysis, the differences are typically smaller than 1%.
+.TP 12
+\fB-file?cmd\fR <\fIcommand string\fR> ("")
+A Unix command which will be applied to each utterance ID to generate the 
+name of the appropriate soundfile to open.  The characters "%u" in the 
+command string will be subsituted by the utterance ID before execution.  
+(For historical reasons, "%s" is accepted as an alternative to "%u")
+If the filecmd is blank, the utterance 
+IDs will be treated as file pathnames directly.
+.TP 12
+\fB-o?utput\fR <\fIfilename\fR> ("-") [-o]
+The name of the output file to be written.  The default value of "-" means 
+to write to the standard output. (Note that this is not supported by all 
+output formats; in particular, pfiles cannot be written to "-").
+.TP 12
+\fB-op?format|-format\fR \fBp?file|o?nline|r?aw|a?scii|h?tk|sr?i\fR (pfile) [\-k,\ \-A, -X]
+Selects the format of the output file.  "pfile" is a standard ICSI pfile, 
+courtesy of the QuickNet routines.  "online" writes to the 
+so-called "online feature format".  "raw" writes raw binary 
+floats (emulating the default behavior of 
+.MS rasta 1 ).  
+"htk" writes 12-byte headers as for HTK feature files, tagged 
+as the user-defined feature type. Finally, "sri" writes SRI format
+feature files. These are basically NIST Sphere-headered files.
+All binary formats ("online", "raw" and "htk") write big-endian outputs 
+by default.  "ascii" writes floating point values to an ascii text file, 
+one frame
+per line (similar to the old "-A" option).  (There are 
+also "s?wappedraw", "swappedo?nline" and "swappedh?tk" options, 
+simulating the old "-U"
+option, interpreted to specify little-endian outputs). The "sri"
+format writes only big-endian outputs.
+.TP 0
+OTHER OPTIONS
+.TP 12
+\fB-v?erbose\fR \fBq?uiet|n?ormal|t?rue\fR (normal)
+Level of detail in progress messages.  "quiet" suppresses all but serious 
+error messages.  "normal" reports the number of frames in each file as it 
+is processed.  "true" (i.e. verbose) provides detailed information on 
+the processing, intended mainly for debugging.
+.TP 12
+\fB-cls?ave\fR \fBt?rue|f?alse\fR (yes)
+This option makes a record of each command-line executed by 
+.PN feacalc
+in a log file, along with the date and time that processing began.
+.TP 12
+\fB-clh?istname\fR <\fIfilename\fR> ("./.feacalc_hist")
+The name of the file to which the logs of each feacalc command line are 
+written.
+.SH EXAMPLES
+To calculate standard 9-element log-rasta cepstral coefficients with deltas 
+for the entire NUMBERS95_CS randomized training and cross-validation sets 
+from the unpadded wave files 
+(result matches the file in /u/drspeech/data/NUMBERS95/ftrarch):
+.EX
+feacalc -rasta log -plp yes -domain cepstra -deltaorder 1 -dither -hpf \\
+ -zeropadtime 100 -out numbers_cs+train+cv+r8+w25+s10+F+M+e+d.pfile \\
+ -list /u/drspeech/data/NUMBERS95/list/numbers95-cs-train-rand.utids \\
+ /u/drspeech/data/NUMBERS95/list/numbers95-cs-cv-rand.utids \\
+ -filecmd "numbers95_findfile prefix=/u/drspeech/data/NUMBERS95/ dataset=cs utid=%u"
+.EE
+.PP
+To create something very close to the canonical DIGITS pfile, including using 
+the range information in the standard lists (flagged by -rangerate):
+.EX
+feacalc -r -dom cep -delta 1 \\
+  -list /u/drspeech/data/DIGITS/list/train1+ranged.list \\
+  -rangeRate 8000 -rngstartoffs -1 -rngendoffs -400 \\
+  -steptime 12.5 -out digits-tr1-ras8cep+d-12.5.pf \\
+  -filecmd "echo /u/drspeech/data/DIGITS/wavfiles/clean.wav/%u.wav" \\
+  -verbose quiet
+.EE
+.IN 18
+Note: Because the ranges in train1+ranged.list are all like "401 1200", 
+I had to have a rngstartoffset of -1 to fix up the first value
+(else I would lose one feature frame because I was one sample frame 
+short at the end).  Because the +ranged values all supposedly have 
+four extra feature frames of silence added on the end compared to 
+the canonical labels, I had to have a rngendoffset of -400 to try 
+to make it agree with the canonical labels.  Even so, 
+it doesn't \fIquite\fR work, though - the above gives me 90897
+frames total, but there are 90900 labels in the canonical label 
+file.
+.PP
+To convert an Abbot-online input audio stream sampled at 16kHz 
+arriving on the standard input into 
+constant-Jah-rasta non-cube-root-compressed log spectral coefficients written 
+to standard output in online-feature format:
+.EX
+feacalc -rasta cjah -compress no -plp no -slimspect no -domain log \\
+  -ipformat PCM/R16Abb -samplerate 16000 \\
+  -opformat online -output \- \\
+  \-
+.EE
+.SH INTERCHANGABILITY OF SPECTRAL REPRESENTATIONS
+There are three representations of a spectral slice used in the rasta 
+processing: sampled spectra (such as the values of each channel emerging 
+from the rasta filters), LPC coefficients (i.e. coefficients for a 
+rational-polynomial in z which can be evaluated to find a frequency 
+response) and cepstral coefficients (the first few terms of the discrete 
+cosine transform of the log of the sampled spectrum.  These representations 
+have different rages in the space of all real spectra.  A cepstral vector 
+can be exactly represented by a sampled spectrum, but in all other cases 
+converting between the formats in general involves a loss of information.  
+This has a specific impact on the cepstral representation of LPC (PLP) 
+-modeled spectra: converting the LPC representation into a sampled spectrum 
+and then taking the DCT will give a result slightly different from 
+converting the LPC coefficients directly into cepstral coefficients via 
+the well-known recursion.  As an exception to the general orthogonal 
+processing (in which processing stages are applied or skipped independent 
+of the rest of the chain, cepstral features are generated directly from 
+the LPC coefficients rather than from the sampled spectrum resulting from 
+the LPC model.  This is consistent with the processing performed by 
+.MS rasta 1 ,
+but means that these results will not quite match generating PLP spectral 
+coefficients and then subsequently applying a cepstral transform to these 
+results.
+.SH BUGS
+No provision for running on multiple processors.  It is, however, much 
+faster than the old make_pfile script because it has eliminated 
+ASCII-format intermediate files.
+.PP
+Ranging support is tacked on.  Maybe provide something similar for 
+files not in lists?
+.SH AUTHOR
+.na
+Dan Ellis, \fBdpwe@icsi.berkeley.edu\fR
+.br
+SRI file format support by Chuck Wooters (wooters@icsi.berkeley.edu)

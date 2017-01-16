@@ -1,0 +1,28 @@
+$Header: /u/drspeech/repos/feacat/INSTALL,v 1.1 2004/11/11 22:09:06 davidj Exp $
+
+This is the INSTALL file for the feacat package.
+
+Prerequisites
+=============
+
+Fecat requires Dan Ellis's dpwelib library and the QuickNet3 MLP library.
+
+
+
+
+feacat is configured under GNU Autoconf for ease of installation.  
+It does, however, depend on several other pieces.  Hence, ./configure 
+accepts the following specific options:
+
+    --with-dpwelib=DIR	Where to find dpwelibConfig.sh, which is 
+			needed because this package uses the dpwelib
+			cle module for command-line parsing.
+
+    --with-quicknet=DIR	Where to find the QuickNet library.
+			This should point to the "lib" directory.  The
+			configure script will look in lib/pkgconfig for
+			the quicknet3.pc package config file.
+
+Once you've located these, it should just be ./configure ...
+then make, then make install.
+

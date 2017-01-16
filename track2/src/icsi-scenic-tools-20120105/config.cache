@@ -1,0 +1,154 @@
+# This file is a shell script that caches the results of configure
+# tests run on this system so they can be shared between configure
+# scripts and configure runs, see configure's option --config-cache.
+# It is not useful on other systems.  If it contains results you don't
+# want to keep, you may remove or edit it.
+#
+# config.status only pays attention to the cache file if you give it
+# the --recheck option to rerun configure.
+#
+# `ac_cv_env_foo' variables (set or unset) will be overridden when
+# loading this file, other *unset* `ac_cv_foo' will be assigned the
+# following values.
+
+ac_cv_build=${ac_cv_build=x86_64-unknown-linux-gnu}
+ac_cv_c_bigendian=${ac_cv_c_bigendian=no}
+ac_cv_c_char_unsigned=${ac_cv_c_char_unsigned=no}
+ac_cv_c_compiler_gnu=${ac_cv_c_compiler_gnu=yes}
+ac_cv_c_const=${ac_cv_c_const=yes}
+ac_cv_c_inline=${ac_cv_c_inline=inline}
+ac_cv_cxx_compiler_gnu=${ac_cv_cxx_compiler_gnu=yes}
+ac_cv_env_CCC_set=
+ac_cv_env_CCC_value=
+ac_cv_env_CC_set=
+ac_cv_env_CC_value=
+ac_cv_env_CFLAGS_set=
+ac_cv_env_CFLAGS_value=
+ac_cv_env_CPPFLAGS_set=
+ac_cv_env_CPPFLAGS_value=
+ac_cv_env_CPP_set=
+ac_cv_env_CPP_value=
+ac_cv_env_CXXFLAGS_set=
+ac_cv_env_CXXFLAGS_value=
+ac_cv_env_CXX_set=
+ac_cv_env_CXX_value=
+ac_cv_env_LDFLAGS_set=
+ac_cv_env_LDFLAGS_value=
+ac_cv_env_LD_set=
+ac_cv_env_LD_value=
+ac_cv_env_LIBS_set=
+ac_cv_env_LIBS_value=
+ac_cv_env_NVCCFLAGS_set=
+ac_cv_env_NVCCFLAGS_value=
+ac_cv_env_NVCC_set=
+ac_cv_env_NVCC_value=
+ac_cv_env_build_alias_set=
+ac_cv_env_build_alias_value=
+ac_cv_env_host_alias_set=
+ac_cv_env_host_alias_value=
+ac_cv_env_target_alias_set=
+ac_cv_env_target_alias_value=
+ac_cv_func__doprnt=${ac_cv_func__doprnt=no}
+ac_cv_func_expf=${ac_cv_func_expf=yes}
+ac_cv_func_fileno=${ac_cv_func_fileno=yes}
+ac_cv_func_fsetpos=${ac_cv_func_fsetpos=yes}
+ac_cv_func_gethostname=${ac_cv_func_gethostname=yes}
+ac_cv_func_gettimeofday=${ac_cv_func_gettimeofday=yes}
+ac_cv_func_hypot=${ac_cv_func_hypot=yes}
+ac_cv_func_isatty=${ac_cv_func_isatty=yes}
+ac_cv_func_popen=${ac_cv_func_popen=yes}
+ac_cv_func_set_new_handler=${ac_cv_func_set_new_handler=no}
+ac_cv_func_setvbuf=${ac_cv_func_setvbuf=yes}
+ac_cv_func_sin=${ac_cv_func_sin=no}
+ac_cv_func_sqrtf=${ac_cv_func_sqrtf=yes}
+ac_cv_func_strdup=${ac_cv_func_strdup=yes}
+ac_cv_func_strerror=${ac_cv_func_strerror=yes}
+ac_cv_func_strndup=${ac_cv_func_strndup=yes}
+ac_cv_func_strstr=${ac_cv_func_strstr=yes}
+ac_cv_func_tanhf=${ac_cv_func_tanhf=yes}
+ac_cv_func_vprintf=${ac_cv_func_vprintf=yes}
+ac_cv_have_decl_drand48=${ac_cv_have_decl_drand48=yes}
+ac_cv_have_decl_fseek=${ac_cv_have_decl_fseek=yes}
+ac_cv_have_decl_srand48=${ac_cv_have_decl_srand48=yes}
+ac_cv_have_decl_sys_errlist=${ac_cv_have_decl_sys_errlist=yes}
+ac_cv_have_decl_sys_nerr=${ac_cv_have_decl_sys_nerr=yes}
+ac_cv_header_dld_h=${ac_cv_header_dld_h=no}
+ac_cv_header_dlfcn_h=${ac_cv_header_dlfcn_h=yes}
+ac_cv_header_errno_h=${ac_cv_header_errno_h=yes}
+ac_cv_header_fcntl_h=${ac_cv_header_fcntl_h=yes}
+ac_cv_header_float_h=${ac_cv_header_float_h=yes}
+ac_cv_header_inttypes_h=${ac_cv_header_inttypes_h=yes}
+ac_cv_header_limits_h=${ac_cv_header_limits_h=yes}
+ac_cv_header_memory_h=${ac_cv_header_memory_h=yes}
+ac_cv_header_stdc=${ac_cv_header_stdc=yes}
+ac_cv_header_stdint_h=${ac_cv_header_stdint_h=yes}
+ac_cv_header_stdlib_h=${ac_cv_header_stdlib_h=yes}
+ac_cv_header_string_h=${ac_cv_header_string_h=yes}
+ac_cv_header_strings_h=${ac_cv_header_strings_h=yes}
+ac_cv_header_sunmath_h=${ac_cv_header_sunmath_h=no}
+ac_cv_header_sys_audioio_h=${ac_cv_header_sys_audioio_h=no}
+ac_cv_header_sys_param_h=${ac_cv_header_sys_param_h=yes}
+ac_cv_header_sys_stat_h=${ac_cv_header_sys_stat_h=yes}
+ac_cv_header_sys_time_h=${ac_cv_header_sys_time_h=yes}
+ac_cv_header_sys_types_h=${ac_cv_header_sys_types_h=yes}
+ac_cv_header_unistd_h=${ac_cv_header_unistd_h=yes}
+ac_cv_host=${ac_cv_host=x86_64-unknown-linux-gnu}
+ac_cv_lib_ieee_main=${ac_cv_lib_ieee_main=yes}
+ac_cv_lib_m_sqrt=${ac_cv_lib_m_sqrt=yes}
+ac_cv_lib_pthread_pthread_create=${ac_cv_lib_pthread_pthread_create=yes}
+ac_cv_lib_rtst_rtst_exit=${ac_cv_lib_rtst_rtst_exit=no}
+ac_cv_lib_sunmath_standard_arithmetic=${ac_cv_lib_sunmath_standard_arithmetic=no}
+ac_cv_objext=${ac_cv_objext=o}
+ac_cv_path_AR=${ac_cv_path_AR=/usr/bin/ar}
+ac_cv_path_EGREP=${ac_cv_path_EGREP='/bin/grep -E'}
+ac_cv_path_GREP=${ac_cv_path_GREP=/bin/grep}
+ac_cv_path_PERL=${ac_cv_path_PERL=/usr/bin/perl}
+ac_cv_path_PKG_CONFIG=${ac_cv_path_PKG_CONFIG=/usr/bin/pkg-config}
+ac_cv_path_RANLIB=${ac_cv_path_RANLIB=/usr/bin/ranlib}
+ac_cv_path_install=${ac_cv_path_install='/usr/bin/install -c'}
+ac_cv_prog_CPP=${ac_cv_prog_CPP='gcc -E'}
+ac_cv_prog_ac_ct_CC=${ac_cv_prog_ac_ct_CC=gcc}
+ac_cv_prog_ac_ct_CXX=${ac_cv_prog_ac_ct_CXX=g++}
+ac_cv_prog_ac_ct_RANLIB=${ac_cv_prog_ac_ct_RANLIB=ranlib}
+ac_cv_prog_ac_ct_STRIP=${ac_cv_prog_ac_ct_STRIP=strip}
+ac_cv_prog_cc_c89=${ac_cv_prog_cc_c89=}
+ac_cv_prog_cc_g=${ac_cv_prog_cc_g=yes}
+ac_cv_prog_cxx_g=${ac_cv_prog_cxx_g=yes}
+ac_cv_rtst=${ac_cv_rtst=/usr/local/lib}
+ac_cv_sizeof_size_t=${ac_cv_sizeof_size_t=8}
+ac_cv_sys_file_offset_bits=${ac_cv_sys_file_offset_bits=no}
+ac_cv_sys_largefile_CC=${ac_cv_sys_largefile_CC=no}
+ac_cv_sys_largefile_source=${ac_cv_sys_largefile_source=no}
+ac_cv_target=${ac_cv_target=x86_64-unknown-linux-gnu}
+ac_cv_testdata=${ac_cv_testdata=/usr/local/share/quicknet_testdata}
+ac_cv_type_long_long=${ac_cv_type_long_long=yes}
+ac_cv_type_unsigned_long_long=${ac_cv_type_unsigned_long_long=yes}
+ac_cv_use_blas=${ac_cv_use_blas=no}
+ac_cv_use_veclib=${ac_cv_use_veclib=no}
+acdpwe_cv_env_lib_path=${acdpwe_cv_env_lib_path='/home/juan/software/icsi-scenic-tools-20120105/quicknet-v3_31 '}
+acdpwe_cv_env_path=${acdpwe_cv_env_path='/home/juan/software/icsi-scenic-tools-20120105/pfile_utils-v0_52 /home/juan/software/icsi-scenic-tools-20120105/feacat-1.02 /home/juan/software/icsi-scenic-tools-20120105/feacalc-0.92 /home/juan/software/icsi-scenic-tools-20120105/rasta /home/juan/software/icsi-scenic-tools-20120105/dpwelib-1.01 /home/juan/software/icsi-scenic-tools-20120105/quicknet-v3_31 '}
+acdpwe_cv_path_dpwelib=${acdpwe_cv_path_dpwelib=/home/juan/software/icsi-scenic-tools-20120105/dpwelib-1.01}
+acdpwe_cv_path_qn=${acdpwe_cv_path_qn=/home/juan/software/icsi-scenic-tools-20120105/quicknet-v3_31}
+acdpwe_cv_path_rasta=${acdpwe_cv_path_rasta=/home/juan/software/icsi-scenic-tools-20120105/rasta}
+acdpwe_cv_pkg_name=${acdpwe_cv_pkg_name=icsi-scenic-tools}
+lt_cv_compiler_c_o=${lt_cv_compiler_c_o=yes}
+lt_cv_compiler_o_lo=${lt_cv_compiler_o_lo=yes}
+lt_cv_deplibs_check_method=${lt_cv_deplibs_check_method=pass_all}
+lt_cv_file_magic_cmd=${lt_cv_file_magic_cmd='$MAGIC_CMD'}
+lt_cv_file_magic_test_file=${lt_cv_file_magic_test_file='/lib/libc.so* /lib/libc-*.so'}
+test "${lt_cv_global_symbol_to_c_name_address+set}" = set || lt_cv_global_symbol_to_c_name_address='sed -n -e '\''s/^: \([^ ]*\) $/  {\"\1\", (lt_ptr) 0},/p'\'' -e '\''s/^[BCDEGRST] \([^ ]*\) \([^ ]*\)$/  {"\2", (lt_ptr) \&\2},/p'\'''
+lt_cv_global_symbol_to_cdecl=${lt_cv_global_symbol_to_cdecl='sed -n -e '\''s/^. .* \(.*\)$/extern char \1;/p'\'''}
+lt_cv_ld_reload_flag=${lt_cv_ld_reload_flag=-r}
+test "${lt_cv_path_LD+set}" = set || lt_cv_path_LD='${CXX}'
+lt_cv_path_NM=${lt_cv_path_NM='/usr/bin/nm -B'}
+lt_cv_path_SED=${lt_cv_path_SED=/bin/sed}
+lt_cv_prog_cc_can_build_shared=${lt_cv_prog_cc_can_build_shared=yes}
+lt_cv_prog_cc_no_builtin=${lt_cv_prog_cc_no_builtin=}
+lt_cv_prog_cc_pic=${lt_cv_prog_cc_pic='  -fPIC'}
+lt_cv_prog_cc_pic_works=${lt_cv_prog_cc_pic_works=yes}
+lt_cv_prog_cc_shlib=${lt_cv_prog_cc_shlib=}
+lt_cv_prog_cc_static=${lt_cv_prog_cc_static=-static}
+lt_cv_prog_cc_static_works=${lt_cv_prog_cc_static_works=yes}
+lt_cv_prog_cc_wl=${lt_cv_prog_cc_wl=-Wl,}
+lt_cv_prog_gnu_ld=${lt_cv_prog_gnu_ld=no}
+lt_cv_sys_global_symbol_pipe=${lt_cv_sys_global_symbol_pipe='sed -n -e '\''s/^.*[ 	]\([ABCDGISTW][ABCDGISTW]*\)[ 	][ 	]*\(\)\([_A-Za-z][_A-Za-z0-9]*\)$/\1 \2\3 \3/p'\'''}

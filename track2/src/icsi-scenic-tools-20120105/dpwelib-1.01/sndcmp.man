@@ -1,0 +1,131 @@
+.de Sh
+.br
+.ne 5
+.PP
+\fB\\$1\fR
+.PP
+..
+.de Sp
+.if t .sp .5v
+.if n .sp
+..
+.               \" Path Name
+.               \"      uses Courier fonts for V4.0
+.de PN
+.ie t \&\f(CB\\$1\f(NR\\$2
+.el \fI\\$1\fP\\$2
+..
+.		\" The following macros added by dpwe for Ultrix 4..
+.               \" Manual section reference
+.               \"      uses Courier fonts for V4.0
+.de MS
+.ie t \&\f(CB\\$1\f(NR(\\$2)\\$3
+.el \fI\\$1\fP(\\$2)\\$3
+..
+.de EX		\" Begin Example
+.ie \\n(.$ .nr EX \\$1n
+.el \{\
+.	ie n .nr EX 0n
+.	el .nr EX 0n
+.\}
+.in +\\n(EXu
+.if n .sp 1
+.if t .sp .5v
+.nf
+.CW
+.ft CB
+..
+.de EE		\" End example
+.in -\\n(EXu
+.fi
+.}f             \" restore basic text attributes
+.if n .sp 1
+.if t .sp .5v
+..
+.TH SNDCMP 1 "1997 feb 15" dpwe   \" $Header: /u/drspeech/repos/dpwelib/sndcmp.man,v 1.5 1999/09/29 01:29:38 dpwe Exp $
+.SH NAME
+sndcmp - statistics for one or two soundfiles
+.SH SYNOPSIS
+\fBsndcmd
+[\-d \fIframes\fB]
+[\-S \fIsffmt\fB]
+[\-T \fIsffmt\fB]
+\fIsound1\fB
+[\fIsound2\fB 
+[\fIoutsound\fB] ]
+\fR
+.SH DESCRIPTION
+.PN sndcmp
+reports statistics on a soundfile, and the difference between two 
+soundfiles.  It will also write out the residual difference between 
+two soundfiles.  Specifying a single input file reports the mean, 
+standard deviation and rms values for the samples in each channel of 
+the soundfile.  The samples are treated as integers, i.e. scaled 
+between -32768 and 32767.  RMS and standard deviation values will 
+match only when the mean is zero.
+.P
+Specifying two files will report these statistics for each file and 
+also for their difference (sound1 minus sound2).  In this way, 
+transcoded soundfiles can be quickly compared for overall distortion 
+levels.  Specifying a third soundfile name causes the program to 
+write out a soundfile corresponding to the difference between the 
+two files (again, sound1 minus sound2).
+.P
+A fixed time-skew between the two files can be specified with the 
+-d option.  If the argument is positive, that many frames at the beginning 
+of the first soundfile will be skipped, and the remainder used for 
+comparison with sound2.  If sound2 is delayed with respect to sound1, 
+the argument should be negative, and specify the number of timeframes 
+of delay.  Trial and error may be required to find the alignment between 
+two related files than minimizes the RMS difference between them.
+.P
+.PN sndcmp
+exits with a code of 0 (no error) unless a difference is found between 
+a pair of input files, in which case the exit code is 1.
+.SH OTHER OPTIONS
+.TP 12
+\fB\-S \fIsffmt\fR
+Force the input soundfile to be treated as the type specified by 
+the keyword.  This only applies if the 
+.MS sndf 3
+library has been compiled to use run-time determination of soundfile 
+type; otherwise this option is ignored.  When it is active, the 
+available soundfile keywords are listed in the usage message:
+.EX
+sndrfmt --
+.EE
+but currently include "AIFF" (Mac/SGI), "NeXT" (Sun/NeXT *.au/*.snd), 
+"MSWAVE" (Microsoft RIFF/WAVE), "NIST" (NIST/SPHERE) and "PCM" 
+(raw data, format optionally controlled by PCMFORMAT environment 
+string, see
+.MS sndf 3
+).
+
+.TP 12
+\fB\-T \fIsffmt\fR
+Under the runtime-dynamic version of the soundfile library, forces 
+the output soundfile to be treated as the type specified by 
+the keyword (see the -S option above).  If not specified, the 
+output soundfile type will match the input.
+
+.SH BUGS
+I'd like to add an optional cross-correlation to guess the best 
+temporal alignment of the two files based on some chunk at the 
+beginning, but I never have.  It would also be nice if it attempted 
+to find an optimal scaling factor.  Scale factor(s) should be 
+optionally provided as arguments.
+.SH NOTES
+This program was developed while the author was working at Aware, Inc. 
+and subsequently at the MIT Media Lab.
+.P
+The program uses the soundfile access library of 
+.MS sndf 3
+which defines the kind of soundfile it will recognize, depending 
+on its compilation options.
+.SH SEE ALSO
+.MS sndf 3
+.SH AUTHOR
+Dan Ellis, 
+.B dpwe@icsi.berkeley.edu 
+(written as dpwe@media.mit.edu / dpwe@aware.com)
+

@@ -1,0 +1,220 @@
+. $Header: /u/drspeech/repos/feacat/segpostsum.man,v 1.1 2002/03/18 20:26:44 dpwe Exp $
+.de EX		\" Begin Example
+.ie \\n(.$ .nr EX \\$1n
+.el \{\
+.	ie n .nr EX 0n
+.	el .nr EX 0n
+.\}
+.in +\\n(EXu
+.if n .sp 1
+.if t .sp .5v
+.nf
+.CW
+.ft CB
+..
+.de EE		\" End example
+.in -\\n(EXu
+.fi
+.}f             \" restore basic text attributes
+.if n .sp 1
+.if t .sp .5v
+..
+.de MS
+.ie t \&\f(CB\\$1\f(NR(\\$2)\\$3
+.el \fI\\$1\fP(\\$2)\\$3
+..
+.TH SEGPOSTSUM 1 "$Date: 2002/03/18 20:26:44 $" ICSI "ICSI SPEECH SOFTWARE"
+.SH NAME
+segpostsum \- segment-wise summarization of posterior probability vectors
+.SH SYNOPSIS
+.B segpostsum 
+[\fIoptions\fR]
+[\fI-o outfile\fR]
+[\fIinfile ...\fR]
+.SH DESCRIPTION
+.I segpostsum
+reads a set of per-frame posterior probabilities, such as might be generated 
+by a neural network, and summarizes them by (a) global means and variances, 
+and (b) an overall classification of the segment, based on the `best' 
+overall class, which by default is the class with the highest mean 
+posterior probability over the segment; various other methods of how to 
+determine the `best' class, including mechanisms to weight the average by 
+a per-frame confidence measure,	can be selected via the options.
+.PP
+.I segpostsum
+reads posteriors in a wide range of feature file formats, including
+.MS pfile 5 ,
+.MS rapact 5 
+(in binary, hex and ascii guises), 
+.MS lna 5 ,
+.MS online_ftrs 5 ,
+and the Cambridge "pre" feature format.
+All these interfaces are 
+simply using the appropriate FtrStream classes from the 
+.I QuickNet 
+library, which regrettably has no section 3 man pages.
+.I segpostsum
+will also read and write HTK feature files and ascii data.
+.PP
+In addition to choosing the winning class for each segment, 
+.I segpostsum
+will also calculate the overall classification error rate if it 
+is given a reference file listing the correct class for each 
+segment.
+.SH OPTIONS
+.I segpostsum
+accepts the following options (with defaults in parens).  Argument 
+parsing is done by dpwelib's 
+.MS cle 3 
+and the alternates (separated by "|") and minimum prefixes (marked by 
+"?") are shown below.
+.TP 1i
+.B -o?utfile \fIname\fR ("-")
+The name of the output per-segment posterior mean and variance file.  
+The default value of "-" indicates 
+that the output file is to be written to the standard output.
+The output file consists of three lines per segment, looking like:
+.EX
+	Utt: 206
+	Mean: 0.000004 0.000885 0.003123 0.018238 ...
+	  SD: 0.001272 0.017946 0.039373 0.075734 ...
+.EE
+where the utterance numbers ascend in sequence, and the means and standard 
+deviations for each posterior class are listed for each utterance (segment).
+.TP 1i
+.B -ip?format \fIformat\fR ("lna")
+Specifies the feature stream format to be read from the input file. 
+This can be one of the following keys:
+.PP
+.ta .5i +1.5i
+.nf
+	\f4u?nknown\f1	Unspecified file type (an error at present)
+	\f4p?file\f1	ICSI PFile feature file
+	\f4r?apbin\f1	Binary version of ICSI rapact format
+	\f4raph?ex\f1	Hexadecimal version of ICSI rapact format
+	\f4rapa?scii\f1	ASCII version of ICSI rapact format
+	\f4o?nlftr\f1	ICSI online feature format
+	\f4pr?e\f1	Cambridge byte-encoded feature format (requires width)
+	\f4ln?a8\f1	Cambridge/Sheffield byte-encoded log probs (req. width)
+	\f4h?tk\f1	HTK-format feature files (12 byte header per utt)
+	\f4a?scii\f1	Each line is "segno frameno feature ..." (req. width)
+	\f4raw?be\f1	big-endian 32 bit floats, no header, 1 utt (req. width)
+	\f4rawle\f1	little-endian raw 32 bit floats
+.fi
+.LP
+.TP 1i
+.B -w?idth|-fw?idth|-ftrw?idth \fInum\fR
+Certain formats (namely lna and pre) do not define the number of 
+features per frame in the file; this has to be specified externally.  
+In these cases, that width must be supplied with this option.  For 
+other cases, if a width is specified, it must agree with the input 
+feature stream, otherwise it is just inferred.
+.TP
+.B -r?effile \fIfilename\fR
+file containing the reference classes for each utterance, in a simple 
+format with one line per segment, and one number per line, corresponding 
+to the correct class, numbered from zero.  When a reffile is provided, the
+output file gives the 1-best frame accuracy within each segment, and 
+an indication of whether that segment was classified correctly overall, 
+i.e.:
+.EX
+	Utt: 199 FA: 20.0% rec 3 ref 7 **wrong**
+.EE
+In this case, an overall performance is printed to stderr at the end 
+of the run, along the lines of:
+.EX
+	207 utts FA=66.5% SegAcc=76.8%
+.EE
+In this case, the frame accuracy averaged over all frames in the posterior 
+file (without compensation for segment length) is 66.5%, and overall 
+76.8% of the 207 segments were correctly classified.  The 
+frame accuracy will not change as the summarization options (-conf etc.) 
+are changed, but the overall segment accuracy may.
+.TP
+.B -pr?obs \fIli?near|lo?garithmic\fR (lin)
+When calculating the overall posterior probabilty of each class for each 
+segment, the default operation is to average the posteriors for each 
+frame.  This option allows the averaging to be done in the log(posterior)
+domain, i.e. a geometric rather than arithmetic mean.
+.TP
+.B -ex?ponent \fIvalue\fR (1.0)
+Posterior averaging can also be performed in a power-law domain, as long as 
+the numerical limits of the machine are not exceeded.  Choosing a largish 
+value here (such as 10) approximates a MAX operation over all time frames.
+Exponentiation is applied after log transformation, if both are used.
+.TP
+.B -c?onf \fIu?niform|max?prob|mar?gin|inv?entropy|neg?entropy\fR
+Calculate average posteriors as a confidence-weighted mean using one 
+of several possible confidence measures.  The default of "uniform" uses 
+a constant confidence value, so amounts to no confidence weighting.  
+"maxprob" weights each frame by the largest single posterior value in that 
+frame, since any large value indicates a well-classified frame.  "margin" 
+uses the margin between the largest and second-largest posterior as the 
+confidence weight.  "inventropy" uses the reciprocal of the framewise 
+entropy as the confidence measure i.e. 1/(sum(-p.log(p)).  "negentropy" 
+weights by the negative of the entropy i.e. sum(p.log(p)).  Because posteriors 
+are constrained to sum to 1 within each frame, these confidence measures are 
+all highly correlated.
+.TP
+.B -m?inconf \fIvalue\fR (0)
+This value is subtracted from each confidence weight, and the result is 
+clipped at zero before being used as a weight. Thus, any confidence weights 
+below this value result in frames that are ignored in calculating the overall 
+segment posteriors.  Using a negative minconf allows -conf negent to be 
+used meaningfully.
+.TP
+.B -s?d_wt \fIvalue<\fR (0)
+Optionally, the overall segment posterior standard deviations can be added 
+to the grand average posteriors before classification.  This parameter sets 
+the constant by which the SD is scaled before being added in.  This 
+occurs after all other confidence weighting and domain transformations.
+.TP
+.B -d?ebug \fIlevel\fR (0)
+Debug level passed to the QuickNet library.
+.TP
+.B -v?erbose
+Generate some diagnostic messages.
+.SH EXAMPLES
+To calculate the simple means and SDs of each segment of a 17-element 
+posterior set in LNA file probs.lna, and write the results to summ.txt:
+.EX
+segpostsum -ipf lna -width 17 -o summ.txt probs.lna
+.EE
+To score the summarization of the above file against a set of reference 
+classes (one per line) in refs.txt:
+.EX
+segpostsum -ipf lna -width 17 -o summ.txt probs.lna -r refs.txt
+.EE
+(overall segment accuracy is reported to stderr).  To use negative 
+per-frame entropies more positive than -2 as the confidence weights, 
+.EX
+segpostsum -ipf lna -width 17 probs.lna -r refs.txt -conf neg -min -2
+.EE
+(with the per-segment means and SDs here written to stdout).  To 
+calculate the segment mean probabilty using only frames whose largest 
+probability is larger than 0.5, 
+.EX
+segpostsum -ipf lna -width 17 probs.lna -r refs.txt -conf max -min 0.5
+.EE
+To calculate the per-segment posteriors weighted by the inverse of 
+per-frame entropy, but with a constant offset of 2.0 to each weight, 
+and performing the averaging in the log domain, 
+.EX
+segpostsum -width 17 probs.lna -r refs.txt -prob log -conf inv -min -2
+.EE
+(here we take advantage of lna being the default input format to 
+shorten the command line).
+.SH NOTES/BUGS
+It's basically empirical to search among the confidence options to find the 
+one that gives you the best result.  You should
+.I not
+do this on your test data, but rather on a development or cross-validation 
+set, in order to retain some generality in your answers.  In my limited 
+experience, most confidence weighting schemes give similar answers to 
+to uniform (non-weighted).
+.SH AUTHOR
+.na
+Dan Ellis  <dpwe@ee.columbia.edu>
+.SH SEE ALSO
+.MS lna 5 ,
+.MS feacat 1 .

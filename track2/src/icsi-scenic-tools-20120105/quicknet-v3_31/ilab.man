@@ -1,0 +1,138 @@
+. $Header: /u/drspeech/repos/quicknet2/ilab.man,v 1.2 2001/10/17 15:24:35 dpwe Exp $
+.TH ILAB 5 "$Date: 2001/10/17 15:24:35 $" ICSI "ICSI SPEECH SOFTWARE"
+.SH NAME
+ilab \- Single-channel compressed label file used by QuickNet
+.SH DESCRIPTION
+.LP
+The \fIilab\fP
+file format is used to store target classification labels for 
+each frame of a set of uniformly-sampled time stretches, 
+typically for use in a
+neural net based speech recognizer training.  These files use 
+the highly regular structure of this data to compress its 
+representation, typically acheiving 0.4 bits per label.
+.LP
+An \fIilab\fP file
+consists of a short header, followed by a 
+a block of compressed label data for each segment, followed 
+by index information to permit rapid random access into the file. 
+.LP
+\fIilab\fP files are usually created with 
+.BR ilab_create (1)
+and converted to and from other formats with 
+.BR labcat (1).  
+They are read directly by recent versions of
+.BR qnstrn (1).
+.SS The header
+The header as currently defined consists of seven 4-byte integers 
+in big-endian order:
+.P
+.ta .5i +1.5i
+.nf
+	\f4magic\f1	magic number identifies the file =0x494C4142 ("ILAB")
+	\f4version\f1	a version code - 0x01310720 (19990304)
+	\f4dataOffset\f1	byte position of start of data within file (28)
+	\f4indexOffset\f1	byte position of index data at end of file
+	\f4bitsPerLabel\f1	the length of the labels (8, meaning 1 byte)
+	\f4numSegments\f1	the count of utterances in the file
+	\f4numFrames\f1	the total number of frames in the file
+.fi
+.P
+In the future, the version field might change, hopefully while retaining 
+some compatibility.  The file format is designed to handle label sets of 
+any size, and the bitsPerLabel is used to indicated whether one, two, 
+three or four bytes are used to store each label value.  It is usually 
+an exact multiple of 8 - other values are rounded up to the enclosing 
+bytesize.
+.SS The data
+The header is immediately followed by the first utterance block, 
+at the file offset defined in \f4dataOffset\f1.  Each utterance block 
+starts with a 4-byte big-endian utterance number (which must be 
+sequential from zero, as a quick sanity check), then a series of 
+label blocks.  Each label block consists of a count and a label value 
+(unless the count is zero, in which case the label is skipped).  
+The count can be one, two or four bytes long: If the first byte is 
+less than 128 (top bit clear), the count is one byte long.  If the 
+top byte is between 128 and 191 (top two bits "10"), the count is 
+two bytes long, and is formed by the bottom 14 bits of these two 
+bytes, interpreted as a big-endian word.  If the unsigned value of the 
+first count byte is 192 or more, the count is 4 bytes long and its 
+value is the bottom 30 bits of this big-endian value.  Thus any stretch 
+of up to 1 billion successive frames can be represented.  The count 
+is immediately followed by the zero to four bytes of label value.  
+A count of zero is a special case indicating the end of the 
+segment block, and it will be followed by the four byte number of 
+the next segment.
+.SS The index
+Since each segment has an unknown number of frames, and since the 
+run-length encoding employed makes it impossible to predict the 
+length of the data blocks, ilab files usually have an index table at 
+the end.  (Files with no index, which are still perfectly useable, 
+have a zero value in the header's indexOffset field.)  The index 
+consists of two blocks of 32 bit big-endian integers, one per 
+utterance in the file.  The first block contains the byte offsets 
+within the file of the start of each utterance block; thus, the 
+first value is the same as the dataOffset value from the header. 
+This information allows accessing programs to seek directly 
+to any segment.  
+The second block contains the actual number of frames in each 
+utterance within the file.  This is just for interest's sake.  
+Without this information, it would be necessary to go through 
+and decode every count/label pair in every segment to figure 
+out the number of frames in the file (at least, if it wasn't 
+already in the header).
+.SH EXAMPLE
+.LP
+.RS
+.ft R
+.nf
+$ cat > tmp.data
+0 0 10
+0 1 10
+0 2 10
+0 3 10
+0 4 10
+0 5 5
+0 6 20
+0 7 20
+0 8 20
+0 9 20
+1 0 3
+1 1 3
+1 2 3
+1 3 3
+1 4 3
+1 5 3
+1 6 3
+1 7 3
+^D
+$ ilab_create -i tmp.data -o tmp.ilab
+$ hexdump tmp.ilab
+00000000 49 4c 41 42  01 31 07 20  00 00 00 1c  00 00 00 2e
+00000010 00 00 00 08  00 00 00 02  00 00 00 12  00 00 00 00
+00000020 05 0a 01 05  04 14 00 00  00 00 01 08  03 00 00 00
+00000030 00 1c 00 00  00 27 00 00  00 0a 00 00  00 08      
+.RE
+.P
+You can see the header info up to byte 0x1c, then the number of 
+the first segment (0), then 5 x 0x0a, 1 x 0x05, 4 x 0x14 then 0 as 
+the end of segment marker.  The second utterance is number 0x00000001, 
+consisting of 8 x 0x03 then the end of segment marker.  The indexes 
+begin at byte 0x2e (as noted in the header); the first segment 
+starts at byte 0x1c and the second at 0x27.  The first segment has 
+0x0a frames and the second 0x08.
+.SH NOTES/BUGS
+Use for greater-than-one-byte-per-label is little tested.
+.P
+You shouldn't ever have to access these files directly. 
+Instead, use the QuickNet classes 
+.BR QN_InLabStream_ILab (3)
+and 
+.BR QN_OutLabStream_ILab (3).
+.SH AUTHOR
+Dan Ellis <dpwe@ICSI.Berkeley.EDU>
+.SH SEE ALSO
+.BR pfile (5),
+.BR ilab_create (1),
+.BR labcat (1),
+.BR qnstrn (1).

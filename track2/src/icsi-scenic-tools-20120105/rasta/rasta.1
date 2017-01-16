@@ -1,0 +1,353 @@
+.\" A few notes:
+.\" i) Don't add extra blank lines - these appear in the output and
+.\"    leaves too much space when display on the screen
+.\"
+.\" This title line needs to be changed to contain your program name,
+.\" but the date will be changed automatically by RCS.
+.TH rasta 1 "$Date: 2003/07/18 20:25:01 $" ICSI
+.\" Don't do anything clever in the section below - it messes up the
+.\" whatis database that's accessed using "man -k"
+.SH NAME
+rasta \- computes plp or rasta-plp features.
+.SH SYNOPSIS
+.B rasta
+.RB "[" options "]"
+.SH DESCRIPTION
+.I rasta
+computes variants of the Perceptual Linear Prediction (PLP)
+analysis, including several forms of RASTA processing. It reads
+one of several possible input files containing audio waveforms,
+and outputs one of several formats of feature vectors, one vector per
+frame.  At least one option (described below) is required.
+.SH OPTIONS
+.TP 1i			\" Indent the paragraph
+.B \-O " [FALSE] "
+for online processing 
+.TP
+.B \-d " [FALSE]"
+for debug output 
+.TP
+.B \-M " [FALSE]"
+adds a small constant to the power spectrum equivalent to one bit of random
+noise on the input.  This helps to avoid the numerical problems that occur
+when there are long stretches of zeros in the data.
+.TP
+.B \-F " [FALSE]"
+for highpass filter on input (for dc offset) 
+.TP
+.BI \-G " frq" " [44.7598]"
+highpass cutoff frequency (when using -F)
+.TP
+.B \-a " [FALSE]"
+for input ascii file.
+Default input is binary shorts
+.TP
+.B \-A " [FALSE]"
+for ascii output file. 
+Default output is binary floats.
+.TP
+.B \-e " [FALSE]"
+for ESPS format input files;
+overrules other input options.
+.TP
+.B \-E " [FALSE]"
+for ESPS format output files;
+overrules other output options.
+.TP
+.B \-b " [FALSE]"
+for MAT format input files;
+overrules other input options.
+.TP
+.B \-B " [FALSE]"
+for MAT format output files;
+overrules other output options.
+.TP
+.B \-z " [FALSE]"
+for SPHERE format input files;
+overrules other input options.
+.TP
+.B \-k " [FALSE]"
+for Abbot I/O.
+.TP
+.B \-X " [FALSE]"
+for HTK "USER FTR" format output (12 byte header, type=9).  (Warning:
+If a non-zero delta order is used, the number of features given in the
+HTK header may not include the deltas.  Also, when HTK output was used
+with the -I and -P options to output critical band energies, the number of
+samples written to the output file appeared to be incorrect.)
+.TP
+.B \-T " [FALSE]"
+Input is little-endian.
+This option makes sense only with raw binary shorts as input.
+.TP
+.B \-U " [FALSE]"
+Output is little-endian.
+This option makes sense only with raw binary floats as output.
+.TP
+.B \-y " [FALSE]"
+Pad input to produce frames where the ((n + 0.5) * M)-th point is
+centered in the n-th frame.  M is the number of points per step.  A
+total of L/M frames will be produced, where L is the overall signal
+length.  There must be at least one window's worth of input data to
+produce output.  This option works for both normal and online (-O
+option) input.
+.TP
+.B \-L " [FALSE]"
+for log rasta 
+.TP
+.B \-J " [FALSE]"
+for JAH rasta 
+.TP
+.B \-C " [FALSE]"
+for constant JAH.  This option should generally be used during
+recognizer training.
+Default is adapting JAH according to noisepower.
+Only use option -C when -J is used
+.TP
+.B \-R " [FALSE]"
+for getting critical band values as output 
+instead of cepstral coefficients.
+This is useful for users who would like to find
+their own spectral mapping coefficients.
+This overrules the -P option.
+NOTE: Formerly, -R always generated ascii output
+(i.e. implied -A).  As of version 2.4.2, this 
+is no longer true.  Be sure to specify -A if 
+you want ascii output.
+.TP
+.B \-P " [FALSE]"
+for getting cube root compressed and equalized
+critical band values as output instead of cepstral coefficients.
+NOTE: Formerly, -P always generated ascii output
+(i.e. implied -A).  As of version 2.4.2, this 
+is no longer true.  Be sure to specify -A if 
+you want ascii output.
+.TP
+.B \-g " [compute gain]"
+don't compute gain.
+.TP
+.B \-h " [FALSE]"
+use stored noise level estimation and RASTA filter
+history for initialization (if history file is
+available, otherwise use normal initialization).
+.TP
+.BI \-i " input file" " [stdin]"
+.TP
+.BI \-o " output file" " [stdout]"
+.TP
+.BI \-I " list file"
+This option names a file containing pairs of filenames, where the 
+first of each pair is an input sound file, and the second is the 
+desired corresponding output file.  Feature processing is applied to 
+each input file in turn, writing a number of output files (HTK 
+style).  
+.TP
+.BI \-f " mapping file"
+JAH Rasta mapping coefficients input text file; specifies
+a multi-linear regression to reduce the variance introduced by
+using different J values.  There is no default, because you must
+create your own mapping file.  See the examples section for the reason why.
+.TP
+.BI \-r " rasta mixing coefficient" " [1.0]"
+for partially rasta, partially plp
+e.g. -r 1.0 => no mixing, -r 0.8 => 80% rasta 20% PLP
+.TP
+.BI \-w " analysis window size" " [20]"
+(in milliseconds)
+.TP
+.BI \-W " windowing constant" " [0.540000]"
+.TP
+.BI \-s " window step size" " [10]"
+(in milliseconds)
+.TP
+.BI \-S " Sampling frequency" " [8000]"
+(in Hertz)
+.TP
+.BI \-Y " Nyquist frequency" " [sampling frequency/2]"
+If this is specified as less than half the sampling frequency, the 
+corresponding bins from the top of the initial Fourier transform 
+are discarded, performing an effective downsampling of the data.  
+This doesn't exactly match actual resampling, but it's within a few 
+percent.
+.TP
+.BI \-l " liftering exponent" " [0.600000]"
+.TP
+.BI \-p " pole value" " [0.940000]"
+The magnitude of the integrator pole on the real axis.  This option 
+is redundant with the lower cutoff frequency specified with -x; only 
+one should be present.  When the 
+default framerate of 10 ms is used, the default lower cutoff frequency 
+gives the default pole value.  For other framerates, it is the 
+lower cutoff frequency which takes precedence.  If -p is specified, 
+however, it will take precedence.
+.TP
+.BI \-x " lower cutoff 3dB frequency" " [0.955504 Hz]"
+The rasta filter includes an integrating pole close to the zero at d.c.; 
+as this pole gets closer to the zero, the sharpness of the notch at 0 Hz 
+increases.  To ensure that this filter performs approximately the same 
+role across a range of frame rates, the pole magnitude is, by default, 
+calculated to have a -3dB point at this frequency, and hence its 
+value will also depend on the frame rate in use.  This option is therefore 
+incompatible with -p which specifies the pole magnitude directly; they 
+cannot both be used.  
+.TP
+.BI \-u " upper cutoff-zero frequency" " [29.021531 Hz]"
+The rasta filter effects smoothing along time with its low-pass 
+characteristic, which is manifested in zeros at sr/2 and at an 
+intermediate frequency.  For the classic, straight-line rasta FIR 
+response, this zero falls close to 29 Hz at the default frame rate 
+of 100 Hz; for other frame rates, the FIR filter coefficients 
+are adjusted to keep the zero at this frequency (or any other frequency 
+below half the frame rate, as specified with this option).
+.TP
+.BI \-m " model order" " [8]"
+.TP
+.BI \-n " number of output parameters" 
+where default is model order plus 1 (log gain) 
+and log gain is given first
+.TP
+.BI \-c " number of crit band filters"
+where default depends on sampling freq, but is 17 for 8000 Hz
+.TP
+.BI \-v " use triangular filters"
+Use triangular auditory filters instead of the default trapezoidal filters.
+.TP
+.BI \-Z " use Mel-frequency triangular filters"
+Instead of the Bark frequency axis, use the Mel axis as defined in the 
+HTKBook.  Also use triangular filter integration windows, just like HTK.
+.TP
+.BI \-V " frequency axis warp" "[1.0]"
+A value other than 1.0 causes a linear stretch (> 1.0) or squeeze (< 1.0)
+of the linear frequency axis upon which the various auditory spectra 
+are based.  This can be used to tune features for variations in 
+vocal tract length.  See Lee & Rose, ICASSP-96.
+.TP
+.BI \-q " deltas order" " [0] "
+The calculated features will be augmented by their derivatives (deltas)
+up to the specified order (i.e. 1 for slope, 2 for slope and curvature).  
+This will duplicate the feature vector size requested by -n i.e. 
+-n 13 -q 2 generates a 39-element feature vector.
+.TP
+.BI \-Q " delta calculation window" " [9] "
+The number of successive frames used in calculating the slope and 
+curvature (if requested) of the features.  Derivatives are calculated 
+by convolving with a simple linear-slope filter (the convolution of 
+two such filters for double derivatives); this parameter controls its 
+length.
+.TP
+.BI \-K " STRUT compatibility mode"
+Make a collection of changes for compatibility with the STRUT version of 
+Rasta.
+Specifically, calculate a raw log energy term as the first element 
+of cepstral outputs (in addition to c0), and use a double-delta 
+calculation kernel that is 2 points larger than the delta window 
+(for -q 2).  However, only a 7 point double-delta window is known 
+for STRUT mode, so -K -q 2 must have -Q 5.  Finally, the output vector 
+is sub-selected to drop the first element (the absolute value of the 
+new energy term) and the last <ncep> values (the highest order deltas 
+of everything 
+.I except 
+the new energy term).  
+Note that the 
+energy term is included in the -n count, so for classsic 
+26 element STRUT Rasta features, you need -m 10 -n 13 -q 2 -Q 5 -K .
+In this latest version, you can feed these directly into the forward pass; 
+there is no need for an additional feacat filtering stage. (See BUGS).
+.TP
+.BI \-N " numerator rastafilt file"
+unimplemented in release version 2.2
+.TP
+.BI \-D " denominator rastafilt file"
+unimplemented in release version 2.2
+.TP
+.BI \-j " Constant J" " [1.000000e-06] "
+depends on the noise level, ( smaller for more noisy speech).
+Only use option -j when -C is used.
+.TP
+.BI \-H " History filename" " [history.out] "
+File containing noise level and filter history for initialization.
+.SH EXAMPLES
+To compute log RASTA-PLP (which is optimal for the case of convolutional
+error, as when the speech input has been run through a linear
+time-invariant filter), with ascii input and ESPS-compatible output:
+
+	rasta -a -E -L < infile.asc > esps_outfile
+
+This will use all the defaults, including an assumption of 8 kHz
+sampling rate for the input data. Note that the use of ESPS requires
+making rasta using the ESPS-based Makefile, and also requires an
+ESPS license. It will compute 9 log RASTA cepstral coefficients (8th
+order, including a gain term).
+
+
+To compute 12th order J-RASTA-PLP (which handles additive noise in addition
+to the convolutional), using automatic noise estimation, and with
+ascii input and output and a 16 kHz sampling rate:
+
+	rasta -a -A -i speechin.asc -o speechout.asc -J -S 16000 -n 12 -f map.dat
+
+The -f option specifies a mapping file that is used to reduce the
+J-dependent variability of the rasta output by mapping spectra to a reference
+J value that corresponds to clean speech.  In previous versions of this
+program, there was a default value for -f, and we provided a mapping file
+with the RASTA distribution.  There is no longer a default and we no longer
+distribute a mapping file because the mapping file is highly dependent on the
+speech being recognized.  It is absolutely vital that you derive a mapping
+file from some subset of your own training data.
+.BR create_mapping(1)
+provides a simple mechanism for creating mapping files.
+
+To compute PLP without any RASTA filtering, using binary shorts
+at the input and binary floats at the output (and all the other
+defaults):
+
+	rasta < speechin > speechout
+.SH AUTHOR
+Nelson Morgan (original version, after a Fortran PLP by Hynek Hermansky)
+\<morgan@icsi.berkeley.edu\>
+.br \" How to break lines between authors
+Later additions - Grace Tong, Chris Ehrlicher, Brian Kingsbury
+\<bedk@icsi.berkeley.edu\>, Dan Ellis \<dpwe@icsi.berkeley.edu\>
+.br
+HTK and list file contributions by Sacha Krstulovic \<sacha@idiap.ch\>.
+.SH SEE ALSO
+.BR "Hermansky, H., and Morgan, N., ``Rasta Processing of Speech,''"
+.ul
+IEEE Transactions on Speech and Audio Processing,
+special issue on Robust Speech Recognition, vol.2 no. 4, pp. 578-589,
+Oct., 1994
+
+.BR create_mapping(1)
+.SH BUGS
+The noise estimation procedure used in adaptive J-RASTA processing (-J
+option on, -C option off) assumes that the first 100 ms. of a signal
+does not contain any speech.  If this assumption is violated, then it
+produces poor estimates of the noise level early in the signal.  This
+bug may cause ridiculously large energy values for early frames when
+the usual cepstral outputs are produced, or ridiculously large outputs
+if the -P or -R option is used.  Use of a history file reduces the bad
+effects of insufficient leading non-speech, but does not eliminate
+them.  In general, try to make sure you have at least 100 ms. of
+non-speech leader in all inputs to rasta when using the -J option.
+.P
+We use the soon-to-be-obsolete getopt(3) call to do command-line 
+parsing.  Under gcc 2.7.1/SunOS 4.1.3, this appears to be buggy, 
+so that failing to specify a required argument for a flag causes a 
+core dump rather than an error message.
+.P
+As we run out of letters of the alphabet, command-line options are
+becoming increasingly non-mnemonic.
+.P
+HTK output (-X) and input/output file list file (-I) are recent and
+little tested.
+.P
+The "Strut compatibility mode" is a very evil and ugly hack.  The correct 
+way to support this would be to expand the option set orthogonally so these 
+options could be specified as one possible condition.  But (a) the option 
+set is already a non-orthogonal evil mess (for orthogonality, use 
+.MS feacalc 1 )
+and (b) we don't have enough options left to do it anyway!
+.P
+Doesn't yet implement the -N or -D switches to specify the rasta filter.
+It also doesn't eliminate all problems
+in speech recognition yet.

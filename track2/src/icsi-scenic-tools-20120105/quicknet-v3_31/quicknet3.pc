@@ -1,0 +1,11 @@
+prefix=/home/juan/software/icsi-scenic-tools-20120105/quicknet-v3_31
+exec_prefix=${prefix}
+libdir=${prefix}
+includedir=/home/juan/software/icsi-scenic-tools-20120105/quicknet-v3_31
+
+Name: QuickNet
+Description: QuickNet MLP Training Program and Library (uninstalled)
+Version: v3_31
+Requires: 
+Libs: -L${libdir}  -lquicknet3 -lpthread -lm 
+Cflags: -I${libdir} -I${includedir} -g -O2 

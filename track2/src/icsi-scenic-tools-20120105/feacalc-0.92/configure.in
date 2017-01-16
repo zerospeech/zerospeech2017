@@ -1,0 +1,113 @@
+dnl -*- sh -*-
+
+dnl $Header: /u/drspeech/repos/feacalc/configure.in,v 1.15 2012/01/05 20:30:15 dpwe Exp $
+dnl	This file is an input file used by the GNU "autoconf" program to
+dnl	generate the file "configure", which is run during installation
+dnl	to configure the system for the local environment.
+
+dnl	configure.in for feacalc (new RASTA front end) based on APRLs
+dnl	1997aug04 dpwe@icsi.berkeley.edu
+
+AC_PREREQ(2.57)
+AC_INIT(feacalc, 0.92, quicknet-bugs@ICSI.Berkeley.EDU, feacalc)
+AC_CONFIG_SRCDIR([feacalc.C])
+
+# Sort out program_transform_name
+AC_ARG_PROGRAM
+
+# Set up prefix to actually hold defaults (for use later)
+ACDPWE_INIT_PREFIX
+
+AC_PROG_INSTALL
+AC_PROG_RANLIB
+
+ACDPWE_PROG_CC_CXX
+ACDPWE_LIB_MATH
+
+# Checks for byte-swapped machines (Intel, DEC) - MUST BE AFTER $CC SET!
+AC_C_BIGENDIAN
+
+# Locate the dpwelibConfig.sh & load it
+DPWELIB_DFLT_DIR=$exec_prefix/lib
+ACDPWE_CONFIG_PKG(dpwelib, DPWELIB, $DPWELIB_DFLT_DIR, $DPWELIB_DFLT_DIR)
+
+
+#--------------------------------------------------------------------
+#	Work out which QuickNet we are using.
+#--------------------------------------------------------------------
+### Ask the user for the quicknet lib dir, defaulting to the exec_prefix/lib
+AC_CACHE_VAL(acdpwe_cv_path_qn, acdpwe_cv_path_qn=${qn_exec_prefix/lib})
+AC_ARG_WITH([quicknet],
+    AC_HELP_STRING([--with-quicknet=ARG],[find quicknet3 library in specified directory]),
+    [qn_dir=$withval],
+    [qn_dir=${acdpwe_cv_path_qn}] )
+
+
+AC_MSG_RESULT(MMMMMMM $qn_dir)
+
+### If we cannot find the user-specified dir, then default to exec_prefix/lib
+if test -f ${qn_dir}/pkgconfig/quicknet3.pc; then
+    QN_DFLT_PC=${qn_dir}/pkgconfig
+elif test -f ${qn_dir}/quicknet3.pc; then
+    QN_DFLT_PC=${qn_dir}
+else
+    QN_DFLT_PC=${exec_prefix}/lib/pkgconfig
+fi
+AC_MSG_RESULT($QN_DFLT_PC)
+
+### Put the new pacakge config dir at the front of the pkg config path
+### and then check for the library
+old_PKG_CONFIG_PATH=${PKG_CONFIG_PATH}
+PKG_CONFIG_PATH="${QN_DFLT_PC}:${PKG_CONFIG_PATH}"
+export PKG_CONFIG_PATH
+PKG_CHECK_MODULES(QN,quicknet3,,:)
+PKG_CONFIG_PATH=${old_PKG_CONFIG_PATH}
+
+#QN_INC_SPEC=$QN_CFLAGS
+#QN_LIB_SPEC=$QN_LIBS
+#AC_SUBST(QN_INC_SPEC)
+#AC_SUBST(QN_LIB_SPEC)
+AC_SUBST(QN_CFLAGS)
+AC_SUBST(QN_LIBS)
+
+#----------------------------------------------------------------
+
+# Locate the rastaConfig.sh & load it
+#RASTA_DFLT_DIR=$srcdir/../rasta
+RASTA_DFLT_DIR=$exec_prefix/lib
+ACDPWE_CONFIG_PKG(rasta, RASTA, $RASTA_DFLT_DIR, $RASTA_DFLT_DIR)
+
+#--------------------------------------------------------------------
+
+# Append our build dir to the growing list of build path dirs
+fullBuildDir=`pwd`
+AC_CACHE_CHECK(drspeech build path, acdpwe_cv_env_path, 
+		acdpwe_cv_env_path=)
+if echo $acdpwe_cv_env_path | fgrep -v $fullBuildDir > /dev/null ; then
+    acdpwe_cv_env_path="$fullBuildDir $acdpwe_cv_env_path"
+fi
+
+AC_SUBST(SHLIB_CFLAGS)
+AC_SUBST(SHLIB_LD)
+AC_SUBST(SHLIB_CXXFLAGS)
+AC_SUBST(SHLIB_LDXX)
+AC_SUBST(SHLIB_LDXX_LIBS)
+AC_SUBST(SHLIB_SUFFIX)
+AC_SUBST(SHLD_RANLIB)
+AC_SUBST(LD_FLAGS)
+AC_SUBST(LD_SEARCH_FLAGS)
+
+AC_SUBST(CFLAGS)
+AC_SUBST(CXXFLAGS)
+
+AC_SUBST(DPWELIB_INC_SPEC)
+AC_SUBST(DPWELIB_LIB_SPEC)
+AC_SUBST(DPWELIB_SRC_DIR)
+
+AC_SUBST(RASTA_INC_SPEC)
+AC_SUBST(RASTA_LIB_SPEC)
+AC_SUBST(RASTA_SRC_DIR)
+
+AC_SUBST(FEACALC_VERSION)
+
+AC_OUTPUT(Makefile)

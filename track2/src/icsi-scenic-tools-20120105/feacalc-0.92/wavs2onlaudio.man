@@ -1,0 +1,136 @@
+. $Header: /u/drspeech/repos/feacalc/wavs2onlaudio.man,v 1.5 2000/02/22 07:51:37 dpwe Exp $
+.\" A few notes:
+.\" i) Don't add extra blank lines - these appear in the output and
+.\"    leaves too much space when display on the screen
+.\"
+.\" This title line needs to be changed to contain your program name,
+.\" but the date will be changed automatically by RCS.
+.TH wavs2onlaudio 1 "$Date: 2000/02/22 07:51:37 $" ICSI
+.\" Don't do anything clever in the section below - it messes up the
+.\" whatis database that's accessed using "man -k"
+.SH NAME
+wavs2onlaudio \- assemble sound files into an online audio stream
+.SH SYNOPSIS
+.B wavs2onlaudio
+.B infilename=<filename>
+[
+.B ipsffmt=<format>
+.B utt_start=<integer>
+.B utt_count=<integer>
+.B sf=<float>
+.B rangerate=<float>
+.B rngstartoffset=<float>
+.B rngendoffset=<float>
+.B zeropad=<float>
+.B ioblocking=<integer>
+.B filecmd=<cmd>
+]
+.SH DESCRIPTION
+.I wavs2onlaudio
+reads in a set of sound waveform files in any format known to the 
+.BR snd(3)
+library (which includes direct access of files compressed with 
+.BR gzip(1)
+) and writes them to stdout as an online audio
+stream (
+.BR online_audio(5)
+).
+It is intended as a drop-in replacement for the drspeech_featools component,
+.BR drspeech_sphere2onlaudio(1).
+.SH OPTIONS
+.TP 0.5i			\" Indent the paragraph
+.B infilename=<filename> (required)
+The name of a file that contains a list of the soundfiles to be
+assembled into an online audio stream, one per line.  The file may 
+contain full pathnames, or, if a filecmd is specified, it should 
+contain just utterance ids.
+.TP
+.B ipsffmt=<type> (default: none)
+A specification for the sound file type of the input files, using one 
+of the tokens known to the 
+.BR sndf(3)
+library.  Normally, this is inferred automatically from the file itself 
+(and thus may vary between files in the list).  However, some file types 
+(such as ESPS and PHONDAT) cannot be identified automatically, so this 
+option must be used (equivalent to -S in the dpwelib sndutils).
+.TP
+.B utt_start=<integer> (default = 0)
+The number of the first utterance in the list of sphere files to
+include in the online audio stream.
+.TP
+.B utt_count=<integer> (default = -1)
+The number of utterances to include in the online audio stream.
+Specifying -1 causes the processing to continue until the end of the 
+list is encountered.
+.TP
+.B sf=<float> (default = 8000)
+The sampling frequency of the sound files to be assembled into the
+online audio stream.  This is compared to the sample rate specified 
+in the header, and a warning issued if they differ.  However, this 
+specified value takes precedence.  Specifying it as 0 means to 
+read it from the (first) input soundfile.
+.TP
+.B rangerate=<float> (default = 0)
+If nonzero, expect two numbers after each fileID in the list specifying 
+the first and last indices of "frames" to include in the file.  The 
+duration of each "frame" depends on the value (which is the frequency 
+of the range frames): rangerate=100 means you are counting centisecond 
+chunks.  rangerate=8000 means you're counting samples in an 8kHz file.  
+To get exactly the first 1000 samples from an 8kHz file, specify 
+"rangerate=8000" and have your list line look like "utid 0 1000".  
+Range files can have a fourth column indicating which channel of 
+multichannel files to use.  Thus "utid 0 1000 B" takes the first 
+1000 samples from the second channel of a stereo soundfile (for 
+instance).
+.TP
+.B rngstartoffset=<float> (default = 0)
+If ranges are being specified (i.e. rangerate is nonzero), add this 
+value to each start value before converting it to time.  If the resulting 
+value is negative, the sound file will have zeros padded at the beginning 
+to make it align correctly.
+.TP
+.B rngendoffset=<float> (default = 0)
+If ranges are being specified (i.e. rangerate is nonzero), add this 
+value to each end value before converting it to time.  If the resulting 
+value indicates a point beyond the end of the actual soundfile, zeros 
+will be appended to make up the length.
+.TP
+.B zeropad=<float> (default = 0 ms)
+In addition to the optional ranging, this option causes some number of 
+milliseconds of pure silence (i.e. zero) to be padded to each end of 
+every sound file - e.g. to add 'dead time' for filter warmup etc.
+.TP
+.B ioblocking=<integer> (default = 8000)
+The speech data is transferred in blocks of at most this many sample frames.  
+A minimum value of 1000 is silently enforced.
+A larger value for
+.I ioblocking
+tends to increase processing bandwidth, processing latency, and memory
+usage, while a smaller value for 
+.I ioblocking
+tends to decrease processing bandwidth, processing latency, and memory
+usage.
+.SH BUGS
+The program is built on the FileList classes of 
+.BR feacalc(1)
+and could easily be extended to support multiple list files, or 
+direct specification of soundfiles on the command line if the syntax 
+were to be changed.  Similarly, writing to an output file other than 
+stdout, or in a format other than Abbot Online should be simply a matter 
+of providing the command-line options (although using 
+.BR sndf(3) 
+to write multiple-file streams has not been tested except for PCM/Abb).
+.PP
+The 
+.BR snd(3)
+and 
+.BR sndf(3)
+libraries are getting critically patched and surely contain many bugs. 
+However, empirical tests show them to work correctly in many popular 
+circumstances ;-).
+.SH AUTHOR
+Dan Ellis <dpwe@icsi.berkeley.edu>
+.SH SEE ALSO
+.ftB
+drspeech_sphere2onlaudio drspeech_featools(1) sphere(3) sndf(3) snd(3) online_audio(5) 
+.ftR

@@ -1,0 +1,169 @@
+.de Sh
+.br
+.ne 5
+.PP
+\fB\\$1\fR
+.PP
+..
+.de Sp
+.if t .sp .5v
+.if n .sp
+..
+.de PN
+.ie t \&\f(CB\\$1\f(NR\\$2
+.el \fI\\$1\fP\\$2
+..
+.		\" The following macros added by dpwe for Ultrix 4..
+.               \" Manual section reference
+.               \"      uses Courier fonts for V4.0
+.de MS
+.ie t \&\f(CB\\$1\f(NR(\\$2)\\$3
+.el \fI\\$1\fP(\\$2)\\$3
+..
+.de EX		\" Begin Example
+.ie \\n(.$ .nr EX \\$1n
+.el \{\
+.	ie n .nr EX 0n
+.	el .nr EX 0n
+.\}
+.in +\\n(EXu
+.if n .sp 1
+.if t .sp .5v
+.nf
+.CW
+.ft CB
+..
+.de EE		\" End example
+.in -\\n(EXu
+.fi
+.}f             \" restore basic text attributes
+.if n .sp 1
+.if t .sp .5v
+..
+.TH SNDRSMP 1 "$Date: 2006/08/27 20:53:38 $" dpwe
+.SH NAME
+sndrsmp - change the sampling rate of a soundfile (i.e. resample it)
+.SH SYNOPSIS
+\fBsndrsmp 
+[\-{s|r} \fIrate\fB | \-f \fIfctr\fB]
+[\-a \fIacc%\fB]
+[\-h] 
+[\-o]
+[\-S \fIsffmt\fB]
+[\-T \fIsffmt\fB]
+\fIinputSoundFile\fB
+[\fIoutputSoundFile\fB]
+\fR
+.SH DESCRIPTION
+.PN sndrsmp
+implements high-accuracy, low-noise sinc interpolation in a relatively 
+efficient fashion by finding an integer-ratio upsample/downsample pair 
+that closely approximates the desired resampling factor.  The interpolator 
+can then be run from a lookup table.
+.PN sndrsmp
+is built on the
+.MS snd 3
+soundfile system library, which offers access to many soundfile types 
+and transparent access to pipes, sound hardware, compressed streams etc.
+.SH OPTIONS
+.TP 12
+.B \-s \fIrate\fR  \fB\-r\fR \fIrate\fR
+Specify desired sampling rate of output file (sampling rate of input file 
+is read from header).  Cannot be used with \-f .
+.TP 12
+.B \-f \fIfactor\fR
+Specify factor which is applied to the input file sampling rate to 
+obtain the output file sampling rate.  Cannot be used with \-s / \-r .
+.TP 12
+.B \-g \fIgain\fR
+Specify gain constant by which all input samples are multiplied prior 
+to processing.  If a particular clip just touches the limit of the 
+dynamic range (i.e. max or min possible sample value), it's quite likely 
+to overflow after low-pass filtering removes some of the rapid variation.
+This leads to a nasty wrap-around click; use -g 0.8 or similar to avoid 
+this (default 1.0).
+.TP 12
+.B \-a \fIacc%\fR
+Match the desired resampling ratio to within this accuracy (in percent).  
+The size of the integers in the ratio (and hence the lookup table) is 
+increased until this accuracy is achieved.  Default is 0.1 % i.e. 
+one-sixtieth of a semitone or 16 cents.
+.TP 12
+.B \-m \fImults\fR
+How many points to use for each of the interpolator FIR filters.
+(Hamming windowed sinc functions - can you believe it?).  This 
+is directly proportional to the execution time of the program.  
+The default is 32, which puts alias terms down by at least -60 dB.
+This is quite conservative.  Acceptable but much faster results 
+are possible with -m 8.
+.TP 12
+.B \-p \fIprop\fR
+Set the sinc low-pass filter band edge to this proportion of the 
+Nyquist rate.  The default of 0.9 means that slightly more of the 
+spectrum than necessary is filtered out when downsampling, to ensure 
+the absolute minimum of aliasing.
+.TP 12
+.B \-h
+Perform resampling as normal, but set the sample rate field in the 
+output file header to be the same as the input file.
+.TP 12
+.B \-o
+Write output to standard output rather than a file.  Note:  this option 
+is obsolete;  we now specify this with an output filename of '\-'.  But 
+it is still supported for the time being for compatibility with older scripts.
+.TP 12
+\fB\-S \fIsffmt\fR
+Force the input soundfile to be treated as the type specified by 
+the keyword.  This only applies if the 
+.MS sndf 3
+library has been compiled to use run-time determination of soundfile 
+type; otherwise this option is ignored.  When it is active, the 
+available soundfile keywords are listed in the usage message:
+.EX
+sndrfmt --
+.EE
+but currently include "AIFF" (Mac/SGI), "NeXT" (Sun/NeXT *.au/*.snd), 
+"MSWAVE" (Microsoft RIFF/WAVE), "NIST" (NIST/SPHERE) and "PCM" 
+(raw data, format optionally controlled by PCMFORMAT environment 
+string, see
+.MS sndf 3
+).
+.TP 12
+\fB\-T \fIsffmt\fR
+Under the runtime-dynamic version of the soundfile library, forces 
+the output soundfile to be treated as the type specified by 
+the keyword (see the -S option above).  If not specified, the 
+output soundfile type will match the input.
+.TP 12
+.B InputSoundFile
+Source soundfile.  Specifying '\-' alone instructs the program to take 
+input from standard input (i.e. a formatted soundfile coming in over 
+a pipe).
+.TP 12
+.B OutputSoundFile
+The resampled sound file is written to this name.  If not specified, 
+the default is the same as the input, except with ".rs" inserted before
+the file-type specifier.  If the input is stdin, the default is stdout. 
+Specifying '\-' alone indicates that output data be written to standard 
+output.
+.SH NOTES
+The program tries to ensure that the number of output samples is 
+exactly as expected.  This is given by the formula
+floor(inframes * ip / op), where ip and op are the integer step 
+sizes found to approximate the resampling ratio as ip/op.  
+This means that an odd-length input file downsampled by a factor 
+of 2 will have (n-1)/2 output frames.  Earlier versions of 
+sndrsmp used ceil instead of floor, but this was deemed a less 
+good solution.
+.SH BUGS
+It would be nice if it designed more optimal filters than Hamming 
+window sincs. 
+.SH SEE ALSO
+.MS snd 3 ,
+.MS sndf 3 ,
+.MS sndrfmt 1 ,
+.MS sndcat 1 .
+.SH AUTHOR
+Dan Ellis, 
+.B dpwe@icsi.berkeley.edu
+

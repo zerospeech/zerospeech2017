@@ -1,0 +1,51 @@
+# $Header: /u/drspeech/repos/pfile_utils/NEWS,v 1.15 2011/03/09 03:23:55 davidj Exp $
+
+=========================
+=== pfile_utils v0_51 ===
+=========================
+
+ - added INSTALL file to the distribution
+ - fixed a pfile_ftrcombo problem: the -fr2, -fr3 and -fr4 options were
+       being completely ignored
+ - fixed a pfile_ftrcombo problem: the program was crashing just before exiting
+ - made pfile_gaussian and pfile_stats
+   use %g by default for stats file output
+ - made pfile_print use %g by default for output, with an optional -ff
+   flag to select the v0_50 and before default of %f.
+ - fixed a buffer overflow when using -slf with a file that's too long
+ - added man page entry for pfile_skmeans.
+
+=========================
+=== pfile_utils v0_50 ===
+=========================
+
+Version "v0_50" of pfile_utils is the first version with a version number
+and a NEWS file.  
+
+The differences between the long-time installed ICSI version (approx
+Oct 2001 -> Dec 2005 inclusive) are relatively minor and not completely known.
+Some changes include:
+
+ - pfile_klt and pfile_lda now accept multiple, comma-separated,
+   pfiles for feature input (not supported on 2001->2005 installed version
+   but maybe had been available in project-specific versions).  
+ - pfile_lda now optionally supports a separate label file
+   (not supported on 2001->2005 installed version but maybe had been available
+   in project-specific versions)
+ - Added man page entry for pfile_lda and pfile_addsil.
+ - Fixed to work with QuickNet v3_11 API.
+ - in theory works for >32 bit pfiles (due to changes in QuickNet), although
+   not fully tested yet.
+ - Added COPYING file.
+ - Added NEWS file.
+ - Updated INSTALL file.
+ - Removed intvec dependency.
+ - Now use pkg-config to find QuickNet3.
+ - Fixed install stuff, including adding name tranform.
+ - Removed RCS stuff from Makefile.in.
+ - pfile_utils.1 now pfile_utils.man in src dir.
+ - Fixed some mess associated with icsiarray.
+
+Note that there may exist versions of pfile_utils where pfile_lda and
+pfile_klt support the "//" syntax for parallel pfiles.  v0_50 of pfile_utils
+and mainstream versions of QuickNet do _not_ support this.

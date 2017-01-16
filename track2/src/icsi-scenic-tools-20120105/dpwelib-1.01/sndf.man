@@ -1,0 +1,507 @@
+.de Sh
+.br
+.ne 5
+.PP
+\fB\\$1\fR
+.PP
+..
+.de Sp
+.if t .sp .5v
+.if n .sp
+..
+.               \" Path Name
+.               \"      uses Courier fonts for V4.0
+.de PN
+.ie t \&\f(CB\\$1\f(NR\\$2
+.el \fI\\$1\fP\\$2
+..
+.		\" The following macros added by dpwe for Ultrix 4..
+.               \" Manual section reference
+.               \"      uses Courier fonts for V4.0
+.de MS
+.ie t \&\f(CB\\$1\f(NR(\\$2)\\$3
+.el \fI\\$1\fP(\\$2)\\$3
+..
+.de EX		\" Begin Example
+.ie \\n(.$ .nr EX \\$1n
+.el \{\
+.	ie n .nr EX 0n
+.	el .nr EX 0n
+.\}
+.in +\\n(EXu
+.if n .sp 1
+.if t .sp .5v
+.nf
+.CW
+.ft CB
+..
+.de EE		\" End example
+.in -\\n(EXu
+.fi
+.}f             \" restore basic text attributes
+.if n .sp 1
+.if t .sp .5v
+..
+.TH SNDF 3 "1997 jan 31" dpwe   \" $Header: /u/drspeech/repos/dpwelib/sndf.man,v 1.23 2006/07/08 20:54:19 gelbart Exp $
+.SH NAME
+SNDF - a low-level sound file interface library
+.SH SYNOPSIS
+.nf
+\fB#include <sndf.h>\fR
+
+\fI/\(** Basic management of the SFSTRUCT structure \(**/\fR
+int  \fBSFAlloc\fR(SFSTRUCT **\fIpsnd\fR, long \fIdataBsize\fR, int \fIformat\fR, double \fIsrate\fR, int \fIchans\fR, int \fIinfoBsize\fR);
+void \fBSFFree\fR(SFSTRUCT *\fIsnd\fR);
+
+\fI/\(** Reading a soundfile header \(**/\fR
+int  \fBSFReadHdr\fR(FILE *\fIfile\fR, SFSTRUCT *\fIsnd\fR, int \fIinfoBmax\fR);
+int  \fBSFRdXInfo\fR(FILE *\fIfile\fR, SFSTRUCT *\fIsnd\fR, int \fIdone\fR);
+int  \fBSFAllocRdHdr\fR(FILE *\fIfile\fR, SFSTRUCT **\fIpsnd\fR);
+FILE *\fBSFOpenRdHdr\fR(char *\fIpath\fR, SFSTRUCT *\fIsnd\fR, int \fIinfoBmax\fR);
+FILE *\fBSFOpenAllocRdHdr\fR(char *\fIpath\fR\fR, SFSTRUCT **\fIpsnd\fR\fR);
+
+\fI/\(** Writing a soundfile header \(**/\fR
+int  \fBSFWriteHdr\fR(FILE *\fIfile\fR, SFSTRUCT *\fIsnd\fR, int \fIinfoBmax\fR);
+FILE *\fBSFOpenWrHdr\fR(char *\fIpath\fR, SFSTRUCT *\fIsnd\fR);
+void \fBSFCloseWrHdr\fR(FILE *\fIfile\fR, SFSTRUCT *\fIsnd\fR);
+void \fBSFFinishWrite\fR(FILE *\fIfile\fR, SFSTRUCT *\fIsnd\fR);
+void \fBSFClose\fR(FILE *\fIfile\fR);
+
+\fI/\(** stdio-style access to the file contents \(**/\fR
+size_t \fBSFfread\fR(void *\fIptr\fR, int \fItype\fR, size_t \fInitems\fR, FILE *\fIstream\fR);
+size_t \fBSFfwrite\fR(void *\fIptr\fR, int \fItype\fR, size_t \fInitems\fR, FILE *\fIstream\fR);
+int \fBSFfseek\fR(FILE *\fIstream\fR, long \fIoffset\fR, int \fIptrname\fR);
+int \fBSFftell\fR(FILE *\fIstream\fR);
+int \fBSFfeof\fR(FILE *\fIstream\fR);
+
+\fI/\(** Transferring entire soundfiles at once \(**/\fR
+int  \fBSFRead\fR(char *\fIpath\fR, SFSTRUCT **\fIpsnd\fR);
+int  \fBSFWrite\fR(char *\fIpath\fR, SFSTRUCT *\fIsnd\fR);
+
+\fI/\(** Other utility functions \(**/\fR
+int  \fBSFInfoSize\fR(SFSTRUCT *\fIsnd\fR);
+char *\fBSFDataLoc\fR(SFSTRUCT *\fIsnd\fR); 
+int  \fBSFSampleSizeOf\fR(int \fIformat\fR);
+int  \fBSFSampleFrameSize\fR(SFSTRUCT *\fIsnd\fR);
+char *\fBSFErrMsg\fR(int \fIerr\fR);
+void \fBSFDie\fR(int \fIerr\fR, char *\fImsg\fR);
+
+\fI/\(** Managing dynamic soundfile type selection \(**/\fR
+int  \fBSFSetDefaultFormat\fR(int \fIid\fR);
+int  \fBSFSetDefaultFormatByName\fR(char *\fIname\fR);
+int  \fBSFSetFormat\fR(FILE *\fIfile\fR, int \fIid\fR, int \fImode\fR);
+int  \fBSFSetFormatByName\fR(FILE *\fIfile\fR, char *\fIname\fR);
+int  \fBSFGetFormat\fR(FILE *\fIfile\fR, int *\fIpmode\fR);
+void \fBSFListFormats\fR(FILE *\fIstream\fR);
+char *\fBSFFormatName\fR(int \fIid\fR);
+int  \fBSFFormatToID\fR(char *\fIname\fR);
+.fi
+.SH DESCRIPTION
+\f1
+.PN sndf
+is a low-level library that handles the reading and writing of various 
+soundfile formats using stdio-type file access functions (see
+.MS fopen 3 ).  A single functional interface has had backends written 
+for a variety of soundfile formats (AIFF, NeXT/Sun, MS-WAVE, NIST/SPHERE, 
+STRUT, ESPS), 
+and the library may be compiled either to use just one of these backends, 
+or to choose them automatically at run-time.
+.PN sndf 
+provides low-level access and multiple entry points to support a wide 
+rage of uses, and does not enforce any particular correspondance between 
+a file (i.e. a FILE pointer) and sound data (i.e. an SFSTRUCT pointer).  
+For a more integrated interface, programmers might prefer the 
+higher level
+.MS snd 3 
+library which is built upon the 
+.PN sndf
+facilities.
+.PN sndf 
+attempts to be compatible, wherever possible, with streamed data 
+(e.g. over a Unix pipe), meaning that unnecessary seeks are avoided.
+.P
+
+.SH BASIC CONCEPTS
+The 
+.PN sndf
+library defines the \f4SFSTRUCT\f1 as follows:
+.RS
+.LP
+.ta .5i +.5i +1.5i +.5i
+.nf
+.ft 3
+.\"typedef struct sfstruct    {
+    long    magic;	/\(** magic number to identify \(**/
+    long    headBsize;	/\(** byte offset from start to data \(**/
+    long    dataBsize;	/\(** number of bytes of data \(**/
+    int     format;	/\(** format specifier \(**/
+    int     channels;	/\(** mono/stereo etc  \(**/
+    float   samplingRate;	/\(** .. of the data   \(**/
+    char    info[SFDFLTBYTS];	/\(** extendable byte area \(**/
+.\"    } SFSTRUCT;
+.ft
+.fi
+.RE
+.LP
+The actual size of the \f4info\fP extensible byte area is defined by 
+the \f4headBsize\fP, which is the total size (in bytes) of the header 
+including the \f4info\fP field.  The \f4SFSTRUCT\f1 normally exists alone, 
+but in certain contexts (e.g. for \fBSFRead\fR and \fBSFWrite\fR) it is 
+assumed to be immediately followed by the entire block of sound data 
+which it describes, whose length (in bytes) will be \f4dataBsize\f1.  In other 
+contexts, \f4dataBsize\f1 can define the length of a sound in a soundfile, 
+or can be \f4SF_UNK_LEN\f1 (which is defined as (-1)), to indicate 
+an unknown length.
+.P
+The \f4format\fP field describes the format of the sound data, and takes 
+one of the following values (defined in 
+.PN sndf.c
+):
+.P
+.ta .5i +1.5i
+.nf
+	\f4SFMT_ALAW\f1	a-law bytes (8 bit/sample)
+	\f4SFMT_ULAW\f1	u-law bytes (8 bit/sample)
+	\f4SFMT_CHAR\f1	linear bytes (8 bit/sample)
+	\f4SFMT_CHAR_OFFS\f1	linear bytes offset so that zero is at 0x80
+	\f4SFMT_SHORT\f1	linear short ints (16 bits/sample)
+	\f4SFMT_LONG\f1	linear long ints (32 bit/sample)
+	\f4SFMT_FLOAT\f1	floating point (32 bit/sample)
+	\f4SFMT_DOUBLE\f1	double precision floats (64 bit/sample)
+.fi
+.LP
+The \f4channels\f1 field specifies the number of channels - 1 for mono, 2 for 
+stereo, 4 for quad (defined as \f4SF_MONO\f1, \f4SF_STEREO\f1 and 
+\f4SF_QUAD\f1 respectively) 
+or possibly more.  When more than one channel of data is present, the data 
+order is defined to have channels as the fastest-rotating dimension i.e. the 
+sequence of samples for stereo is left sample for time 0, right sample for 
+time 0, left sample for time 1, right sample for time 1 etc.
+.P
+The \f4samplingRate\f1 field holds the sampling rate, in samples per second, 
+for the data, which can be non-integral.
+.P
+The \f4info\f1 field is used to store additional information that might 
+be associated with particular soundfile formats and is assumed to be 
+ASCII text (although how it is actually stored in soundfiles depends 
+on the particular implementation).  For instance, it is used to 
+hold and propogate unrecognized fields in NIST/SPHERE headers.
+.P
+\fBSFAlloc\fR and \fBSFFree\fR allocate and destroy the basic sndf structure.  
+The data block allocated by SFAlloc will incorporate the values passed 
+for \f4infoBsize\f1 (the total size to give to the \f4info\f1 array) 
+and \f4dataBsize\f1 (an empty block following the header);  specifying 
+\f4dataBsize\f1 as \f4SF_UNK_LEN\f1 allocates just a header structure.
+.P
+For reading soundfiles, 
+\fBSFReadHdr\fR reads a header from an open file, which it attempt to 
+seek back to zero first if it can.  It will fill in the fields of 
+the pre-allocated \f4SFSTRUCT\f1 indicated by the pointer it is passed, 
+and it will read no more than \f4infoBmax\f1 bytes into the header's
+\f4info\f1 field.  It is the caller's responsibility to check the 
+\f4headerBsize\f1 field that is returned to see if this was adequate; 
+if not, the caller should reallocate the \f4SFSTRUCT\f1, then immediately 
+call \fBSFRdXInfo\fR with the new copy of the \f4SFSTRUCT\f1, indicating, 
+in the \f4done\f1 argument, how many bytes of information have already 
+been transferred (\f4infoBmax\f1 from the previous call).  The remainder 
+of the information will be read.
+.P
+\fBSFAllocReadHdr\fR will take care of allocating a new \f4SFSTRUCT\f1 
+adequate for holding all the information in the soundfile header, and 
+will return its address in \f4*psnd\f1.  \fBSFOpenRdHdr\fR takes a 
+filename (in \f4path\f1) as input, opens it as a soundfile and fills 
+in the \f4SFSTRUCT\f1 it is given, possibly requiring a subsequent call 
+to \fBSFRdXInfo\f1.  The return is the file pointer for the open file.  
+\fBSFOpenAllocRdHdr\fR both opens the file and allocates the \f4SFSTRUCT\f1 
+structure, and is often the most convenient.
+.P
+For writing soundfiles, \fBSFWriteHdr\fR writes a header with fields defined 
+by the \f4SFSTRUCT\f1 to the open file pointed to by \f4file\f1.  If 
+\f4infoBmax\f1 is zero, all characters in the header's \f4info\f1 field 
+(as determined by the \f4headBsize\f1 field) will be written; otherwise, 
+at most the number specified will be written.  \fBSFOpenWrHdr\fR 
+creates a new file named by \f4path\f1, and writes a preliminary 
+header to it as specified by \f4snd\f1, returning the file pointer 
+for writing data.  \fBSFCloseWrHdr\fR can be used to close that file, 
+after, if possible (i.e. if seeking is supported), updating the header 
+with the possibly-revised data in \f4snd\f1.  If the \f4dataBlen\f1 field 
+of the passed \f4snd\f1 is zero or \f4SF_UNK_LEN\f1, 
+it guesses the length of data written out to the file from the 
+current file pointer, and rewrites the soundfile header to reflect 
+that data length.  If \f4snd\f1 is NULL, it similarly guesses the 
+amount of data written to the file and updates just that field in 
+the original header.
+.P
+\fBSFFinishWrite\fR behaves the same as \fBSFCloseWrHdr\fR except that 
+the file is not closed; this permits writing multiple files on a single 
+stream, most typically used with the PCM/Abbot online audio format.  
+\fBSFClose\fR does the actual file close, thus a call to \fBSFFinishWrite\fR 
+followed by \fBSFClose\fR is exactly equivalent to a call to \fBSFCloseWrHdr\fB.
+.P
+Once a soundfile has been opened, the functions 
+\fBSFfread\fR, \fBSFfwrite\fR, \fBSFfseek\fR, \fBSFftell\fR and \fBSFfeof\fR 
+exactly mirror their corresponding standard I/O functions, while also 
+providing any necessary data fixup (such as byte swapping), and adjusting 
+the file indices (for seek and tell) to disguise the presence of the 
+header.   
+.P
+\fBSFRead\fR and \fBSFWrite\fR hide the details of the file access 
+completely from the client, reading an entire sound file (header and 
+data) into memory from a named file, or writing a new file from an 
+entire in-memory sound, respectively.  Typically, they are only useful 
+when the sound can be guaranteed to be small.
+.P
+Apart from the standard I/O mirrors, most functions return an integer 
+error code from the following set defined in \f4sndf.c\f1:
+.P
+.ta .5i +1.5i
+.nf
+	\f4SFE_OK\f1	No error (= 0)
+	\f4SFE_NOPEN\f1	Unable to open file
+	\f4SFE_NSF\f1	Object could not be recognized as a sound file
+	\f4SFE_MALLOC\f1	Unable to allocate enough memory
+	\f4SFE_RDERR\f1	Error reading from a file
+	\f4SFE_WRERR\f1	Error writing to a file
+.fi
+.LP
+The functions that return file pointers will return NULL on an error; 
+in this case, the error code can be examined in the global variable 
+\f4SFerror\f1.
+.P
+The remaining utility functions provide a variety of ancilliary functions.
+\fBSFInfoSize\fR returns the actual size of the \f4info\f1 array in the 
+header.  \fBSFDataLoc\fR returns a pointer to the beginning of the data 
+area, assuming it is immediately after the \f4SFSTRUCT\f1 (e.g. after an 
+\fBSFRead\fR).  \fBSFSampleSizeOf\fR takes one of the \f4SFMT_\f1 codes 
+and returns the number of bytes per sample it implies (this function 
+is actually prototyped in \f4sndfutil.h\f1 now); \fBSFSampleFrameSize\fR 
+takes instead an \f4SFSTRUCT\f1, and returns the total number of bytes 
+occupied by each sample \fItime-frame\fR, i.e. incorporating the effect of 
+multiple channels.  
+.P
+\fBSFErrMsg\fR returns a brief textual error message for whichever of 
+the \f4SFE_\f1 error codes it is passed.  \fBSFDie\fR prints an error 
+message corresponding to the \f4SFE_\f1 code it is passed, as well 
+as an optional additional message (such as a file name), then 
+exits with completion code 1.
+.SH FILE FORMAT SELECTION
+The final set of functions control the dynamic selection of soundfile 
+formats (when this is enabled at compile time by choosing the 
+\f4sndfbyptr\f1 target instead of the \f4sndf\f1 target in the 
+\f4Makefile\f1).
+Soundfile formats are referred to either by an id code from \f4sndf.h\f1 
+or by a short keyword string, according to the following table:
+.ta .5i +1.5i +.5i
+.nf
+	\f4SFF_UNKNOWN\f1		Unknown soundfile, or none selected (= -1).
+	\f4SFF_RAW\f1	"PCM"	Headerless sound data (see below).
+	\f4SFF_NEXT\f1	"NeXT"	NeXT/Sun *.snd/*.au format.
+	\f4SFF_AIFF\f1	"AIFF"	Apple/SGI Audio Interchange File Format.
+	\f4SFF_MSWAVE\f1	"MSWAVE"	Microsoft RIFF/WAVE format.
+	\f4SFF_NIST\f1	"NIST"	NIST/SPHERE speech format.
+	\f4SFF_STRUT\f1	"STRUT"	STRUT variant of NIST format.
+	\f4SFF_IRCAM\f1	"IRCAM"	Csound/IRCAM format.
+	\f4SFF_ESPS\f1	"ESPS"	Entropics ESPS FEA_SD *.sd soundfile format (experimental - see SUPPORTED FILE FORMATS).
+.fi
+.LP
+Dynamic file selection operates as follows.  The system has a notion of 
+a 'current' soundfile format, which can be 'unknown', or any of the other 
+formats.  If the current format is 'unknown', then when a file is opened, the 
+system looks at the first few bytes of the file to guess its type.  If it 
+can be identified, it is opened as that type, and the current format is 
+set to that type.  If the current format is any type other than 'unknown', 
+the library will not attempt to guess the file format, but return an error 
+unless the file is of that specific type.  Note that the file-identifying 
+routine cannot positively identify a raw (PCM) file, since it has no 
+header; thus the only way to open a soundfile of this type is to set the 
+current soundfile format to SFF_RAW explicitly, then perform the open.
+.P
+When writing, the file is created in the current soundfile format; if 
+this is unknown, the library reverts to a default format.  This can be 
+set by the \f4SNDFFTYPE\f1 environment variable, which should be set 
+to one of the keywords from the table above.  If this variable is not 
+set or not recognized, the library employs the default set
+at compile time via a -D flag; this can be selected to any of the 
+types in the Makefile and is typically AIFF or PCM.
+.P 
+Client programs can set the current soundfile format with either 
+\fBSFSetDefaultFormat\fR, which takes one of the \f4SFF_\f1 codes as 
+an argument, or \fBSFSetDefaultFormatByName\fR, which takes one of the 
+character strings from the table above.  These routines return 1 on success 
+or 0 if the type is not known.  To reset the current format to 'unknown', 
+call \fBSFSetDefaultFormat\fR with the argument \f4SFF_UNKNOWN\f1 (this 
+has no equivalent in \fBSFSetDefaultFormatByName\fR).  When either of 
+these routines successfully set the current format, they also set the 
+default format (the format of files created when the current format is 
+'unknown') to the same value.  \fBSFSetFormat\fR can be used to set 
+the format (and byteswapping mode from the symbols in <dpwelib/byteswap.h> 
+associated with a particular file without affecting the 
+current or default formats;  however, since a file must already be open 
+in order to have the file pointer used as the argument, it is not clear 
+when this function would be usable.  \fBSFSetFormatByName\fR performs a 
+similar function, but using a file format expressed in a string instead of 
+the id code.  Changing the soundfile format 
+mid-access (i.e. after the file has been opened and initial header access 
+completed) has unpredictable results.  It could be used if a file was 
+opened by the client using \fBfopen\fR, but before any call to either
+\fBSFReadHdr\fR or \fBSFWriteHdr\fR.
+.P
+Soundfile formats are queried with \fBSFGetFormat\fR.  To query the format 
+associated with a particular file, pass this function that file's 
+FILE pointer.  To query the current soundfile format, pass NULL as 
+the file pointer.  If the current format is unknown, this will 
+return the default format.  All returns are in the form of \f4SFF_\f1 
+codes.  If pmode is not null, it will be filled with the byteswapping 
+mode for that file (a code from <dpwelib/byteswap.h>).  
+\fBSFGetDefaultFormat\fR returns the current format which soundfiles 
+will be assumed to have, which is the same as \fBSFGetFormat\fR with 
+a NULL file pointer except in the case when there is no current format 
+(meaning that the library will attempt to identify the type of 
+files that it reads).  In this case, \fBSFGetDefaultFormat\fB will 
+return \f4SFF_UNKNOWN\f1 rather than the default format.  Hence, 
+the return from \fBSFGetDefaultFormat\fR can later be passed to 
+\fBSFSetDefaultFormat\fR to restore exactly the same treatment for 
+subsequently opened files.
+.P
+\fBSFFormatName\fR returns the keyword string associated with a particular 
+\f4SFF_\f1 code, or the string "<UNKNOWN>" for \f4SFF_UNKNOWN\f1 and 
+unrecognized codes.  \fBSFFormatToID\fR returns the \f4SFF_\f1 code 
+corresponding to the keyword string it is passed, or \f4SFF_UNKNOWN\f1
+if no match is found.  All keyword string comparisons are case-sensitive.
+.P
+\fBSFListFormats\fR prints out the keywords for the known soundfile 
+formats to the specified standard output stream, separated by spaces. 
+This is intended to be used in help messages for applications that 
+accept the keywords directly and pass them to the library 
+(i.e. to \fBSFSetDefaultFormatByName\fR or \fBSFFormatToID\fR) without 
+further interpretation.
+.P
+If the library has been compiled for static (compile-time) soundfile 
+selection (i.e. by specifying the target \f4sndf.o\f1 instead of 
+\f4sndfbyptr.o\f1 in the Makefile), all these routines are replaced 
+by stubs.  The calls to set formats all succeed, but print a warning 
+message to standard error to the effect that they have done nothing.  
+\fBSFGetFormat\fR and \fBSFFormatToID\fR always returns \f4SFF_UNKNOWN\f1, 
+\fBSFListFormats\fR prints a message to the effect that no selectable 
+formats exist, and \fBSFFormatName\fR always returns "SNDF" to indicate 
+that the format is whichever one for which the SNDF library was compiled.
+.SH SUPPORTED FILE FORMATS
+The following additional notes are specific to certain soundfile formats;
+.SH Apple/SGI AIFF (sndfaif.c)
+The library will read both AIFF and AIFC (version 1) type files, 
+but it doesn't 
+know any AIFC compression schemes, so access will only succeed for 
+type 'uncompressed'.  Written files are always AIFF.  
+.P
+AIFF files only support linear data formats (SFMT_CHAR, SFMT_SHORT and 
+SFMT_LONG).
+.SH Raw PCM (sndfpcm.c)
+When reading raw data, the header information (channels, sample rate, 
+data format) is taken from the defaults \f4SNDF_DFLT_CHANS\f1, 
+\f4SNDF_DFLT_SRATE\f1 and \f4SNDF_DFLT_FORMAT\f1 defined in sndf.h.
+However, these can be overridden by setting a Unix environment 
+variable, \fBPCMFORMAT\fR (or as part of the \fBSNDFFTYPE\fR environment 
+variable - see below).  If defined, this string will be 
+parsed and used to override the defaults.  It should be something 
+like "R8000C1X8EbFs", where the number after the "C" is the number of 
+channels, and "X" is an optional count of initial bytes to skip (e.g. for an 
+alien header).  "E" specifies the byte-ordering for multi-byte data, with "b" 
+indicating big-endian (SGI, Mac) ordering, and "l" indicating little-endian 
+(DEC, x86) ordering (big-endian by default; also, "En" is for natural order 
+-- meaning machine-dependent, and "Es" forces byteswapping regardless of 
+machine architecture).   The number after the "R" is the sample rate 
+in Hz; as a special case, the "R" data may be specified in kHz 
+if it is 8, 11, 16, 22, 24, 32, 44 or 48.  The "F" key is followed by a 
+code letter that specifies the data type, accepting the 
+following codes:
+.ta .5i +1.5i
+.nf
+	\f4c\f1	SFMT_CHAR (8 bit linear)
+	\f48\f1	same as \f4c\f1
+	\f4s\f1	SFMT_SHORT (16 bit linear)
+	\f416\f1	same as \f4s\f1
+	\f4l\f1	SFMT_LONG (32 bit linear)
+	\f432\f1	same as \f4l\f1
+	\f4u\f1	SFMT_ULAW (8 bit nonlinear)
+	\f4a\f1	SFMT_ALAW (8 bit nonlinear)
+	\f4o\f1	SFMT_CHAR_OFFS (8 bit linear, zero is 0x80)
+	\f4f\f1	SFMT_FLOAT (32 bit floating point)
+	\f4d\f1	SFMT_DOUBLE (64 bit floating point)
+.fi
+.LP
+Unspecified fields will revert to the default; unparseable strings
+will report an error message, but continue with default values.  If
+the input sound format is being specified to a program via a command
+line option, a \fBPCMFORMAT\fR-style code string may be specified by
+appending it to the PCM keyword by a slash, e.g.
+.EX
+	sndrfmt -S PCM/R16000C1Fs -T AIFF dummy.raw dummy.aif
+.EE
+.P
+(such programs pass this string directly to \fBSFSetDefaultFormatByName\fR, 
+which interprets the part after the slash).  The environment variable 
+\fBSNDFFTYPE\fR acts as a default value for the "-S" style format 
+specifier, thus it may also be used to set the default PCM treatment.  
+These three specifications are combined as follows:  If a sound is to 
+be treated as PCM, the format is initialized to its defaults (see 
+below), then has any settings in the \fBPCMFORMAT\fR string written 
+over it.  Then, if there is a codestring following the slash in 
+the command-line format specification, this is overlaid.  If the 
+program is not given a specification in the command line, the library 
+will attempt to use the \fBSNDFFTYPE\fR value instead, but this 
+value is ignored if a command line option is given.
+.P
+.B Abbot online format:
+Having "Abb" in the \fBPCMFORMAT\fR variable (or appended to a command line 
+specification or the \fBSNDFFTYPE\fR variable, as in "-S PCM/Abb") 
+will make the PCM raw data be treated as Abbot online format.  This means 
+that files are assumed to have 0x8000 appended (which is not part of the 
+data); output shorts are clipped so that they never reach 0x8000 (it is 
+mapped to 0x8001), and 0x8000 is written at the end of a stream just 
+before closing it.  On reading a stream, encountering an 0x8000 will 
+make the data act as if it has hit EOF (maybe).
+
+.SH NIST/SPHERE format (sndfnist.c)
+This routine recognizes only "NIST_1A"-type headers.  The only formats 
+that are recognized are 8 and 16 bit linear, and 8 bit mulaw.  Either 
+byte order is accepted for 16 bit samples.  No compressed formats 
+are supported.
+
+.SH STRUT format (sndfstrut.c)
+This routine recognizes only "STRUT_1A"-type headers, which appear to 
+be slightly expanded versions of the NIST_1A headers; the code is a 
+slight modification of sndfnist.c.  Several additional header fields 
+are added on output (duplicating existing information) in imitation of 
+STRUT "samples" files seen in the wild.
+
+.SH Entropics ESPS FEA_SD (*.sd) format (sndfesps.c)
+This is an experimental module.  This file format can only be read, not 
+written, and it cannot be auto-sensed, it must be specified explicitly 
+with a "-S ESPS" flag.  I'm guessing at a lot of the structure, so 
+I can't guarantee where it will work, but it works for the DIGITS files 
+we have in this format here at ICSI, and also for a file written by ESPS 5.1's "btosps" command.
+
+.SH ADDING NEW FILE FORMATS
+
+.SH EXAMPLES
+
+- sndfxxx.c
+- new SF_ in sndf.h
+- new -D in Makefile
+- new blocks in sndfbyptr.c
+- functions to provide
+SFReadHdr
+SFRdXInfo
+SFWriteHdr
+SFHeDaLen
+SFLastSampleTell
+FixupSamples
+- functions to use
+(sndffname)
+
+.SH SEE ALSO
+.MS snd 3
+.SH AUTHOR
+Dan Ellis, 
+.B dpwe@icsi.berkeley.edu
+

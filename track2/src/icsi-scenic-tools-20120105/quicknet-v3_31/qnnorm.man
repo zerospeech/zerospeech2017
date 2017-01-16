@@ -1,0 +1,98 @@
+. $Header: /u/drspeech/repos/quicknet2/qnnorm.man,v 1.9 2004/02/06 22:58:39 davidj Exp $
+.TH qnnorm 1 "$Date: 2004/02/06 22:58:39 $" ICSI "ICSI SPEECH SOFTWARE"
+.SH NAME
+qnnorm \- Normalize a feature file using the QuickNet library
+.SH SYNOPSIS
+.B qnnorm
+[
+.I options
+]
+.SH DESCRIPTION
+.I qnnorm
+is a simple program for normalizing a speech feature file and
+producing a
+.BR norms (5)
+file that can then used in MLP training and forward passes.  It reads
+in a feature file, calculates the mean and standard deviation of all
+the features and writes the results to a file or stdout.
+.SH OPTIONS
+.I qnnorm
+can take the following options:
+.TP 1i			\" Indent the paragraph
+.BI norm_ftrfile= filename
+Specify the file containing features to be normalized.  By default,
+the format of this file is a "pfile" \- see
+.BR pfile (1).
+.TP
+\fBftr_format\fR=\fItype\fR ("pfile")
+The format of the input feature file.  Supported formats include 
+"pfile" (see
+.MS pfile 5 )
+"pre" and "lna" (see
+.MS lna 5 ).
+.TP
+\fBftr_width\fR=\fIwidth\fR (0)
+The number of feature columns in the feature file.  This can be 
+left at zero for pfiles, for which this can be determined by 
+the program, but must be specified for pre and lna files, for which 
+it cannot.
+.TP
+.BI output_normfile= filename
+Specify a file containing normalization parameters for the input
+feature file. 
+.B \-
+will output the norms on stdout.
+.TP
+.BI delta_order= order (0)
+The highest order of online delta features to calculate.  0 means that no 
+delta caculation is performed.  1 means to calculate just the 1st order
+derivatives.  2 means to calculate both first and second order (curvature 
+or acceleration) derivatives.  Norms will then be calculated for each 
+derived feature channel, thus creating a norms file that can be used 
+with the corresponding online delta calculation option to 
+.MS qnsfwd 1 
+or 
+.MS qnstrn 1 .
+.TP
+.BI delta_win= size (9)
+The size of the window used to calculate first- and second-order derivatives, 
+in samples.
+.TP
+.BI first_sent= integer
+The number of the first sentence in the feature file to use
+.RB ( 0
+means use the first sentence in the feature file).
+.TP
+.BI num_sents= integer
+The total number of sentences in the feature file to use.  Specifying
+more than the available number of sentences will result in the rest of
+the sentences being used, which is the default.
+.TP
+.BI debug= integer
+Set the level of debugging output.  \fB0\fR means none, \fB6 means lots!
+.TP
+.BI verbose= bool
+Output more log information if
+.BR true .
+
+
+.SH ENVIRONMENT
+Describe the environment variables used here.
+.TP 20
+.B TZ
+Time Zone.  On some systems, this is used for displaying times during
+the normalization run \- if times seem to be wrong by several hours,
+it is because this environment variable is not set.
+
+.SH AUTHOR
+David Johnson  <davidj@ICSI.Berkeley.EDU>
+.SH SEE ALSO
+.BR qnsfwd (1) ,
+.BR qnstrn (1) ,
+.BR norms (5) ,
+.BR pfile (5)
+.SH NOTES
+Many more options need to be added to this program.
+
+Don't use this program on SPERT - it will take forever!
+.SH BUGS

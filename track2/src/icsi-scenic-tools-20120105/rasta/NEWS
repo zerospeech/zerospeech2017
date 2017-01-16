@@ -1,0 +1,278 @@
+$Header: /n/abbott/da/drspeech/src/rasta/RCS/NEWS,v 1.7 2001/03/23 22:03:43 dpwe Exp $
+
+This is the `NEWS' file for `RASTA'.  For more details, check out the
+`README' file.
+
+****************************************************
+****************************************************
+        RASTA 2.6 - 2001-03-16
+****************************************************
+****************************************************
+
+Changes from 2.5.2:
+
+(1) Added a -K flag for 'Strut compatibility mode', in which 
+    raw log energy is used as the first component of cepstral 
+    output vectors, followed by c0 etc.  Also, double-deltas 
+    in Strut compatibility mode use a different (hard-coded) 
+    double-delta profile.
+
+(2) -V warpfactor does linear warping of linear frequency, 
+    for vocal tract length normalization.
+
+Other changes since 2.4.1 (which somehow didn't get noted here)
+ - added option to shift the frequencies of the RASTA band-pass 
+   filter for frame rates other than 100 Hz (-u, -x)
+ - added the 'nyquist limit' flag to simulate downsampling of 
+   waveform files prior to calculation (-Y)
+ - HTK format and list input/output processing (-I, -X)
+
+****************************************************
+****************************************************
+        RASTA 2.4.1 - 1997aug13
+****************************************************
+****************************************************
+
+Changes from 2.4:
+
+1)  Fixed a bug where -P and -R would crash, unless 
+    -q was nonzero, in which case they output just the
+    primary features *without* deltas.  Now -P and -R 
+    work with -q, including generating deltas of them 
+    if requested.  (Changes in anal.c, io.c, deltas_c.c 
+    and rasta.c).
+
+
+****************************************************
+****************************************************
+        RASTA 2.4 - June 27, 1997 Release
+****************************************************
+****************************************************
+
+Changes from 2.3:
+
+1)  Added the -v option to enable the use of triangular instead of 
+    trapezoidal weighting functions to convert the FFT to the 
+    auditory spectrum.
+
+2)  Added built-in delta-calculation for the output features, 
+    controlled by -q (order) and -Q (window size).
+
+3)  Changed the configuration script so that if the ESPS library 
+    is present, SPHERE IO is also enabled, since the ESPS library 
+    provides the required functions.
+
+4)  The mapping_param structure in anal.c:rastaplp() is now 
+    dynamically allocated when it is needed (i.e. non-constant jah-rasta). 
+    This cuts the virtual memory allocation for non-jah runs to 
+    2.4MB from 10MB, e.g.
+  23183 dpwe      13    0   10M 1212K stop    0:00  0.59%  0.36% rasta2_3beta
+  23182 dpwe      33    0 2356K 1208K stop    0:00  0.16%  0.09% rasta2_4
+
+
+****************************************************
+****************************************************
+        RASTA 2.3 - February 7, 1997 Release
+****************************************************
+****************************************************
+
+Changes from 2.2.3:
+
+1)  Building of the rasta distribution is now controlled by GNU autoconf.
+
+2)  Added saturation to the inverse nonlinearity in J-RASTA.  Previously,
+    this nonlinearity could overflow, resulting in NaN's in the rasta
+    output.
+
+3)  The default input format is now big-endian, even on little-endian
+    machines.  We now support explicit little-endian I/O.
+
+4)  Added support for NIST SPHERE I/O using the NIST SPHERE libraries.
+
+5)  Added support for the Abbot I/O format.
+
+6)  Added an option to pad the input so that if there are M points per
+    analysis step and L points of input, then there will be L/M frames
+    of output.
+
+7)  There is no longer a default for the name of the J-RASTA mapping
+    coefficient file, and we no longer provide a mapping coefficient
+    file with the rasta distribution.  The file is highly data-dependent,
+    and must be generated on a per-task or per-corpus basis.
+
+8)  The ``finished with online input'' message is now printed only if the 
+    debug flag (-d) is used.
+
+****************************************************
+****************************************************
+        RASTA 2.2.3 - February 27, 1996 Release
+****************************************************
+****************************************************
+
+Changes from 2.2.2:
+
+1) Added the create_mapping utility to simplify the creation of the map
+   files required for adaptive J-RASTA processing.
+
+2) Updated the rasta man page to emphasize the badness of doing adaptive
+   J-RASTA processing on signals with under 100 ms. of leading non-speech.
+
+****************************************************
+****************************************************
+        RASTA 2.2.2 - November 14, 1995 Release
+****************************************************
+****************************************************
+
+Changes from 2.2.1:
+
+1) Bug fix in rasta.c --- fvec_HPfilter could be called before all the
+   variables it needed were set.  Specifically, it was called before
+   init_param was called.
+
+****************************************************
+****************************************************
+        RASTA 2.2.1 - July 3, 1995 Release
+****************************************************
+****************************************************
+
+Changes from 2.1:
+
+1) lpccep.c now has a more accurate routine for converting
+   critical band filter outputs to autocorrelations.  This
+   means that rasta2_2 will give different results than
+   previous versions of the program; however, they are better
+   results, so it is OK.
+
+2) rasta2_2 does matlab MAT file I/O.  Use the -b/-B options to
+   do this.  You'll need to build rasta with MATLAB=1 and a
+   correct value of MATLAB_BASE to get this to work.  You'll
+   also need matlab.
+
+3) The input waveform can be filtered with an IIR highpass
+   filter (cutoff at 45 Hz) to reduce DC offset.  The -F option
+   enables the filter.
+
+4) rasta2_2 can use a previously-stored estimate of the noise
+   level and rasta filter history for initialization.  This
+   option is recommended for use with Jah-RASTA processing if
+   the input can have less than 100--200 ms. of silence at the
+   beginning.  The -h and -H options control history
+   maintenance.
+
+5) The calls to irint() and log2() have been eliminated to
+   improve code portability.
+
+6) Several unused variables in the fvec and svec structures have
+   been eliminated.
+
+7) The fmat_x_fvec routine was changed to run faster.
+   Thanks to Ralf W. Stephan (<ralf@ark.franken.de>) for
+   suggesting changes (6) and (7).
+
+8) rasta now has a man page!
+
+9) Some minor bug fixes and code cleaning, including the
+   reduction of a statically allocated 60 MB (!) table.
+
+****************************************************
+****************************************************
+        RASTA 2.1 - Changes from 2.0
+****************************************************
+****************************************************
+
+1) Can now output the critical-band filter bank trajectories
+   after the cube-root compression and loundess equalization.
+   Enabled by the -P option.
+
+2) Can byte-swap input when reading binary data (either on or   
+   off-line).  Enabled by the -T option.
+
+****************************************************
+****************************************************
+        RASTA 2.0 - May 30, 1994 Release
+****************************************************
+****************************************************
+
+	RASTA 2.0 is an update version for RASTA 1.0. 
+RASTA1.0 is a program for the rasta-plp processing and
+it supports the following front-end techniques: PLP,
+RASTA, and Jah-RASTA with fixed Jah-value. The Jah-Rasta
+technique handles two different types of harmful effects
+for speech recognition systems, namely additive noise and
+spectral distortion, simultaneously, by bandpass filtering
+the temporal trajectories of a non-linearly transformed
+critical band spectrum. Since the optimal form of the
+nonlinearity used in Jah-Rasta is dependent on the noise
+level, this non-constant nonlinearity introduces a new
+source of variability into the speech recognition system.
+An approach was developed for compensating for this new
+source of variability by Joachim Koehler and Grace Tong.
+It will be referred as the spectral mapping method from
+now on. RASTA 2.0 is an update version for RASTA 1.0 with
+the spectral mapping method included. The spectral mapping
+method will be further discussed in the file rasta.c.
+	The J factor depends on the SNR. The J that we have
+found to work well is something like 1/(3 * noisepower). 
+In order to calculate the J factor adaptively, a noise 
+estimation subroutine is also included in RASTA 2.0.
+In the current version, the J factor can be either kept as
+a constant by entering the value at the command line or
+calculated adaptively using the formula J = 1/(3 * noisepower).
+	There are two new files, mapping.c and noise_est.c 
+added to RASTA 2.0. These two files handle the spectral 
+mapping and noise_estimation respectively. Besides these
+two files, a number of files from RASTA 1.0 were also 
+slightly modified. They were modified to incorporate the 
+Jah-Rasta spectral mapping and to correct some newly found
+bugs in RASTA 1.0. The files that were modified are listed
+below:
+
+1) anal.c
+2) debug.c 
+3) init.c  
+4) io.c
+5) rasta.c
+6) rasta_filt.c
+7) Makefile
+8) functions.h
+9) rasta.h
+
+The bugs that were corrected are:
+
+1) In init.c, get_comline(),
+    the following is added:
+        case 'd':/* flag for debug output */
+                pptr->debug = TRUE;
+                break;
+
+2) In init.c check_arg()
+    the following is added:
+        if((pptr->lrasta == TRUE) && (pptr->jrasta == TRUE))
+        {
+                fprintf(stderr,"Can't do log rasta and jah rasta at the same tim
+e\n");
+                exit(-1);
+        }
+
+3) In rasta_filt.c   struct fvec *rasta_filt()
+
+   if(pptr->rfrac != 1.0)
+   {
+      outptr->values[i] =
+                 pptr->rfrac * outptr->values[i]
+                + (1-pptr->rfrac) * nl_audspec->values[i];
+   }
+
+
+4) Previously, for doing partial rasta and partial PLP, there
+   were 2 switches; one as a flag to indicate that we are doing
+   partial rasta, and the other to say what fraction of the output
+   comes from the rasta part. Some users were complaining that
+   the 2 switches are sort of confusing. Now, we just have the
+   latter switches. It makes more sense since if you want it to
+   be blended you will need to give a fractional amount.
+  
+5) The two makefiles have been merged to form one. Use e.g. "make
+   ESPS=1 ESPS_BASE=/usr/local/esps" to build the version with ESPS
+   IO.
+

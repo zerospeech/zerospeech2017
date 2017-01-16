@@ -1,0 +1,695 @@
+. $Header: /u/drspeech/repos/pfile_utils/pfile_utils.man,v 1.4 2006/01/27 19:11:09 davidj Exp $
+.TH PFILE_UTILS 1 "Wed Jun 18 19:51:39 1997"
+.UC 4
+.SH NAME
+pfile_utils, 
+pfile_info, 
+pfile_print, 
+pfile_select, 
+pfile_merge, 
+pfile_concat, 
+pfile_diff,
+pfile_stats, 
+pfile_norm,
+pfile_normutts,
+pfile_addsil,
+pfile_skmeans,
+pfile_gaussian, 
+pfile_build, 
+pfile_create,
+pfile_patchlabels, 
+pfile_lda,
+pfile_klt \- pfile manipulation programs
+.SH SYNOPSIS
+.PP
+.B pfile_info 
+-i <ipfile> [-i <ipfile>] ... [<ipfile>] ... [-o ofile] [-p] [-q] [-debug <level>] [-help]
+.PP
+.B pfile_print
+-i <ipfile> [-o ofile] [-ns] [-q] [-b] [-ff]
+[-sr <range>] [-fr <range>] [-pr <range>] [-lr <range>]
+[-debug <level>] [-help]
+.PP
+.B pfile_select
+-i <ipfile> -o <opfile>
+[-sr <range>] [-fr <range>] [-pr <range>] [-lr <range>]
+[-debug <level>] [-help]
+.PP
+.B pfile_merge
+-i1 <i1pfile> -i2 <i2pfile> -o <opfile> [-l <labelsfrom>] 
+[-sr <range>] [-fr1 <range>] [-fr2 <range>] [-pr <range>] [-lr <range>]
+[-debug <level>] [-help]
+.PP
+.B pfile_ftrcombo
+-i1 <i1pfile> [-i2 <i2pfile>] [-i3 <i3pfile>] [-i4 <i4pfile>] 
+-o <opfile> [-l <labelsfrom>] 
+[-sr <range>] [-fr1 <range>] [-fr2 <range>] [-fr3 <range>] [-fr4 <range>] [-pr <range>] [-lr <range>]
+[-g1 <val>] [-g2 <val>] [-g3 <val>] [-g4 <val>] [-k <val>] [-c <method>]
+[-debug <level>] [-help]
+.PP
+.B pfile_concat
+-o <opfile> 
+[-sr <range>] [-fr <range>] [-pr <range>] [-lr <range>]
+[-quiet] [-debug <level>] [-help] i1pfile [i2pfile ...]
+.PP
+.B pfile_diff
+-i1 <i1pfile> -i2 <i2pfile> [-tol <val>] [-stop]
+[-sr <range>] [-sr2 <range>] [-fr <range>] [-fr2 <range>] [-pr <range>] [-pr2 <range>] [-lr <range>] [-lr2 <range>]
+[-debug <level>] [-help]
+.PP
+.B pfile_stats
+-i <ipfile> -o <ofile> -h <numhistbins> [-q] 
+[-sr <range>] [-fr <range>] [-pr <range>]
+[-debug <level>] [-help]
+.PP
+.B pfile_norm
+-i <ipfile> -o <opfile> 
+[-sr <range>] [-fr <range>] [-pr <range>]
+[-sl <int>] [-slf <file>]
+[-debug <level>] [-help]
+.PP
+.B pfile_normutts
+-i <ipfile> -o <opfile> 
+[-sr <range>] [-fr <range>] [-pr <range>]
+[-nonorm] [-verbose]
+[-debug <level>] [-help]
+.PP
+.B pfile_addsil
+-i <ipfile> -o <opfile> 
+[-sr <range>] [-fr <range>]
+[-nb <frames>] [-prb <range>] [-ne <frames>] [-pre <range>]
+[-mmf <val>] [-maf <val>] [-smf <val>] [-saf <val>] [-lr <range>]
+[-debug <level>] [-help]
+.PP
+.B pfile_gaussian
+-i <ipfile> -o <opfile> -h <numhistbins>  -d <numstds> [-u]  [-ih <stat in file>] [-oh <stat out file>]
+[-sr <range>] [-fr <range>] [-pr <range>]
+[-debug <level>] [-help]
+.PP
+.B pfile_build
+-sents <sentfname> -suffix <suf> -nfeats <n> -labels <labfname> -o <opfile> [-debug <level>] [-help]
+.PP
+.B pfile_create
+-o <opfile> [-i <ifile>] -f # -l # [-b]
+[-debug <level>] [-help]
+.PP
+.B pfile_skmeans
+-o <opfile> [-i <ifile>] -k # -a # [-r #] [-m #] [-x #] 
+[-u -n # -f <idfile> -s #]
+[-v -n # -f <labfile>]
+[-prefetch] [-b] [-q]
+[-debug <level>] [-help]
+.PP
+.B pfile_patchlabels
+-i <ipfile> -if <fmt> -iw <width> -o <opfile> -of <fmt> -l <labfname> -lf <fmt> -lw <width> [-debug <level>] [-help]
+.PP
+.B pfile_lda
+-i <ipfile> [-o <opfile>]  [-os <ofile>] [-is <ifile>] [-a]  
+[-sr <range>] [-fr <range>]
+[-debug <level>] [-help]
+.PP
+.B pfile_klt
+-i <ipfile> [-o <opfile>]  [-os <ofile>] [-is <ifile>] [-a] [-n] 
+[-sr <range>] [-fr <range>]
+[-debug <level>] [-help]
+.SH DESCRIPTION
+.IR pfile_utils
+is a collection of utilities that operate on pfiles in various ways.
+In all of the above programs:
+.IP <ipfile>
+designates an input pfile
+.IP <opfile>
+designates an output pfile
+.IP <ofile>
+designates an regular output file
+.IP <range>
+indicates a range of elements (i.e., features [-fr], sentences [-sr],
+per-sentence frames [-pr], or labels [-lr]).  The range specification,
+consisting of a comma separated list of sub-range
+specifications, indicates a set of elements between zero and one less
+than N, the total number of elements.  For a feature range [-fr], N is
+the number of features per frame; for a sentence range [-sr], N is the
+total number of sentences; for a per-sentence frame range, N is the
+number of frames in a particular sentence; and for a label range, N is
+the number of labels per frame. A sub-range specification
+consists of one of of the following forms: "b" indicates element "b" with 0
+the first and N-1 the last; 
+"b-e" or "b:e"  inclusive beginning at "b" ending at "e"; 
+"b:s:e" inclusive
+from "b" striding by "s" and ending no more than "e". Either
+"b" or "e" can be omitted specifying an implicit 0 or N-1 (e.g.,
+"b-" indicates an inclusive range starting at "b" ending at N-1).
+Either "b" or "e" can be preceded by a "^" character indicating
+the value "N-n-1" (i.e., "^0" is the last element "N-1", "^2"
+is "N-1-2", etc.).
+A full range specification must indicate a sorted list of elements
+where each element is specified at most once. A range may also
+start with the "/" character indicated a negated range, i.e., 
+all elements between zero and one less than N will be selected
+except for those that match the range specification following the "/" character.
+
+For example, if N=20 the range 0,2,4-8,9,11:4:^0
+corresponds to the set 0,2,4,5,6,7,8,9,11,15,19,
+the range 1:7:14,10-12,^3-^0 indicates 1,8,10,11,12,16,17,18,19,
+and the range /3,5,8-17 indicates 1,2,4,6,7,18,19.
+Also, 0:2: specifies the even elements and 1:2: specifies
+the odd ones.
+A range can also be 'nil' or 'none' specifying the empty
+set, or can be 'all', 'full', '-', or ':' specifying 
+the range 0-(N-1) (alternatively 0-^0). If you do not give
+a range flag *and* argument to a command line, that will select all 
+elements.
+
+Range parsing is (now) done via the quicknet Range.C which has several 
+addition features; see 
+.B Range(3) 
+for more information.
+
+Note that the -pr (Per-sentence Range) indicates a range that is
+applied to each sentence individually. For example, -pr 0,1,^1,^0 selects
+the first, the second, the penultimate, and the last frame
+of each sentence, and -pr 19:^19 selects all frames of each
+sentence except for the first 19 and the last 19 (which is a way
+of getting out much of, say, the beginning and ending silence),
+and -pr :19,^19: selects only the first and the last 20 frames (which
+is a way of getting out, say, much of the speech).
+.IP -debug <level>
+This option supplies a debug level to the underlying QN_PFILE library
+code and is distinct from the 
+.I -q
+option used by several of the programs.
+. ======================================================================
+.PP
+.B pfile_info
+simply prints information about the pfiles given as arguments, i.e.,
+the number of sentences, frames, labels, and features. With the -p
+option, the program also prints out the sentence numbers and the
+number of frames for that sentence. With the -q option, the normal
+info (sents, frames, etc.) is not printed so if you just want the
+number of frames for each sentence, you can use the -p and the -q
+option.
+Multiple pfiles can be specified
+with multiple
+.I -i
+arguments, or can be specified by just listing the file names
+on the command line (e.g., the shell expansion *.pfile).
+. ======================================================================
+.PP
+.B pfile_print
+prints in ASCII a subset of the features of a pfile to each
+line of stdout,
+or optionally to the file <ofile>. The
+quiet option,
+.I -q,
+produces no diagnostic messages to stdout and simply produces
+a matrix suitable for reading in ASCII with, for example, matlab's
+"load -ascii" command (this can also be done using the -o flag).
+To not print the label(s) of each frame, use
+the
+.I -lr
+(label range) option and give a range of 'nil'.
+To not print the sentence and frame number on each line,
+use the
+.I -ns
+(no sentence ids) option. The
+.I -b
+option causes the output to be in raw binary format (i.e., unsigned
+ints for sentence numbers, frame numbers, and labels, and single
+precision floating point numbers for features).
+The
+.I -ff
+options outputs ASCII in 1.6 fixed point (fprintf %f) rather than
+floating point (fprintf %g).
+. ======================================================================
+.PP
+.B pfile_select
+selects a subset of features from the input
+pfile and produces a pfile as output. The selection arguments
+are the same as 
+.B pfile_print.
+. ======================================================================
+.PP
+.B pfile_merge
+merges two source pfiles into one destination pfile. A subset of
+features from the first and second source pfiles are specified by the 
+.I -fr1
+and
+.I -fr2
+arguments respectively. Labels can be taken from either pfile
+using the 
+.I -l
+argument, with <labelsfrom> taking the value 1 or 2. The number of
+frames must be the same in the corresponding sentence of each
+pfile.
+. ======================================================================
+.PP
+.B pfile_ftrcombo
+modifies and combines the individual features from one, two, three 
+or four pfiles (or conformal subsets).  The basic operations are 
+addition, subtraction, multiplication, division, scaling and offset.  
+Features from a single pfile can be scaled by a factor specified with 
+.I -g1 <factor>
+then features from an optional second pfile are first 
+scaled by the factor from 
+.I -g2 <factor>
+then combined with the first values by a method determined by 
+.I -c <method> 
+where <method> can be "add", "sub", "mul" or "div" (in which case, the 
+second pfile provides the denominator).  The net result then has 
+the constant offset given by 
+.I -k <offset>
+added to each point.  Third and fourth pfiles are handled analogously.
+. ======================================================================
+.PP
+.B pfile_concat
+concatenates any number of input pfiles into a single output pfile 
+by simply appending all the utterances, read from each file named on 
+the command line, in sequence to the output.  For simplicity, every 
+input pfile must have the same number of features and labels.  There 
+is at present no provision for selecting different feature, label 
+or sentence ranges in each input pfile.
+. ======================================================================
+.PP
+.B pfile_diff
+compares (a possible subset of) two pfiles and reports any
+differences whose absolute value is greater than the tolerance value
+given by the
+.I -tol
+option (default 0.0). If the 
+.I -stop
+argument is given, the program will stop as soon as the
+first difference is found. The first range arguments
+.I (-sr, -fr, -pr,
+and
+.I -lr)
+specify a subset of the pfiles to compare. Each range
+will be applied to the different pfiles individually but
+different subset sizes resulting from different N-values
+for each of the pfiles will result in an error. Therefore,
+one may optionally supply the second range arguments
+.I (-sr2, -fr2, -pr2,
+and
+.I -lr2).
+When given, they will be used to specify
+the subsets only of the second pfile. This allows, for example,
+one to compare different sentences (or features, etc.) of different
+pfiles (i.e., 
+.I -sr 0:2:^0 -sr2 1:2:^0
+will compare the even and odd sentences of the two pfiles),
+or to compare sentences (or features, etc.) of two pfiles 
+with different total number of sentences.
+. ======================================================================
+.PP
+.B pfile_stats
+computes statistics from features in a pfile and optionally
+produces a histogram for each feature. The portion of the
+pfile used to compute the statistics and histograms are given
+by the range arguments.
+The
+.I -h
+argument designates the number of histogram bins per feature
+to use (100 seems to be a reasonable minimal number). Use
+0 to not generate a histogram at all.
+The quiet option
+.I -q
+prohibits diagnostic messages.
+The output is an ASCII matrix with rows equaling the number
+of features in the pfile. The columns are as follows:
+1) feature number, 2) its mean, 3) standard deviation, 4) maximum value, 5) sentence
+number of max, 6) frame number of max, 7) minimum value, 8) sentence number of
+min, 9) frame number of min, 10) max/standard_deviation, 11) min/standard_deviation, and 12) possibly <numhistbins> more columns of histogram for this feature. The output is suitable for reading as input to matlab as an ASCII
+matrix.
+The matlab script
+.B pfhist.m
+can take the resulting matrix and either plot multiple histograms simultaneously, or plot an individual feature's histogram and cumulative distribution.
+. ======================================================================
+.PP
+.B pfile_norm 
+normalizes each feature dimension so that over the entire pfile (by
+default), each feature has zero mean and unit variance.  If the
+segment group length option,
+.I -sl,
+is given, then normalization takes place every n sentences; when n=1
+this behaves as
+.B pfile_normutts 
+which normalizes each feature dimension so that within each utterance
+each feature has zero mean and unit variance.  (Actually, the output
+is not identical, as pfile_norm uses double precision to calculate the
+means and variances, whereas pfile_normutts uses floats.)  A file
+defining individual segment group lengths over the entire pfile can be
+given via the
+.I -slf
+option.  Each segment group is defined by a number of sentences
+delimited by whitespace; in a 5 utterance pfile, one can normalize
+sentences 0-1 and 2-4 by having a file with the lengths "2 3".
+Note that all sentences in the pfile must be assigned segment groups
+by the segment length file; if utterance sub-selection takes place
+(i.e. the
+.I -sr
+option), the segment groups are still defined in terms of the original
+pfile, not the sub-selected pfile.
+. ======================================================================
+.PP
+.B pfile_normutts 
+normalizes each feature dimension within each utterance to have 
+zero mean and unit variance.  This is similar to the normalization 
+applied to features by the Cambridge connectionist group, and 
+is supposed to provide a measure of normalization in the face 
+of test mismatches such as noise or music backgrounds that are 
+specific to an individual utterance.  The 
+.I -verbose
+flag reports the pre-normalization means and variances of each 
+feature dimension for each utterance to standard error.  The 
+.I -nonorm 
+flag causes the normalization to be skipped altogether, in which 
+case this program is equivalent to 
+.B pfile_select.
+Note that after running
+.B pfile_normutts,
+each feature in the resulting pfile will have zero mean 
+.\" over the entire pfile, but will not necessarily have unit variance
+.\" over the entire pfile (see
+.\" .B pfile_norm
+.\" for such a function).
+and unit variance over the entire file as well as within each 
+utterance, but comparisons of feature levels 
+.I between
+utterances will be invalid.  To normalize the feature mean and variance 
+over the the entire file while preserving relative feature levels between 
+utterances, use 
+.B pfile_norm .
+. ======================================================================
+.PP
+.B pfile_addsil produces an output pfile with silence added to the
+beginning and/or end of each sentence. Silence is defined
+by computing means and variances from select ranges within each
+utterance (one range each for producing silence at the beginning
+and the end), and then randomly sampling from a Normal distribution
+with the correspondingly computed means and variances.
+.I -nb
+specifies the number of new beginning silence frames and
+.I -prb
+specifies the per-sentence range of frames for generating beginning
+silence. 
+.I -ne
+specifies the number of new ending silence frames and
+.I -pre
+specifies the per-sentence range of frames for generating ending
+silence. 
+.I -maf
+and
+.I -mmf
+specify the mean additive and multiplicative factors respectively. 
+.I -saf
+and
+.I -smf
+specify the standard deviation additive and multiplicative factors
+respectively.
+. ======================================================================
+.PP
+.B pfile_gaussian
+produces an output pfile with features from the input pfile
+renormalized to have a zero-mean unity-variance Gaussian
+distribution. It does this by a non-linear warping constructed from
+histograms and an inverse Gaussian function. The
+.I -h
+option specifies the number of histogram bins to use for the
+initial warping. The larger the number, the more accurate the
+warping will be, but also the more memory the program will
+take. A good starting value is probably around 2000.
+The
+.I -d
+option says to warp the features so that the minimum and
+maximum are respectively -<numstds> and +<numstds> -- in other
+words, the features will not be any greater than <numstds> standard
+deviations from the mean. This value should not be too large (i.e., 
+not much larger than around 8 or 9) as the inverse Gaussian
+function will eventually start producing NaNs as output. Accordingly,
+the program will die with a floating point exception if this
+occurs.
+The
+.I -u
+option produces features that, rather than being Gaussian distributed,
+are uniform on the interval [0,1].
+The
+.I -oh
+option optionally specifies an output file to save the statistics,
+in the same form as 
+.B pfile_stat's 
+output.
+.I -ih
+option optionally specifies a pre-existing stats file, written by an 
+earlier run of pfile_gaussian, which can be used to warp a new 
+feature file (e.g. a test set) using the same mappings.
+
+. ======================================================================
+.PP
+.B pfile_build 
+builds a pfile from a set of files each containing a raw binary
+single precision matrix of feature data. 
+The
+.I -sents
+argument, <sentfname>, 
+is the name of a file containing a list of sentences names.
+This file should contain an ASCII list of file name prefixes,
+one per each line.
+The 
+.I -suffix
+argument, <suf>
+is the suffix to use when constructing the file names to open.
+The program goes through each line of <sentfname>, appends
+a dot and then <suf> to the name, opens the file, and reads
+in the matrix of features. The
+.I -nfeats
+argument specifies the number of features per frame, so
+that each file should be a kXn matrix, where k is the
+number of frames in that sentence. The
+.I -labels
+argument specifies a file name containing labels, one
+per line. The number of lines in <labfname> must
+be equal to the total number of frames in all the sentences
+as given in the file <sentfname>. If the -labels
+argument isn't given, all labels will be set to 0.
+. ======================================================================
+.PP
+.B pfile_create
+creates a pfile from an ASCII or binary input
+file (
+.I -b
+option
+)
+consisting of rows of sentence number,
+frame number, some number of features, some number
+of labels. The number of features and labels
+must be specified on the command line
+using the 
+.I -f
+and
+.I -l
+arguments.  Binary streams have the same information in 32 bit 
+ints and floats, which must be in big-endian order.
+. ======================================================================
+.PP
+.B pfile_skmeans
+computes utterance-specific segmental k-means.
+That is, for each segment of the same utterance (e.g. word),
+N segments of equal length are defined and the k-means algorithm is
+computed on each of them.  The resulting means
+and variances are printed as output.
+.I -k
+specifies the number of clusters.
+.I -r
+specifies the number of epoch random restarts to take best of,
+.I -m
+specifies the number of re-inits before giving up and
+.I -x
+the minimum nubmer of samples per cluster for a re-init to occur.
+.I -a
+specifies the convergence threshold.
+If
+.I -u
+is specified, uniform sgmental k-means are calculated.  In this
+situation,
+.I -n
+specifies the total number of different words,
+.I -f
+is used to sepcify an utterance-ID file and
+.I -s
+the number of segments/words.
+If
+.I -v
+is specified, viterbi segmental k-means are calculated and
+.I -n
+specifies the maximum label number and
+.I -f
+the input label file.
+.I -prefetch
+can be specified to specify that the next sentence should be
+prefectched at each iteration.
+.I -b
+can be used to select binary output.
+. ======================================================================
+.PP
+.B pfile_patchlabels
+creates a new pfile with the same features as the input pfile
+but with the labels taken from the label file.  Unlike other pfile_utils, 
+this program supports multiple input and output file formats.  
+The -if and -of options can be "pfile" (default), "pre" or "lna" for 
+the corresponding feature+label files.  If "pre" or "lna" are 
+specified for input, it is necessary to define the number of 
+features via -iw too.  The label file format -lw can be any of 
+"ascii" (default, a file of decimal ascii values with no segment 
+boundaries marked), "pfile", "ilab", "pre" or "lna", with "pre" and "lna" 
+once again requiring a feature width to be specified with -lw (although 
+the features in the label file are not used).  
+.B Note:
+the use of 'patched' feature+label files is deprecated at ICSI - use 
+separate feature and label files, as expected by qnstrn etc.
+. ======================================================================
+.PP
+.B pfile_lda
+performs a linear descriminant analysis on the feature vectors of a
+pfile.
+The options for
+.B pfile_lda
+are as follows:
+The
+.I -i
+option specifies the input pfiles and allows multiple, comma-separated files
+(with no spaces).
+The
+.I -il
+specifies an input label file, which can only be a single file.  If no
+label file is specified then the main input pfile is used for labels.
+If you specify a
+.I -o
+option, the transformed pfile will be written
+to <opfile>. The
+.I -sr
+option specifies a subset of sentences to operate on.
+If you also specify a 
+.I -fr
+option, only a subset of features will be written. 
+Assuming that N is the
+number of features per frame, the
+.I -os
+option says to write the resulting matrices out to a file
+in (using matlab notation) the form [ D T ] where
+D is the 
+Nx1 vector of eigenvalues in decreasing order
+T is the NxN matrix of orthonormal eigenvectors contained
+in the columns of T sorted by decreasing eigenvalue.  I.e. all of the
+parameters for the first feature are written, then all of the values
+for the 2nd etc.
+The
+.I -is 
+option says, instead of computing the eigen vectors and eigenvalues from
+the input pfile, read it from ifile, so for example
+you can compute the information from a training pfile
+and apply it to a test pfile.  
+The 
+.I -a
+option says that the matrices contained in the files
+ofile and ifile should be read and written in ASCII
+rather than as binary 32 bit single precision numbers. 
+. ======================================================================
+.PP
+.B pfile_klt
+performs a Karhunen-Loeve transformation on the feature vectors
+of a pfile. This is a linear transformation that results
+in a pfile that has a diagonal covariance matrix.
+It does this by finding the matrix T such that
+the covariance matrix E[(TX-TU)(TX-TU)'] is diagonal.
+It turns out that if you require T to be an orthonormal
+basis set for the covariance matrix (which you can ask for
+since a covariance matrix is symmetric positive semi-definite),
+this can be solved via the eigen-solution 
+of RT'= DT' where R is the covariance matrix of the original
+features, T is the
+matrix that has orthonormal rows, and D is a diagonal
+of eigenvalues (corresponding also the the variances).
+Note that if you call
+.B pfile_klt
+on a pfile with a DCT applied to it, you'll most likely
+get a non-diagonal covariance matrix meaning that
+the features are in fact not decorrelated. If, however,
+you call
+.B pfile_klt
+on the output pfile of
+.B pfile_klt
+you'll get a diagonal covariance matrix. Note that
+.B pfile_klt
+could be applied after
+.B pfile_gaussian
+that, if jointly Gaussian, would
+ultimately result in 
+features that are truly statistically independent as uncorrelated
+joint Gaussians are also independent.
+
+The options for
+.B pfile_klt
+are as follows:
+The
+.I -i
+specifies the input pfiles and allows multiple, comma-seperated files
+(with no spaces).
+If you specify a
+.I -o
+option, the transformed pfile will be written
+to <opfile>. The
+.I -sr
+option specifies a subset of sentences to operate on.
+If you also specify a 
+.I -fr
+option, only a subset of features will be written so you
+can effectively perform principle components analysis by selecting
+the first, say, M features. 
+The mean of the input features is removed.  Normally, the output features are also multiplied by the square
+root of the inverse
+of each feature's corresponding eigenvalue. This
+results in unity variance features. If you specify the
+.I -n
+option, the multiplication doesn't occur, and the feature variances 
+are retained.
+Assuming that N is the
+number of features per frame, the
+.I -os
+option says to write the resulting matrices out to a file
+in (using matlab notation) the form [ R U T D ] where
+R is the NxN covariance matrix, U is the Nx1 mean vector,
+T is the NxN matrix of orthonormal eigenvectors contained
+in the columns of T sorted by decreasing eigenvalue, and D is the 
+Nx1 vector of eigenvalues (again in decreasing order).
+I.e. all of the
+parameters for the first feature are written, then all of the values
+for the 2nd etc.
+The
+.I -is 
+option says, instead of computing the mean and covariance information from
+the input pfile, read it from ifile, so for example
+you can compute the information from a training pfile
+and apply it to a test pfile.  In this case the mean removal
+and (if not disabled) variance scaling are performed using
+the mean and variance information from ifile.
+The 
+.I -a
+option says that the matrices contained in the files
+ofile and ifile should be read and written in ASCII
+rather than as binary 32 bit single precision numbers. 
+. ======================================================================
+.SH DIAGNOSTICS
+The
+.I debug
+option takes an integer argument where increasing integer
+values produce greater diagnostics about the underling
+pfile handling code.
+.SH "SEE ALSO"
+qnforward(1), qnnorm(1), norms(5), pfile(5), qncat(1), QN_PFile(3).
+.SH Author
+Jeff Bilmes <bilmes@icsi.berkeley.edu>
+.P
+Dan Ellis <dpwe@icsi.berkeley.edu> (pfile_concat and pfile_normutts)
+.P
+Eric Fosler-Lussier <fosler@icsi.berkeley.edu> (update to pfile_norm)
+.SH BUGS
+Please tell us about them.

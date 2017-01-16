@@ -1,0 +1,387 @@
+.de Sh
+.br
+.ne 5
+.PP
+\fB\\$1\fR
+.PP
+..
+.de Sp
+.if t .sp .5v
+.if n .sp
+..
+.               \" Path Name
+.               \"      uses Courier fonts for V4.0
+.de PN
+.ie t \&\f(CB\\$1\f(NR\\$2
+.el \fI\\$1\fP\\$2
+..
+.		\" The following macros added by dpwe for Ultrix 4..
+.               \" Manual section reference
+.               \"      uses Courier fonts for V4.0
+.de MS
+.ie t \&\f(CB\\$1\f(NR(\\$2)\\$3
+.el \fI\\$1\fP(\\$2)\\$3
+..
+.de EX		\" Begin Example
+.ie \\n(.$ .nr EX \\$1n
+.el \{\
+.	ie n .nr EX 0n
+.	el .nr EX 0n
+.\}
+.in +\\n(EXu
+.if n .sp 1
+.if t .sp .5v
+.nf
+.CW
+.ft CB
+..
+.de EE		\" End example
+.in -\\n(EXu
+.fi
+.}f             \" restore basic text attributes
+.if n .sp 1
+.if t .sp .5v
+..
+.TH SND 3 "1997 feb 06" dpwe   \" $Header: /u/drspeech/repos/dpwelib/snd.man,v 1.10 2012/01/05 21:21:40 dpwe Exp $
+.SH NAME
+SND - object-oriented soundfile library
+.SH SYNOPSIS
+.nf
+\fB#include <snd.h>\fR
+
+\fI/\(** Basic management of the SOUND structure \(**/\fR
+SOUND \fB*sndNew\fR(SOUND *\fIsnd\fR);
+void \fBsndFree\fR(SOUND *\fIsnd\fR);
+
+\fI/\(** Conventional file access \(**/\fR
+SOUND \fB*sndOpen\fR(SOUND *\fIsnd\fR, char *\fIpath\fR, char *\fImode\fR);
+int \fBsndNext\fR(SOUND *\fIsnd\fR);
+void \fBsndClose\fR(SOUND *\fIsnd\fR);
+long \fBsndReadFrames\fR(SOUND *\fIsnd\fR, void *\fIbuf\fR, long \fIframes\fR);
+long \fBsndWriteFrames\fR(SOUND *\fIsnd\fR, void *\fIbuf\fR, long \fIframes\fR);
+long \fBsndFrameTell\fR(SOUND *\fIsnd\fR);
+long \fBsndFrameSeek\fR(SOUND *\fIsnd\fR, long \fIframeoffset\fR, int \fIwhence\fR);
+int \fBsndFeof\fR(SOUND *\fIsnd\fR);
+
+\fI/\(** Configuring SOUND attributes \(**/\fR
+int \fBsndSetChans\fR(SOUND *\fIsnd\fR, int \fIchans\fR);
+int \fBsndGetChans\fR(SOUND *\fIsnd\fR);
+int \fBsndSetChanmode\fR(SOUND *\fIsnd\fR, int \fImode\fR);
+int \fBsndGetChanmode\fR(SOUND *\fIsnd\fR);
+int \fBsndSetUchans\fR(SOUND *\fIsnd\fR, int \fIchans\fR);
+int \fBsndGetUchans\fR(SOUND *\fIsnd\fR);
+int \fBsndSetFormat\fR(SOUND *\fIsnd\fR, int \fIformat\fR);
+int \fBsndGetFormat\fR(SOUND *\fIsnd\fR);
+int \fBsndSetUformat\fR(SOUND *\fIsnd\fR, int \fIformat\fR);
+int \fBsndGetUformat\fR(SOUND *\fIsnd\fR);
+long \fBsndSetFrames\fR(SOUND *\fIsnd\fR, long \fIframes\fR);
+long \fBsndGetFrames\fR(SOUND *\fIsnd\fR);
+double \fBsndSetSrate\fR(SOUND *\fIsnd\fR, double \fIsrate\fR);
+double \fBsndGetSrate\fR(SOUND *\fIsnd\fR);
+int \fBsndSetSFformat\fR(SOUND *\fIsnd\fR, int \fIfmt\fR);
+int \fBsndSetSFformatByName\fR(SOUND *\fIsnd\fR, char *\fIname\fR);
+int \fBsndGetSFformat\fR(SOUND *\fIsnd\fR);
+
+\fI/\(** Miscellaneous functions \(**/\fR
+int \fBsndBytesPerFrame\fR(SOUND *\fIsnd\fR);
+void \fBsndPrint\fR(SOUND *\fIsnd\fR, FILE *\fIstream\fR, char *\fItag\fR);
+void \fBsndDebugPrint\fR(SOUND *\fIsnd\fR, FILE *\fIstream\fR, char *\fItag\fR);
+.fi
+.SH DESCRIPTION
+The 
+.PN snd
+library provides a convenient and abstract encapsulation of the low-level 
+soundfile access routines provided by the
+.MS sndf 3
+library.  In addition to dynamic selection of soundfile formats possible 
+with that library, 
+.PN snd 
+provides transparent translation of datatype and channel configuration 
+between soundfile and client program, and also provides access to standard 
+input and output, and audio hardware input and output as `virtual files' 
+that look exactly like regular soundfiles (except they do not support 
+repositioning of the file pointer).  Also, files compressed with 
+.MS gzip 1
+can be directly read or written (again, without seeks).
+The library is constructed around 
+the `opaque' \f4SOUND\f1 pointer, which all functions take as their first 
+argument.  (A C++ version of this library is provided; see 
+.MS Sound 3 ).
+.SH USAGE
+\f4SOUND\f1 structures are allocated and destroyed by \fBsndNew\fR and 
+\fBsndFree\fR respectively.  If \fBsndNew\fR is passed a valid \f4SOUND\f1 
+pointer, the format configurations (sampling rate, number of channels etc.) 
+of the newly-allocated structure are cloned from that prototype, which is 
+left untouched itself.  Passing 
+NULL selects default soundfile parameters, where the defaults are taken 
+from the underlying library (defined in \f4sndf.h\f1).  
+.P
+Once a \f4SOUND\f1 structure has been created, it can be associated with a 
+file using \fBsndOpen\fR, which specifies the filename to read or write, 
+and the access mode as the single-character strings "r" or "w" only, for 
+reading an existing soundfile, or writing a new soundfile respectively.  
+\fBsndClose\fR closes the associated file;  \fBsndFree\fR will also close 
+any open file associated with the \f4SOUND\f1 structure if this has not 
+already been done.  In order to create 
+a new soundfile of given characteristics, a prototype \f4SOUND\f1 structure 
+is created with \fBsndNew\fR, configured using the accessor functions 
+described in the next section, then passed to \fBsndOpen\fR with the 
+mode set to "w"; \fBsndOpen\fR returns the same \f4SOUND\f1 pointer it 
+is passed.  However, when opening a file for writing in  
+the default format, or opening any file for reading, 
+there is no need to configure the \f4SOUND\f1 
+structure before calling \fBsndOpen\fR;  in this case, \fBsndOpen\fR may 
+be passed a NULL pointer, in which case it will allocate and return 
+a new \f4SOUND\f1 pointer by calling \fBsndNew\fR internally.
+.P
+\fBsndNext\fR is used to move to the beginning of the 'next' sound 
+chunk within a file.  For normal soundfiles, which contain only 
+a single chunk, calling \fBsndNext\fR after opening the soundfile 
+but before reading any data from the file will, notionally, move 
+to the beginning of the first and only sound within the file and 
+will return 1.  Subsequent accesses will be the same as if \fBsndNext\fR 
+had been skipped.  However, certain files or streams may contain multiple 
+sounds in sequence.  This usually arises with 'online utterance streams' 
+using the 'Abbot' raw online format (which separates sounds by an 0x8000 
+marker).  However, it could be that several soundfiles of another type 
+(such as AIFFs) have been concatenated together.  In such cases, calling 
+\fBsndNext\fR at the end of reading one sound will return 1 if there is 
+another sound that can be read from this file, and will setup the 
+\fBSOUND\fR structure to reflect this new sound.  When there are no 
+more sounds to be read from a stream, \fBsndNext\fR returns 0.
+When used with files open for writing, \fBsndNext\fR marks the 
+boundary between two complete soundfiles.  This has only been used 
+with writing Abbot online streams, so other soundfile formats may 
+give unexpected results.
+.P
+Sampled sound data is accessed with \fBsndReadFrames\fR and 
+\fBsndWriteFrames\fR.  These mimic the standard IO streams functions 
+\fBfread\fR and \fBfwrite\fR, except the unit of transfer is always the 
+the sample frame, i.e. one sample for each channel defined in the sound.  
+The functions also perform any translation necessary between application 
+and sound file, and return the count of sample frames successfully 
+transferred.  This may be less than the requested count in the case of 
+end-of-file or disk errors.  \fBsndFrameTell\fR, \fBsndFrameSeek\fR 
+and \fBsndFeof\fR
+similarly mirror standard IO functions, except that file position is 
+always expressed in sample frames, not bytes.  The \f4whence\f1 argument to 
+\fBsndFrameSeek\fR takes on one of the values \f4SEEK_SET\f1, 
+\f4SEEK_REL\f1 or \f4SEEK_END\f1, as defined in 
+.MS fseek 3s .
+.P
+\fBsndBytesPerFrame\fR returns the actual number of bytes in each sample 
+frame for the \f4SOUND\f1 configuration it is passed i.e. the number of 
+channels multiplied by the number of bytes per sample.  \fBsndPrint\fR
+and \fBsndDebugPrint\fR print out details of the \f4SOUND\f1 configuration 
+in a human-readable format to the specified stream;  the former is 
+a useful description of the sound data, suitable for verbose applications, 
+whereas the latter includes internal status information for the library, 
+useful mainly in debugging the library itself.
+
+.SH CONFIGURATION ACCESSOR FUNCTIONS
+The \f4SOUND\f1 structure is configured and examined with a series of 
+accessor functions, each of which has a `get' and a `set' version. 
+The \fBsndGet...\fR functions read the current value of a particular 
+attribute from the passed \f4SOUND\f1 structure.  The \fBsndSet...\fR 
+functions change it to a new value (if possible), and return the 
+value that parameter held before the change.  Each parameter is described 
+below, indexed by the name of its `get' function:
+.TP 12
+.B sndGetChans
+Accesses the number of channels present in the sound data as written 
+to disk - e.g. usually 1, or 2 for stereo signals
+.TP 12
+.B sndGetUchans
+The library provides for certain kinds of automatic translation between 
+soundfile and client application, introducing potentially two values for 
+the number of channels belonging to a \f4SOUND\f1 structure: namely, the 
+number of channels it actually has on disk, and also the number of channels 
+it appears to have to the library client.  This second, `user' value 
+is accessed by the \fBUchans\fR functions.  If no call to 
+\fBsndSetUchans\fR has been made, the number of channels passed through 
+\fBsndReadFrames\fR and \fBsndWriteFrames\fR matches the number of 
+channels stored on disk, as reported by \fBsndGetChans\fR.  If, however, 
+\fBsndSetUchans\fR is called specifying a different number of channels, 
+\fBsndReadFrames\fR and \fBsndWriteFrames\fR will effect conversion to and 
+from that format on-the-fly, in the manner specified by 
+\fBsndSetChanmode\fR.  Thus, although it is illegal to call 
+\fBsndSetChans\fR after a soundfile has been opened with \fBsndOpen\fR, 
+\fBsndSetUchans\fR may be called at any time, and will change the apparent 
+number of channels accessed with subsequent calls to \fBsndReadFrames\fR 
+and \fBsndWriteFrames\fR.  If \fBsndSetUchans\fR has not been called, 
+\fBsndGetUchans\fR will return the same value as \fBsndGetChans\fR.
+.TP 12
+.B sndGetChanmode
+If there is a difference between the number of channels present in the 
+soundfile (reported by \fBsndGetChans\fR) and the number of channels in 
+the data being handled by the read and write functions (reported by 
+\fBsndGetUchans\fR), this parameter governs how translation will be 
+performed.  The argument can be one of the \f4SCMD_\f1 constants defined 
+in \f4snd.h\f1; \f4SCMD_MONO\f1 dictates that more numerous channels are 
+mixed together to form fewer channels, and that fewer channels are 
+distributed evenly across more numerous channels.  \f4SCMD_CHANx\f1 (where 
+x can be 0, 1, 2 or 3) specifies that a single channel is constructed by 
+taking only the specified channel of a multichannel signal, and that a 
+multichannel signal is constructed from a single channel by copying it to 
+just one of its channels, leaving the others as zero.  Translation between 
+multichannel sounds (e.g. stereo to 4-channel) is not presently defined.  
+The default behavior is \f4SCMD_MONO\f1.
+.TP 12
+.B sndGetFormat
+Returns the \f4SFMT_\f1 code (defined in \f4sndf.h\f1) corresponding to 
+the binary format of the individual samples in the soundfile (e.g. 8 bit 
+integer \f4SFMT_CHAR\f1 or 32 bit floats \f4SFMT_FLOAT\f1).
+.TP 12
+.B sndGetUformat
+As with \fBsndGetUchans\fR, the library will perform sample format 
+conversion on the fly between application and soundfile.  
+\fBsndSetUformat\fR may be called at any time before or after a soundfile 
+has been opened, and will defined the type of data pointed to by the 
+\f4buf\f1 arguments to subsequent calls to \fBsndReadFrames\fR and 
+\fBsndWriteFrames\fR.  The library will then perform format conversions as 
+required to accommodate the soundfile data format set at the time of file 
+opening, which \fBsndGetFormat\fR will continue to report.  
+\fBsndGetUformat\fR returns the format set most recently by 
+\fBsndSetUformat\fR, or if \fBsndSetUformat\fR has never been called for 
+this particular \f4SOUND\f1, it will return the same as \fBsndGetFormat\fR.
+.TP 12
+.B sndGetSrate
+Accesses the sampling rate associated with the sound data.  
+\fBsndSetSrate\fR may only be called on a \f4SOUND\f1 structure that 
+has yet to be associated with a file via \fBsndOpen\fR, and only has 
+any meaning if the file is to be opened for writing (created).
+.TP 12
+.B sndGetFrames
+Accesses the total number of frames constituting the current soundfile.  
+This may be \f4SNDF_UNK_LEN\f1 (from \f4sndf.h\f1) if the soundfile 
+does not specify the length (e.g. for data being written in real time to a 
+pipe).  Also, the number of frames in a new \f4SOUND\f1 structure to be 
+used for writing will be unknown; however, it may be useful to set it to 
+some value before opening the file for write - if that value can be known 
+at that stage - since it allows that information to be written into the 
+header at the first attempt, which may be the only opportunity to write 
+the header for non-seekable streams such as pipes or standard output.
+.TP 12
+.B sndGetSFformat
+The facilities the 
+.MS sndf 3
+library provides for configuring at run-time the particular soundfile format 
+to be used are accessed via this parameter.  Call 
+\fBsndSetSFformat\fR with one of the 
+\f4SFF_\f1 codes defined in \f4sndf.h\f1 before opening in write mode 
+to create a file in a particular format.  
+Similarly, \fBsndSetSFformatByName\fR will set the type using one of the 
+short names defined in 
+.MS sndf 3 .
+On reading, setting the file type 
+pre-empts the usual process of guessing the file type; if the opened file is 
+not of the specified type, an error is returned.  
+\fBsndGetSFformat\fR will return 
+the code for the actual format identified when the current file was opened.
+It is an error to attempt to set the soundfile format of an open file.
+.SH STREAMS, COMPRESSED FILES AND AUDIO HARDWARE
+In addition to working with conventional soundfiles on disk, all the 
+.PN snd
+functions can also used to access the standard input and output of Unix 
+programs (permitting soundfiles to be passed over Unix pipes), 
+read and write compressed files (by constructing a 
+.MS popen 3S
+pipe including 
+.MS gzip 1 )
+and also 
+any real-time sound input/output hardware present on a particular machine 
+(by employing the portable 
+.MS audIO 3
+library).  These special modes are controlled by special file names:
+.P
+Calling \fBsndOpen\fR with a filename of "-" will connect to standard 
+input (for read mode) or standard output (for writing).  Typically, this 
+can be specified directly by the user without any particular accommodation 
+by the client application (other than permitting a file name of "-").  
+(However, there is no provision for accessing a disk file called "-" except 
+via a qualified name such as "./-".  Such files are normally the cause of 
+much trouble in any case).  
+.P
+Paths matching the glob patterns "*.Z" or "*.gz" are assumed to refer to 
+compressed files.  
+These patterns can be overridden with a colon-separated list in the 
+environment variable SND_PATS_SGZ; in particular, setting this to "*" 
+will cause all files to be processed as follows.
+On reading, the PATH environment variable is searched 
+for 
+.MS gzcat 1 , 
+.MS gunzip 1
+(used as "gunzip -c"), or
+.MS gzip 1 
+(used as "gzip -d -c"), and, if one is found, a pipe is constructed 
+via
+.MS popen 3S
+to read uncompressed bytes straight from the gzip process.  On writing, 
+.MS gzip 1
+is searched for, and the output data are written through a gzip process 
+to create a ready-compressed file.
+.P
+Similarly, files matching "*.shn" (overridden with SND_PATS_SHN) 
+are assumed to be files compressed 
+with Tony Robinson's 
+.MS shorten 1
+soundfile compression utility (see ftp://svr-ftp.eng.cam.ac.uk/pub/comp.speech/coding/shorten.tar.gz).  A pipe is opened to read or write files through 
+this program when the file name matches.  The binary "shorten" must 
+be in the path.  Version 2.0 seems best, because it does not insist 
+that the soundfiles are MS_WAVE as 2.3 does.  Extra flags to be passed 
+to shorten can be specified with the SHORTEN_ROPTS and SHORTEN_WOPTS 
+environment variables, for reading and writing respectively.  (This 
+feature was added to allow "-t s16lh" to be passed to the shorten invoked 
+on the BBC wavfiles provided by Softsound - the uncompressed NIST headers 
+claim that the data is "01", but shorten reconstructed it as big-endian 
+by default.)
+.P
+Further, filenames matching "*.mp3" (or the contents of SND_PATS_MP3) 
+are read after piping through mpg123 (with the addition of extra 
+flags from MP3_ROPTS), and written by piping to lame (with optional 
+arguments from MP3_WOPTS).  Because this is done externally, in a 
+pipe, the sound data arrives as a raw binary stream; you must also 
+set PCMFORMAT (or specify something like "-S PCM/R...", depending 
+on the program) to make sure the underlying program knows the sampling 
+rate etc.
+.P
+Finally, filenames matching "*.flac" (or the contents of SND_PATS_FLAC) 
+are read after piping through flac (with the addition of extra 
+flags from FLAC_ROPTS), and written by piping to flac (with optional 
+arguments from FLAC_WOPTS).  As with MP3 access, the header information 
+must be provided separately in the PCMFORMAT environment variable, or 
+via command-line format arguments.
+.P
+Audio hardware is accessed via the special name "@".  When writing, the 
+audio output hardware will be configured to match the characteristics of 
+the sound data being written (and will fail if these characteristics are 
+rejected by the 
+.MS audIO 3
+library).  For reading, however, some format specification must be provided 
+from elsewhere to configure the hardware.  This will default to the 
+`standard' defaults in \f4sndf.h\f1, but these can be overridden by adding 
+extra characters to the name after the "@", in the syntax of the 
+\f4PCMFORMAT\f1 environment variable used to provide header information for 
+the headerless raw/PCM files for 
+.MS sndf 3 .
+Briefly, a name is built by appending any of "R" followed by the sampling 
+rate in Hertz, "C" followed by the number of channels, and "F" followed by 
+a one-character code to specify data format.  Thus calling 
+\fBsndOpen\fR to read from a file called "@R8000Fu" will attempt to 
+configure available sound input hardware to supply mu-law samples at 8000 
+Hz, with the number of channels specified by \f4SNDF_DFLT_CHANS\f1 in 
+\f4sndf.h\f1 (typically 2).  See the section on \f4PCMFORMAT\f1 in 
+.MS sndf 3
+for the full range of codes.
+.SH EXAMPLES
+.SH BUGS
+Selecting compressed-file-access by the "*.Z" and "*.gz" templates is 
+rather inflexible.  It might be nice to have a way to control this 
+feature for any file name, but it's hard to retrofit.  Adding or changing 
+the patterns is a snap - search for .gz in snd.c.
+.SH SEE ALSO
+.MS sndf 3 ,
+.MS audIO 3 .
+.SH AUTHOR
+Dan Ellis, 
+.B dpwe@icsi.berkeley.edu

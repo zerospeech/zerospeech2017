@@ -1,0 +1,31 @@
+/* config.h.in.  Generated automatically from configure.in by autoheader.  */
+
+/* Define if type char is unsigned and you are not using gcc.  */
+#ifndef __CHAR_UNSIGNED__
+#undef __CHAR_UNSIGNED__
+#endif
+
+/* Define if you have the ANSI C header files.  */
+#undef STDC_HEADERS
+
+/* Define if your processor stores words with the most significant
+   byte first (like Motorola and SPARC, unlike Intel and VAX).  */
+#undef WORDS_BIGENDIAN
+
+/* Define if you have the hypot function.  */
+#undef HAVE_HYPOT
+
+/* Define if you have the isatty function.  */
+#undef HAVE_ISATTY
+
+/* Define if you have the popen function.  */
+#undef HAVE_POPEN
+
+/* Define if you have the strdup function.  */
+#undef HAVE_STRDUP
+
+/* Define if you have the <sys/audioio.h> header file.  */
+#undef HAVE_SYS_AUDIOIO_H
+
+/* Define if you have the <unistd.h> header file.  */
+#undef HAVE_UNISTD_H

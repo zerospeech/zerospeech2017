@@ -1,0 +1,629 @@
+CHANGES for /u/drspeech/src/dpwelib
+
+1997feb26 dpwe@icsi.berkeley.edu
+$Header: /u/drspeech/repos/dpwelib/CHANGES,v 1.76 2011/03/09 02:10:48 davidj Exp $
+
+2011-03-08 davidj@icsi.berkeley.edu
+         * dpwelib v1_00 released
+         * portability/warning fixes from dpwe and davidj
+
+2011-03-08 davidj@icsi.berkeley.edu
+	 * dpwelib v0_90 released
+         * source now under CVS in /u/drspeech/ at ICSI
+
+2007-12-28 dpwe@ee.columbia.edu
+	 * at prompting of David Gelbart, fixed bug in snd.c that meant 
+	   that successive files opened for reading on the same file handle
+	   would be forced to be treated as the same file type (AIFF, RAW,..)
+
+2007-12-21 dpwe@ee.columbia.edu
+         * fixed the fix for longer 'fmt ' headers; was truncating one 
+	   sample from the end previously.  Also, corrected it to work
+	   with optional 'fact' blocks (or indeed any unexpected blocks).
+	 * added new cases to testsnds/test-etc.tcl (test 5.4) to check 
+	   correct reading of MSWAV files with 18 byte 'fmt ' blocks,
+	   and/or 'fact' blocks
+
+2007-05-15 dpwe@ee.columbia.edu
+	 * fixes in sndfwav.c allow reading of ulaw files (added sometime 
+           recently) and support for 'fmt ' headers of 16-20 bytes (which 
+	   were observed in the wild).
+
+2006-08-27 dpwe@ee.columbia.edu
+	 * added -g gain option to sndrsmp.c and sndrsmp.man .  Needed when 
+	   resampling data that almost exceeds dynamic range to avoid wrap
+	   clips after downsampling.
+
+2005-10-29 dpwe@ee.columbia.edu
+	 * En (endian natural) and Es (swapped) added as options in the 
+	   PCMFORMAT env var
+	 * Filenames passed to external programs like shorten, mpg123 etc. 
+           are now escaped with double quotes, not single quotes (which 
+           failed when the name itself contained single quotes, which is 
+           common in iTunes)
+         * fixed bug in snd.c where MP3 filename glob patterns were being 
+           read from SND_PATS_SHN instead of SND_PATS_MP3.
+
+2005-07-03 dpwe@ee.columbia.edu
+	 * restored -p (proportion of nyquist) in sndrsmp.c and resample.{c,h}
+	   and sndrsmp.man
+	 * sndrsmp -s 16 interpreted as -s 16000
+	 * fixed bug when rewriting length of resampled files (rarely)
+
+2005-03-18 dpwe@ee.columbia.edu
+	 * audIOlinux.c now automatically promotes to stereo if hardware 
+	   requires it (Intel 810 audio; thanks Chuck!)
+
+2005-03-15 dpwe@ee.columbia.edu
+	 * modified sndfnist.c to recognize SRI's 'raw' float format
+	 * (sync with other changes from Columbia)
+
+2004-02-25 dpwe@ee.columbia.edu
+	 * added errno.h to audIOlinux to compile under RH9.
+
+2004-02-19 dpwe@ee.columbia.edu
+	 * fixed up use of ## to work with gcc3
+         * added code to snd.c to allow 'direct' access to mp3 read/write 
+           via mpg123 and lame.  See example added to sndcat.man to see 
+           the clumsy way to make it work.
+
+2004-02-18 dpwe@ee.columbia.edu
+	 * Modified cle.{h,c} to have a new "time" type, for inputing 
+	   time in H:M:S.s format.  Modify sndcat.c to use this for times.
+
+2004-01-14 dpwe@ee.columbia.edu
+	 * Added code to snd.h to read a SND_PATS_SHN environment variable, 
+	   specifying the glob patterns that should be regarded as "shorten"-d 
+	   files (and piped through shorten).  Using "*" reads everything 
+	   through shorten, which is safe but slow.
+
+2003-08-10 dpwe@ee.columbia.edu
+	 * added support for reading float files in sndfnist.c, at 
+	   request of scott otterson.  sndcat -T NIST -f f works, and 
+	   can read the resulting files.
+	   
+2002-08-10 dpwe@ee.columbia.edu
+	 * fixed nasty buffer overrun in sndfnist/sndfstrut that occurred 
+	   with NIST files whose header section is larger than 1024 bytes
+	   (they exist; diagnosed by rif@mit.edu).
+
+2002-06-19 dpwe@ee.columbia.edu
+	 * added '-p' option to sndrsmp to allow sinc LPF band edge to 
+	   be moved to some proportion of the new nyquist (default: 0.9).
+	   This avoids aliasing right on the edge.  Changes in resample.{c,h}.
+
+2002-04-12 dpwe@ee.columbia.edu
+	 * fiddle with ioctls in audIOsun to make it work better on recent 
+	   hardware.
+
+2002-03-18 dpwe@ee.columbia.edu
+	 * added '-nomerge' option to sndcat to specifically request behavior 
+           of writing multiple soundfile headers into one file; otherwise, 
+	   just concatenates samples (even if header mismatch).
+
+2001-04-30 dpwe@ee.columbia.edu
+	 * fixed bug in sndrfmt where output length was truncated result of 
+	   floating-point calculation that sometimes was one sample short.
+
+2001-02-02 dpwe@ee.columbia.edu
+	 * added sndfstrut.c to support the -S STRUT 'Strut' variant of 
+           the NIST/SPHERE soundfile header (read, write, identify).
+
+2000-08-11 dpwe@icsi.berkeley.edu
+	 * sndcmp wasn't handling stdin/stdout correctly.  Fixed it.
+
+2000-07-05 dpwe@icsi.berkeley.edu
+	 * Modified the channel distribution routine snd.c:snduConvertChans
+	   so that it writes zero channels when distributing a single channel 
+	   into one slot of a multichannel output.
+	 * Slight changes to sndcat to work with this.  So sndcat -c 1 -cm L 
+	   will copy just the left channel of a multi-channel input (instead 
+	   of the default behavior of mixing all the chans together), but 
+	   -c 2 -cm L will copy a mono input file to just the left channel 
+	   of a stereo output, leaving the right channel at zero (instead of 
+	   making all the channels be the same).
+
+2000-05-29 dpwe@icsi.berkeley.edu
+	 * fixed problem with sndcat that would refuse to have an explicit 
+	   output format of PCM, because it was looking for the wrong 
+	   return code from sndSetSFformatByName.  Actually, fixed this 
+	   by changing the return code from sndSetSFformatByName to 
+	   echo SFSetDefaultFormatByName i.e. 0 if name is garbled, 
+	   else 1 (sndcat.c, snd.c).
+	 * fixed problem that Abbot bit in PCM defaults would not 
+	   get reset properly.  I guess we still have residual problems 
+	   if alternating between PCM definitions with different 
+	   fields present (e.g. sndcat -S PCM/C1 -T PCM/Fc), since the 
+	   default condition being modified the second time around is 
+	   different.  But Abbot was particularly severe because there 
+	   is no syntax for "Not abbot".  Now abbot must always be 
+	   explicitly present in a PCM format string for it to be 
+	   activated (sndfpcm.c).
+
+2000-05-17 dpwe@icsi.berkeley.edu
+	 * fixed parsing of PCMDEFAULT strings so that malformed strings 
+	   actually generate an error report!  Was just silently 
+	   ignoring unrecognized parts, and sometimes parsing them 
+	   to set unwanted value (esp. if PCM/ accidentally appended - 
+	   then chans set to zero, -> div 0 error).
+
+2000-03-30 dpwe@icsi.berkeley.edu
+	 * Added a -m flag to sndplay like the -m?ulti flag to sndcat that 
+	   requests a read-to-end-of-file for each sound to see if there 
+	   is another file behind it.  Allows default discard for sndplay, 
+	   so it doesn't hang around for ever after playing a fragment of 
+	   a long compressed file.
+
+2000-03-14 dpwe@icsi.berkeley.edu
+	 * Fixed NIST file handling to support read and write of ALAW 
+           data (sndfnist.c).  Added some ALAW read/write tests to 
+	   test-sndrfmt.c.
+
+2000-03-13 dpwe@icsi.berkeley.edu
+	* Added support for ALAW encoded bytes in ulaw.c, support in 
+	  sndfutils.c.  Now all (?) the snd* programs should support 
+	  alaw (e.g. as PCM/R8000Fa).
+
+2000-03-02 dpwe@icsi.berkeley.edu
+	* Fixed bug where SHORTEN_WOPTS was inserted into the shorten command 
+	  line incorrectly. (snd.c)
+
+2000-02-28 dpwe@icsi.berkeley.edu
+	* Fixed bug where only half of stereo files got gain applied by 
+	  sndcat (sndcat.c).
+
+2000-02-22 dpwe@icsi.berkeley.edu
+	* Added support for VerbMobil PHONDAT format (sndfphdat.c, sndfbyptr.c)
+
+2000-02-17 dpwe@icsi.berkeley.edu
+	* fixed minor bug in sndfnist.c that would warn "0 bytes a surprise 
+	  for 8 sig bits" if sig bits preceded bytes per sample in header.
+	* Added an IOCTL to audIOlinux.c to reduce the playback latency 
+	  to a couple of 100 ms at 16 kHz (for animated playback in 
+	  sndview).  Could result in dropouts on slower systems or at 
+	  different sample rates.
+
+2000-02-02 dpwe@icsi.berkeley.edu
+	* Fixed a bug in sndfbyptr.c where the _sndf_type_info would get 
+	  freed multiple times, leading to a crash in certain invocations 
+	  of sndrfmt.
+
+2000-02-01 dpwe@icsi.berkeley.edu
+	* Changed the default sampling rate assumed of headerless PCM 
+	  files to be 16kHz instead of 22kHz.  In the speech world, this 
+	  is a better default.  The default is set in sndf.h; you can 
+	  of course override it with "setenv PCMFORMAT R22050" as 
+	  described in sndf(3).
+
+1999dec08 dpwe@icsi.berkeley.edu
+	* Introduced a new sample format, SFMT_24BL (or "m" for medium) 
+          as 24 bit LSB-aligned in 32 bit integers.  In fact, this is 
+          almost the same as the existing long (32 bit) format, which 
+          actually was 24 bits + 8 bit headroom (for SGI compatibility), 
+          except 24BL ignores the top 8 bits on read, and sign-extends 
+          the 24th bit on write.  This is to work with the beta Sonorus
+	  STUDI/O driver, which returns 24 bits plus a zero top byte, 
+	  which was leading to negative values being seen as large 
+	  positive values when read as long. [sndffmt.c,h sndf.h sndcat.c]
+        * snd.c now reads back the soundfile format of a newly-opened 
+          file and stores it in the snd->sffmt field.  This means that 
+          new snd structures that clone from it (sndNew(exstingSnd)) 
+          will inherit that exact soundfile format, rather than just 
+          the state of sffmt before the file was opened. [snd.c]
+	* Fixed a bug where very occaisionally uninitialized data would 
+          be mistaken for a valid header after zero bytes were read from 
+          an end-of-file (leading to a spurious attempt to read a 
+          follow-on sound). [sndfaif.c]
+
+1999nov10 dpwe@icsi.berkeley.edu
+	* Modified sndfwav.c to read a new kind of MSWAVE header that 
+          is 14 bytes longer and includes a 'fact' field.  Don't know 
+	  the status of this, I just came across a couple.
+	* Fixed crass bug in sndcmp.c that made it treat every file 
+	  as 16 bit ints, even though it was performing a data transform.
+
+1999oct13 dpwe@icsi.berkeley.edu
+	* fixed handling of combined format and channel changes in 
+	  snd.c to allow mixing and merging of ulaw (etc.) channels.  
+	  Formerly, worked for shorts and floats only.
+	* added -chanmode option to feacat to allow selection of 
+	  single channels
+	* expanded range of channel-definition symbols up to 8 for 
+	  best future coverage
+
+1999oct07 dpwe@icsi.berkeley.edu
+	* sndmix added as a new program to add two soundfiles together.
+	  Actually, it's a really old and crude program, but it works.
+
+1999sep28 dpwe@icsi.berkeley.edu
+	* fixed bug when padding output sounds with silence in sndrfmt
+	* added -e, -D, -E options to sndrfmt (to be like sndcat etc.)
+	* sndcmp now returns a nonzero exit code if files differ
+	* treatment of stereo NIST files is now consistent with 
+	  latest release of Switchboard data (samp_count is sample
+	  *frames*, not individual samples, as per spec), rather 
+	  than the previous Switchboard release (which was wrong).
+
+1999jun29 dpwe@icsi.berkeley.edu
+        * Changed behavior of flushing in resambuf.c to round down 
+          rather than up when deciding how many of the partially-computed 
+          output samples to emit.  This has the result that sndrsmp 
+          now writes floor(ipframes/downsamp) output frames when 
+	  downsampling, whereas it used to write ceil(ipframes/downsamp).
+	  floor seems to make more sense ???
+
+1999jun07 dpwe@icsi.berkeley.edu
+	* Changed snd->get/setSFFormat[ByName] *not* to set the 
+          snd->touchedCurrent flag.  This had the nasty effect of making 
+          sndrsmp write empty files if neither of the input or output 
+	  soundfile types was explicitly set.
+
+1999may29 dpwe@icsi.berkeley.edu
+        * For handling the embedded-shorten NIST files that are the BBC 
+          data, the "pcm,embedded-shorten-v2.2" encoding type is now 
+	  silently accepted, although shorten itself is only invoked 
+	  based on the .shn suffix.  Also, SHORTEN_{R,W}OPTS are 
+	  environment variables consulted for extra flags to pass to 
+	  shorten on read or write respectively.
+
+1999may09 dpwe@icsi.berkeley.edu
+	* Fixed bug in which files written by sndrsmp sometimes didn't 
+	  take on the sf format of the input file if -S wasn't used.
+	* args to shorten are now -t s16hl for correct treatment of 
+	  big-endian data on all platforms (and wrong treatment of 
+	  little-endian data - oops!).
+	* K&R function definitions removed.
+	* no error message "my_fread: wanted 4 got 0"
+	* -g <gain> parameter added to sndplay
+
+1999feb16 dpwe@icsi.berkeley.edu
+	* Problems with closing and re-opening *.gz pipes from the Tcl 
+	  interface.  Turns out that although I had a my_popen in 
+	  pushfileio, I didn't have a my_pclose, so when the stream 
+	  was reopened (with the same FILE* value), pushfileio was 
+	  merrily incrementing the stream count, messing up everything. 
+	  Also, found that sndClose wasn't correctly destroying the 
+	  sndffname records; fixed that with SFClose and new 
+	  fn SFClose_Finishup, to use after pclose().
+
+1999feb04 dpwe@icsi.berkeley.edu
+	* added my_feof as a cover in pushfileio.c to defer EOFs until 
+	  pushbuf all used up.  This was making sndrsmp skip the 
+	  last, short seg in some ABBOT Audio streams.
+
+1999jan01 dpwe@icsi.berkeley.edu
+	* sndrsmp now handles multiple-segment abbot-online-audio streams 
+	  correctly (used to quit at end of first segment).  Even does 
+	  it without memory leaks, apparently.
+	* trying to make this work, tightened up the handling of specified 
+	  filetypes in snd.c, esp. with sndNext-type streams.
+	* found & fixed rather subtle bug where Abbot EOS markers 
+	  were being squashed for short segments entirely contained in 
+	  the portion 'pushed back' onto the input stream after one 
+	  EOS encountered.
+
+1998nov16 dpwe@icsi.berkeley.edu
+	* BYTESWAP bits defined for AFMT and SFMT, supported by sndfutils.
+	* audIOlinux considerably enhanced.  Sort-of works on LinuxPPC even.
+	* fixed read of little-endian NIST files on Linux.
+
+1998sep09 dpwe@icsi.berkeley.edu
+	* Adapted to enable sndcat to be used on NIST-shorten files as 
+	  distributed on the 'callhome' database
+	  - sndfnist now accepts "ulaw,embedded-shorten-v2.00" sort-of
+	  - sndplay now uses the correct mechanism for setting the SF_FMT
+	    through sndSetSFformatByName().
+
+1998aug10 dpwe@icsi.berkeley.edu
+	* Bunch of changes to make it work correctly on i586-linux 
+	  and maybe ppc-linux.
+
+1998jun10 dpwe@icsi.berkeley.edu
+	* Brought up on our Linux machine, revealing several problems:
+	  - problem reading IRC files over pipes turned out to be 
+	    the (non-pushfile) fseek in fSize; replaced all fSize uses 
+	    with pushfile-provided GetFileSize
+	  - a couple of bugs (including = for ==) in snd.c's shorten 
+	    interface.  Linux runtime picked it up (assigning to a 
+	    static string).
+	  - test routines now find any tclsh in path and attempt to 
+	    adapt tests for natural byte order, as appropriate.
+	  - fixed bug in sndcat that wasn't correctly handling
+	    "unknown" sound file types.  Now, unspecified output 
+	    soundfiles will inherit type of last input read.
+	* fixed bug in cle.c that never matched -sr in "-sr|-snd?rate"
+
+1998jun03 dpwe@icsi.berkeley.edu
+	* Modified sndplay to accept -k and -d to specify the start 
+	  and duration of the segment to play *in seconds* rather than 
+	  in frames, as previously accepted by -K and -D.
+
+	** NOTE - INTERFACE CHANGE ** In order to use -k, I had to 
+	  move its previous use, chunksize, to -z.  Thus programs 
+	  that used to specify the chunksize to sndplay will end up 
+	  specifying an improbably large initial skip in seconds.  
+	  Hopefully, nobody uses it.
+
+	* Added a -e?ndtime option to sndcat, mirrored by -e in 
+	  sndplay.  As an alternative to -duration, this option 
+	  specifies the endtime of the desired segment, which 
+	  has startime subtracted to get the duration.
+
+1998jun02 dpwe@icsi.berkeley.edu
+	* Created sndcat, a new program much like sndrfmt, but which 
+	  uses the snd.h library to accesses soundfiles (not the lower-
+	  level sndf.h library used by sndrfmt).  This allows sndcat 
+	  to take advantage of added functions provided by the snd 
+	  layer such as transparent access to stdio, audio hardware 
+	  and compressed files (gzip and shorten).
+	* Added access to shorten files (*.shn) via the snd layer. 
+	  Just popen()s a "shorten" job, like the *.gz support.
+
+	NB: Because of the way I'm using shorten, I'm not correctly 
+	    anticipating the possibility of anything except mono 16 bit 
+	    big-endian shorts aligned on 2 byte boundaries; the whole 
+	    thing collapses if not.  In theory I should have this 
+	    data, but the header size is far removed from the popen 
+	    call... punt for now and fix later;  shorten is operating 
+	    lossless, so it will still work - it just won't compress 
+	    much, since it won't see the data structure correctly.
+
+	    Having said that, I've now added channel selection (-c 2) 
+	    since that part was easy.  But byteswapped, non-short or 
+	    non-word-aligned data is more serious.
+
+	* Changed sndrsmp to use snd(3) instead of sndf(3); thus, 
+	  now it can resample directly to a file compressed e.g. with 
+	  shorten.
+
+1998may05 dpwe@icsi.berkeley.edu
+	* Added the -D option to sndplay to allow arbitrary subranges 
+	  of long soundfiles to be played.  I'd like to have -k and -d 
+	  do the same thing, but specified in seconds rather than frames. 
+	  Sadly, -k is already used (for chunksize!).
+
+1998apr17 dpwe@icsi.berkeley.edu
+	* changed sndOpen in snd.c NOT to sndFree() the passed-in snd 
+	  struct if the open fails.  It will only free a snd struct 
+	  created within the call.
+	* changed Sound::open in Sound.C NOT to reset its internal 
+	  snd struct to NULL on an open fail; for interactive use 
+	  (e.g. with libsound_otcl), can now retry an open after a 
+	  'file not found' error.
+
+1998mar09 dpwe@icsi.berkeley.edu
+	* configure.in now records path to dpwelibConfig.sh in the config 
+	  cache, so that other peer packages might be able to find it.
+	* audIOstub.c is now included - dummy audio hardware - and linked 
+	  in if nothing else will work, or if configure --disable-audio.
+
+1998jan23 dpwe@icsi.berkeley.edu
+	* modified audIOsun.c to check for "am" (ulaw) device even under 
+	  solaris (after solaris sun2's at IDIAP).
+
+1997nov05 dpwe@icsi.berkeley.edu
+	* Added support for reading and writing gzip-compressed files at 
+	  the snd.h level (so sndrfmt, sndrsmp, sndcmp can't do it, but
+	  sndplay and sndrecord can).  Done via a popen() to a gzip 
+	  process, per Eric Fosler-Lussier's suggestion.
+
+1997sep25 dpwe@icsi.berkeley.edu
+	* When reading a stream for which ftell couldn't be called, if 
+	  the filetype was already known, many of the sndf* modules would 
+	  assume that 4 bytes had already been taken from the stream by 
+	  SFIdentify.  This was wrong if the file ID was known because the 
+	  user had specified what it should be, leading to a skew in the 
+	  header reading.  Anyway, with FPUSH, the identify bytes are 
+	  always pushed back anyway, so you don't need to assume any 
+	  skip.  <skipmagic> is set to zero if HAVE_FPUSH.
+
+1997sep04 dpwe@icsi.berkeley.edu
+	* There were three ESPS test sounds in the rasta/testsuite 
+	  directory that contained header fields unknown to me when 
+	  I wrote the original ESPS parser.  So I looked at them and 
+	  sort-of guessed what they were doing, and added them to 
+	  sndfesps.c.  It now parses those files, although there are 
+	  still loads of header entries that I don't handle (& which 
+	  cause me to abort, since I don't know how long they are).
+
+1997sep04 dpwe@icsi.berkeley.edu
+	* Extensive changes in the sndf library to support the concept 
+	  of multiple sound 'objects' stored end-to-end within a single 
+	  file or stream.  This is to permit proper handling of 
+	  'online audio' streams (e.g. PCM/Abb) which are becoming 
+	  popular at ICSI.  Implemented a "my_fopen" layer to 
+	  extend fopen/fread/fseek/ftell to permit 'pushing back' 
+	  (with my_fpush) arbitrary-size chunks of data to be returned 
+	  again by later my_freads.  Also, supports my_fsetpos to 
+	  reset the file pointer (from ftell) to zero or anything else. 
+	  sndfbyptr.c sets up a set of #defines, so sndf.c and 
+	  the sndf* personality modules all use this layer.  
+	  Added SFFlushToEof that moves the pointer to the end 
+	  of file & resets the pos (ready to read any following 
+	  header).  Also, SFIdentify can return SFF_ZLEN as a pseudo-
+	  file type indicating the file attempted to be identified 
+	  was zero-length (as can happen at the end of a stream).  
+	  Also, sndfpcm always pulls four bytes from the start of 
+	  a file, then pushes them back, just to check that the 
+	  file isn't zero-length.
+	* Added sndNext to snd.[ch] to support this multi-file 
+	  paradigm.  Sequence is sndOpen; while(sndNext) {stuff} sndClose
+	  Also added next method to Sound.[CH] for same effect.
+	* sndrfmt now has such a loop, and, on query (-q), will report 
+	  for as many streams as it can pull from a file.  One by-product 
+	  of SFFlushToEof is that it tells you how long a sound actually 
+	  is, so sndrfmt always reads through a whole soundfile and 
+	  never reports lengths as UNKNOWN any more.
+	  sndplay also now respects multi-sound files, and will play 
+	  each part in sequence.
+	* test-sndrfmt has checks for sndrfmt reading each of 
+	  several files cat'd into a single file or a stream. 
+	  test-pcm checks that abbot streams with several files 
+	  are correctly read by sndrfmt.
+
+1997aug12 dpwe@icsi.berkeley.edu
+	* Moved Sound.[CH] back here from aprl, sound_otcl since the 
+	  same file was being used multiple places and diverging.  
+	  These files are never compiled, but are provided for C++ 
+	  access to the snd(3) objects.  The symbol DPWELIB_SRC_DIR
+	  was added to dpwelibConfig.sh just so that clients can 
+	  find Sound.[CH].
+
+1997aug04 dpwe@icsi.berkeley.edu
+	* proper support of SEEK_END-relative seeking even when sound 
+	  data ends before EOF (as in some AIFF files).  Checked OK
+	  via sound_otcl and manual frameSeek/frameTell pairs.
+
+1997aug02 dpwe@icsi.berkeley.edu
+	* final touches to cle rework - changed "*" to "?", added "|" 
+	  to separate different options, made boolean shorthands "*T" 
+	  and "*F work properly.
+	* wrote testsuite for cle stuff. cletest.tcl runs it.
+	  It should test the %d pattern but it doesn't yet.
+
+1997jul23 dpwe@icsi.berkeley.edu
+	* major rework of cle (command-line entries) package 
+	  - fixes catentation of single-char args -v -r 44100 == -vr44100
+	  - permits partial matches i.e. "-ras*ta" matches -ras, -rast, -rasta
+	  - partial matches & enhanced syntax for token tables
+	* wrote man page for cle (cle.man) & added it to the package
+	  in Makefile.in.
+	* fixed bug in sndrecord that would dump core if -v with some 
+	  error condition (e.g. unsupported srate).
+
+1997jul17 dpwe@icsi.berkeley.edu
+	* Changed the dpwelibConfig.sh to specify both BUILD and INSTALL
+	  versions of LIB_SPEC and INC_SPEC, so it can be used for in-place 
+	  builds of dependent packages (i.e. without install).  Modified 
+	  configure.in and Makefile.in accordingly, including building 
+	  a slightly altered dpwelibConfig-install.sh, which is the 
+	  one actually installed.
+
+1997jul03 dpwe@icsi.berkeley.edu
+        * Added an --enable-shared option to configure.in (including copying 
+	  in most of the shared-library logic from tcl7.6's configure.in), 
+	  and made some corresponding changes in Makefile.in.  This 
+	  doesn't (yet) actually build dpwelib as a shared object (although 
+	  it's close), but it ensures all the object is built position-
+	  independent (so that it can be successfully included in other 
+	  shared-object libs, specifically my APRL Tcl extension).
+	  Both regular and --enable-shared builds tested on solaris, sun4 
+	  and irix5 - test OK.
+
+1997jun20 dpwe@icsi.berkeley.edu
+	* Added "Abb" tag to PCMFORMAT string definition, added "flags"
+	  field to sndffname data records; implemented Abbot-RAW data 
+	  which has 0x8000 appended (or deleted) at end, and won't write 
+	  0x8000 in normal circumstances.  Needed *lots* of changes
+	* Extended the pcm tests to verify (& define) the order/precedence 
+	  of $PCMFORMAT, $SNDFFTYPE, -S PCM/...
+
+1997jun19 dpwe@icsi.berkeley.edu
+	* Added -A flag to sndrfmt to do "abbotClip" i.e. ensure no 
+	  0x8000s in actual sound data
+	* sndcmp.c was returning nonzero exit - added "exit(0)" at base.
+
+1997jun11 dpwe@icsi.berkeley.edu
+	* Changed SNDF_DFLT_CHANS to 1, so that default (e.g. of PCMFORMAT) 
+	  is mono, not stereo (sndf.h, sndf.man, test-pcm.tcl).
+	* Fixed alignment of buffer from which to read double in 
+	  sndfesps.c to make it work on irix6.2.
+
+1997may23 dpwe@icsi.berkeley.edu
+	* fixed to work (better) on Alpha (64-bit little-endian).  
+	  Only part that varies is sndrfmt -s / -a , which are 
+	  implicitly machine order.  Fixed NIST to write out 
+	  right order, and made both NIST and IRCAM write out 
+	  in big-endian order in all cases (regardless of machine order).
+
+1997may22 dpwe@icsi.berkeley.edu
+	* Added an "Eb" or "El" field to $PCMFORMAT to specify either 
+	  big or little endian raw data.  It used to assume machine order, 
+	  but now it defaults to big-endian.  sndf.man updated 
+	  accordingly, as was testsnds/test-pcm.tcl
+	* Allowed sndrsmp and sndrfmt to accept an output file name of 
+	  "-", meaning write to stdout.  This obsoletes the confusingly-
+	  chosen -o option (which used to mean write to stdout), which 
+	  is still supported for backwards compatibility, but not reported 
+	  in the usage messages, and noted as obsolete in the man pages.
+	* sndrfmt is now completely silent under normal operation (it 
+	  used to report the number of bytes written).  Means that I don't 
+	  have to 'catch' all the test exec's of it, which was letting me 
+	  miss some core dumps.
+	* the temporary output file is always deleted before being 
+	  reconstructed in the test scripts, so catastrophic failure 
+	  WILL be noticed.
+
+1997may19 dpwe@icsi.berkeley.edu
+	* Added experimental ESPS *.sd file reading as -S ESPS, sndfesps.c.
+	  Don't know how to generate these headers, just guessing at 
+	  reading them, but seems to work.  No reliable key -> no autosense.
+	* Changed PCMFORMAT code to accept only upper-case keyletters, 
+	  so now Fx can occur anywhere in string.
+	* Changed PCMFORMAT to accept R22 as shorthand for R22050, 
+	  also R8, R11, R16, R24, R32, R44, R48
+	* Changed -S option to sndrecord to be -T, for consistency with 
+	  other programs.
+	* Added a environment test in sndfbyptr.c: if $SNDFFTYPE is one 
+	  of the known sndfftype keywords, this will be used as the 
+	  default type for new sound files.  The compile-time default 
+	  (e.g. -DPCM) is only used if SNDFFTYPE is missing or unrecognzed.
+
+1997may16 dpwe@icsi.berkeley.edu
+	* Made it so that the PCMFORMAT string can be specified as 
+	  an addendum to the soundfile format string to override 
+	  environment e.g. "sndplay -S PCM/R16000C1Fs"
+
+1997may14 dpwe@icsi.berkeley.edu
+	* Added an "Xn" field to the PCMFORMAT environment code string 
+	  read by sndfpcm.c - to specify a number of bytes of unparsed 
+	  header to read on raw files.  Documented in sndf.man.  Appears 
+	  to work.
+
+1997apr10 dpwe@icsi.berkeley.edu
+	* Changed the C++ interface Sound.C and Sound.H to use char *mode 
+	  rather than char mode (i.e. "r" instead of 'r')
+	* Removed the reference to the global char* programName in 
+	  sndf.c .  Now the library doesn't need it at all.
+
+1997apr06 dpwe@icsi.berkeley.edu
+	* added cleExtractArgs to cle.{c,h} which parses the args it 
+	  knows and returns remaining (non-opt-like?) argv elements 
+	  (allows variable number of file args).
+
+1997mar21 dpwe@icsi.berkeley.edu
+	* added -X option to sndrfmt to skip bytes of unknown (esps) header
+
+1997mar11 dpwe@icsi.berkeley.edu
+	* fixed italics in sndf.man, some other command typos
+	* fixed reference to sndcvt in sndrfmt.man (now use sndrfmt)
+	* added a clarification in audIO.man & fixed a paren
+	* noted web homepage in README
+
+1997mar07 dpwe@icsi.berkeley.edu
+	* changed sndfbyptr.c:SF_Settype to ensure than an actual type 
+	  is recorded for every file it sees - having problems with 
+	  sndrfmt -S PCM -T AIFF using the AIFF fn to sffread (bcz 
+	  the PCM file was defaulting or something).
+	  - fixed it again to set to the default OR PREVAILING type 
+	  if called on file with no type yet registered.
+	* fixed null string bug in sndrfmt -v
+	* MAYBE_ID registers the type with the file even if it's 
+	  the preset prevailing type
+	* sndrfmt doesn't build the default output file extension 
+	  until it has installed user-requested output file type.
+        * removed strange fixup in sndfpcm that chopped four 
+	  bytes off the reported file length & swallowed them 
+	  - don't know why?? - put behind dummy BIZARREPAD #def
+	  (now SF_UNK_LEN PCM streams handled correctly)
+	* wrote test-sndrfmt.tcl script to try out a bunch of obvious 
+	  sndrfmt functions against the 'reference' files in testsnds/
+
+1997feb27 dpwe@icsi.berkeley.edu
+	* Modified Makefile.in to use more paranoid install idioms after
+	  problems w/ irix6.2 (kew.media.mit.edu)
+	* changed install so that lib header files go into dpwelib/
+	  subdirectory
+
+1997feb19 dpwe@icsi.berkeley.edu
+	First linux-supporting release made for SPRACHworks

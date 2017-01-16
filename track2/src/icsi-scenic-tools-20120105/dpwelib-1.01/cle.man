@@ -1,0 +1,292 @@
+.de Sh
+.br
+.ne 5
+.PP
+\fB\\$1\fR
+.PP
+..
+.de Sp
+.if t .sp .5v
+.if n .sp
+..
+.               \" Path Name
+.               \"      uses Courier fonts for V4.0
+.de PN
+.ie t \&\f(CB\\$1\f(NR\\$2
+.el \fI\\$1\fP\\$2
+..
+.		\" The following macros added by dpwe for Ultrix 4..
+.               \" Manual section reference
+.               \"      uses Courier fonts for V4.0
+.de MS
+.ie t \&\f(CB\\$1\f(NR(\\$2)\\$3
+.el \fI\\$1\fP(\\$2)\\$3
+..
+.de EX		\" Begin Example
+.ie \\n(.$ .nr EX \\$1n
+.el \{\
+.	ie n .nr EX 0n
+.	el .nr EX 0n
+.\}
+.in +\\n(EXu
+.if n .sp 1
+.if t .sp .5v
+.nf
+.CW
+.ft CB
+..
+.de EE		\" End example
+.in -\\n(EXu
+.fi
+.}f             \" restore basic text attributes
+.if n .sp 1
+.if t .sp .5v
+..
+.TH cle 3 "1997jul24" dpwe   \" $Header: /u/drspeech/repos/dpwelib/cle.man,v 1.5 2005/03/16 00:23:11 dpwe Exp $
+.SH NAME
+cle \- command-line interface utility functions.
+.SH SYNOPSIS
+.nf
+\fB#include <dpwelib/cle.h>\fR
+
+void \fBcleUsage\fR(CLE_ENTRY *\fIentries\fR, char *\fIprogramName\fR);
+int \fBcleSetDefaults\fR(CLE_ENTRY *\fIentries\fR);
+int \fBcleHandleArgs\fR(CLE_ENTRY *\fIentries\fR, int \fIargc\fR, char *\fIargv\fR[]);
+int \fBcleExtractArgs\fR(CLE_ENTRY *\fIentries\fR, int* \fIpargc\fR, char *\fIargv\fR[], int \fInoExtraArgs\fR);
+
+.fi
+.SH DESCRIPTION
+The 
+.PN cle
+library provides functions to simplify providing a 'standard' Unix 
+command line interface ("-key arg ...") to programs.  It has the following features:
+.TP 4
+- 
+a table provides for specification of argument keys, types and usage messages 
+in a single location.
+.TP 4
+- 
+allows multiple-character keys (e.g. "-infile foo") with selectable minimum 
+match length (e.g. accept "-inf foo" but not "-in foo").
+.TP 4
+- 
+automatic mapping of symbolic arguments to integer values via a table 
+(to permit "-alg std" rather than "-alg 0").
+.TP 4
+- 
+single-character keys may be run together with their args and with 
+non-argument taking flags (thus "-v -d 5" is the same as "-vd5")
+.TP 4
+- 
+support for keys that do not begin with "-".
+.TP 4
+- 
+callback hook for more complex argument mappings.
+.P
+When using the 
+.PN cle
+library, the command line interface is defined by a table of 
+\f4CLE_ENTRY\f1 structures, with the following form:
+.RS
+.LP
+.ta .5i +2.5i +.5i
+.nf
+.ft 3
+.\"typedef struct {    /\(** a command line entry \(**/
+	char *flag;	/\(** e.g. "-n" or "-r|--ras?ta" \(**/
+	int  type;	/\(** CLE_T_INT, CLE_T_FLOAT ... \(**/
+	char *usage;	/\(** usage message for this entry \(**/
+	char *deflt;	/\(** text for default value \(**/
+	void *where;	/\(** address of variable to set \(**/
+	cleSpecialSetFn specialfn;	/\(** fn to call for _T_SPEC \(**/
+	void *specData;	/\(** extra data e.g. token table \(**/
+.\"} CLE_ENTRY;.ft
+.fi
+.RE
+.LP
+The \f4flag\f1 string defines the actual key, including any prefix 
+character; if the first character is "-", special treatment such as 
+permitting single-character-agglomeration is enabled.  
+Acceptable truncations of flags may be 
+indicated by including a '?' in the string after the minimum 
+prefix, and 
+alternate versions for the same flag may be separated by a '|' character, 
+(both as for the \f4CLE_TOKEN\f1 strings described below).
+The \f4usage\f1 string defines the purpose 
+of the flag, and is used, in conjunction with the \f4flag\f1 and 
+\f4type\f1 fields to build the overall usage message.  \f4deflt\f1 is the 
+default value for the argument, specified as a string that will be 
+subjected to the conversions implied by the flag \f4type\f1 (or NULL to 
+prevent setting a default value).  
+The \f4type\f1 field defines the type of the 
+argument which is pointed to by \f4where\f1, and must be one of the 
+following keys defined in \f4cle.h\f1:
+.ta .5i +1.5i +.5i
+.nf
+	\f4CLE_T_INT\f1	argument is an int
+	\f4CLE_T_LONG\f1	argument is a long int
+	\f4CLE_T_FLOAT\f1	argument is a float
+	\f4CLE_T_TIME\f1	argument is a time in [[hh:]mm:]ss.sss format
+	\f4CLE_T_STRING\f1	string value of argument copied directly
+	\f4CLE_T_BOOL\f1	flag takes no argument and increments an int
+	\f4CLE_T_INVBOOL\f1	flag takes no argument and decrements an int
+	\f4CLE_T_TOKEN\f1	argument is mapped to an int via a table
+	\f4CLE_T_SPECIAL\f1	argument is passed to a callback
+	\f4CLE_T_USAGE\f1	dummy, for adding text to usage message
+	\f4CLE_T_END\f1	marker for end of CLE_ENTRY table
+.fi
+.LP
+Note that \f4CLE_T_BOOL\f1 implicitly has a default value of 0, and 
+\f4CLE_T_INVBOOL\f1 implicitly has a default value of 1.  The contents 
+of the \f4deflt\f1 field is ignored for these types.
+.P
+The \f4specialfn\f1 field is a pointer to a function of the form
+.EX
+int cleSpecialSetFn(char *arg, void *where, char *flag, void *data);
+.EE
+\f1
+used only if the type is \f4CLE_T_SPECIAL\f1.  This function is passed 
+the actual flag key in \f4flag\f1, the potential argument value in 
+\f4arg\f1, the address to which the converted value should be written 
+(from the CLE_ENTRY) in \f4where\f1, and a pointer to additional data 
+(the \f4specData\f1 field of the CLE_ENTRY) in \f4data\f1.  The function 
+should return 1 if the argument was recognized and used, 0 if the flag 
+was correct but the argument was not used (i.e. the argument should be 
+interpreted as another flag) or -1 (or any other value) to indicate a 
+parsing error.
+.P
+The CLE_ENTRY \f4specData\f1 field is also used to pass the token table 
+for \f4CLE_T_TOKEN\f1 flags.  This table is an array of CLE_TOKEN 
+structures, which consist of simply a string and an integer; if the flag's 
+argument matches the string, the value is set to that of the integer.  
+There are a number of special cases for the token string, however:
+.TP 12
+"abc|def"
+indicates several alternate patterns that should be accepted equivalently.
+Thus "abc|def" matches either "abc" or "def".
+.TP 12
+"abc?de"
+indicates that the part before the '?' is obligatory, but the 
+remainder is optional.  Thus "abc?def" matches "abc", "abcd", "abcde" 
+but does not match "ab" or "abce".
+.TP 12
+"*T", "*F" 
+are shorthands for generic boolean specifiers.  "*T" maps
+to "y?es|t?rue|1" and "*F" maps to "n?o|f?alse|0".
+.TP 12
+"%d"
+is a special token indicating that any valid decimal integer will be 
+accepted, and its value will be written into the argument (in this case, 
+the integer portion of the CLE_TOKEN structure is ignored and should 
+be set to 0).
+.TP 12
+"%f"
+is like "%d" except any valid real value will be accepted.  Because the 
+returned value is always an INT (since it may be one of the symbolic 
+values), the float value is multiplied by the associated integer portion 
+of the CLE_TOKEN structure before being written as the return value.
+.TP 12
+""
+indicates that, if none of the other patterns are matched, the flag 
+is permitted to be specified without an argument value, in which case 
+its value is the specified integer.  This allows "-debug" to be made 
+an alias for "-debug true" etc.  Because patterns are matched in order, 
+this condition, if used, should always be at the bottom of the table.
+.P
+The CLE_TOKEN table is terminated by an entry with a NULL string.
+
+.SH FUNCTIONS
+\fBcleSetDefaults\fR is passed a pointer to the CLE_ENTRY table and sets 
+up all the arguments for which default value strings were provided.
+.P
+\fBcleHandleArgs\fR is passed the CLE_ENTRY table pointer as well as 
+the \f4argc\f1 and \f4argv\f1 passed to the \fBmain\fR procedure, and 
+sets the argument values accordingly.  A non-zero return indicates 
+errors parsing the command line arguments (which will already have
+been reported to standard error).
+.P
+\fBcleExtractArgs\fR is almost the same, except if the \f4noExtraArgs\f1 
+flag is not set, unrecognized arguments will not cause errors, but will 
+simply be skipped.  On return, \f4*pargc\f1 and \f4argv\f1 have been 
+modified to contain the command-line arguments that were not matched 
+by the parsing process.  This allows, e.g., variable numbers of 
+subsequent filenames to be passed through the cle functions.
+.P
+\fBcleUsage\fR prints a usage message to the standard error stream, 
+based on the CLE_ENTRY table and program name passed to it.
+
+.SH EXAMPLES
+The following example code shows a number of the library features:
+.EX
+enum {AWCMP_MPEG_LAYER_I, AWCMP_MPEG_LAYER_II, AWCMP_MULTIRATE};
+CLE_TOKEN algoTable[] = {
+    { "mpeg?1|mp1", AWCMP_MPEG_LAYER_I },
+    { "mpeg2|mp2",  AWCMP_MPEG_LAYER_II },
+    { "mr"   ,  AWCMP_MULTIRATE },
+    { NULL, 0 }
+};
+
+#define DFLT_ALGO "mpeg"
+#define DFLT_FXBR 192000
+int algoType;
+int fixedBR;
+int nokbd;
+char *inpath, *outpath;
+
+CLE_ENTRY clargs[] = {
+    { "-a", CLE_T_TOKEN,  "algorithm type",
+	  DFLT_ALGO, &algoType, NULL, algoTable },
+    { "-F|-fix?br", CLE_T_LONG, "fixed bitrate",
+	  QUOTE(DFLT_FXBR), &fixedBR, NULL, NULL },
+    { "-nokbd", CLE_T_BOOL, "ignore the keyboard interrupt",
+	  NULL, &nokbd, NULL, NULL },
+    { "", CLE_T_STRING, "input sound file name",
+	  NULL, &inpath, NULL, NULL },
+    { "", CLE_T_STRING, "output compressed file name",
+	  NULL, &outpath, NULL, NULL },
+    { "", CLE_T_END, NULL,	
+	  NULL, NULL, NULL, NULL }
+};
+
+int main(int argc, char **argv) {
+    cleSetDefaults(clargs);
+    if(cleHandleArgs(clargs, argc, argv)) {
+	cleUsage(clargs, argv[0]);
+	exit(-1);
+    }
+    ...
+.EE
+\f1
+Note the use of the \f4QUOTE\f1 macro (defined in cle.h) to convert 
+a manifest integer into a string suitable to be a default value. 
+.P
+The final pair of empty flags accept two unqualified argument values
+Thus the program could be invoked as:
+.EX
+program -ampeg -fix 96000 infile.snd outfile.cmp
+.EE
+\f1
+
+.SH CAVEATS
+Patterns are matched in the order they are specified; potential 
+ambiguities should be avoided by placing shorter alternatives later in the 
+list.  In particular, mixing single and multiple-character flags can 
+cause confusion due to single-character flag agglomeration - caution is 
+advised.
+.SH BUGS
+"*T" and "*F" expansions are case sensitive.
+.P
+The automatic usage message ought to provide a little more interpretation 
+of the special-case token flags.
+.P
+There's nothing to check that you don't submit ambiguous tables (or 
+tables you probably don't mean), such as specifying -a before 
+-algorithm; the latter would satisfy the former pattern (which would be
+read as "-a lgorithm" or "-a -lgorithm) and thus never be used.
+.P
+Yet another set of pseudo-conventions and functional interface for 
+Unix command-line handling.
+
+.SH AUTHOR
+Dan Ellis, 
+.B dpwe@icsi.berkeley.edu

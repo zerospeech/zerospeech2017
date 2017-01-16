@@ -1,0 +1,65 @@
+$Header: /u/drspeech/repos/feacalc/INSTALL-icsi,v 1.7 2012/01/05 20:30:15 dpwe Exp $
+
+The install procedure for releasing a new version of feacalc and installing
+it at ICSI is something like:
+
+ - Add the new feature and test it.  Make sure it compiles on both
+   Solaris and Linux.
+ - Update man pages if necessary, plus maybe the README and INSTALL files.
+ - Check all of the program/doc changes into CVS.
+ - Update the NEWS file to detail the changes in the release.
+ - Update the AC_INIT section configure.in file with the new version number.
+ - Build the new configure file by running a "make" (don't do this on
+   Solaris at ICSI because the corresponding autoconf is too old!)
+
+	   make
+
+ - Check the following files into CVS: configure.in, configure, NEWS
+	   
+	   cvs ci NEWS configure.in configure
+
+ - Tag the version in cvs, e.g.
+
+	   cvs tag -c v0_91
+
+   Note that the tag must start with a letter.
+
+ - Make a distribution
+
+	mkdir DIST
+	cd DIST
+	../configure \
+	        --with-dpwelib=/u/drspeech/i586-linux/lib \
+		--with-quicknet=/u/drspeech/i586-linux/lib \
+		--with-rasta=/u/drspeech/i586-linub/lib \
+	make dist
+
+ - Arrange to put the resulting tar file in /u/ftp/pub/real/davidj/
+   and point the default feacat.tar.gz link to it
+ - Build sun4-sunos5 and i586-linux versions for /u/drspeech with a
+   suffix so users can select specific versions.
+
+    o Untar a version into /u/drspeech/src/
+
+         cd /u/drspeech/src/
+	 tar xvfz /u/ftp/pub/real/davidj/feacat.tar.gz
+        
+    o Configure, build and install the i586-linux version, e.g.
+         mkdir H-i586-linux
+	 cd H-i586-linux
+	 ../configure \
+	        --with-dpwelib=/u/drspeech/i586-linux/lib \
+		--with-quicknet=/u/drspeech/i586-linux/lib \
+		--with-rasta=/u/drspeech/i586-linux/lib \
+		--program-suffix=-v0_91
+	make
+	sux drspeech
+	make install
+		
+    o Configure, build and install the sun4-sunos5 version
+
+ - Send an E-mail to speech-users@icsi.berkeley.edu and
+   icsi-speech-tools@yahoogroups.com detailing the release.
+ - At a later date, after testing and sufficient notice, make the
+   sufficed version the default version with appropriate soft links.
+

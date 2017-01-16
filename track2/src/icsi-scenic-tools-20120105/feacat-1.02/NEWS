@@ -1,0 +1,43 @@
+# $Header: /u/drspeech/repos/feacat/NEWS,v 1.11 2010/10/29 03:41:52 davidj Exp $
+
+ - Added some fixes for the latest version of gcc (from dpwe)
+
+====================
+=== feacat 1.01 ====
+====================
+
+ - Added the "-usedoubleslash" option so the "//" syntax for parallel
+   feature files isn't enabled by default (it causes more trouble than
+   it's worth!)  
+ - Fixed "ascii" format so it uses %g for output and added "asciif" which
+   uses the version 1.00 and before %f output.
+ - Added config.sub and config.guess to dist.
+
+====================
+=== feacat 1.00 ====
+====================
+
+Changes from 0.2 include:
+ - Fixed a memory read error in the fopen_gz routine that'd been sitting
+   there for many years until valgrind found it.
+ - Added "-tranform safelog ".
+
+====================
+=== feacat 0.2 ===
+====================
+
+This is a new version of feacat based on the previous version
+nominally called 0.1 that was maintained by Dan Ellis and others.
+Until version 0.2 there wasn't a news file.
+
+Changes from 0.1 include:
+ - Large file support added so will work with >32bit pfiles if linked
+   with an approriate version of QuickNet.
+ - Addition of the -sriftrname argument.
+ - Addition of a license identical to the one included with QuickNet.
+ - Now works exclusively with quicknet3 and quicknet3.pc package
+   config file.
+ - Addition of --with-quicknet configure argument.
+ - Support for program_suffix et al added to configure
+ - Usage message now includes package version number rather than RCS header.
+ - Source now under CVS.

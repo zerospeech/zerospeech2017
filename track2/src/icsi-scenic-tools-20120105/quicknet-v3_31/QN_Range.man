@@ -1,0 +1,208 @@
+.de Sh
+.br
+.ne 5
+.PP
+\fB\\$1\fR
+.PP
+..
+.de Sp
+.if t .sp .5v
+.if n .sp
+..
+.               \" Path Name
+.               \"      uses Courier fonts for V4.0
+.de PN
+.ie t \&\f(CB\\$1\f(NR\\$2
+.el \fI\\$1\fP\\$2
+..
+.		\" The following macros added by dpwe for Ultrix 4..
+.               \" Manual section reference
+.               \"      uses Courier fonts for V4.0
+.de MS
+.ie t \&\f(CB\\$1\f(NR(\\$2)\\$3
+.el \fI\\$1\fP(\\$2)\\$3
+..
+.de EX		\" Begin Example
+.ie \\n(.$ .nr EX \\$1n
+.el \{\
+.	ie n .nr EX 0n
+.	el .nr EX 0n
+.\}
+.in +\\n(EXu
+.if n .sp 1
+.if t .sp .5v
+.nf
+.CW
+.ft CB
+..
+.de EE		\" End example
+.in -\\n(EXu
+.fi
+.}f             \" restore basic text attributes
+.if n .sp 1
+.if t .sp .5v
+..
+.TH QN_Range 3 "$Date: 1999/11/04 05:53:19 $" ICSI "ICSI SPEECH SOFTWARE"
+.SH NAME
+QN_Range \- C++ class to handle compact definitions of sets of integers
+.SH SYNOPSIS
+.nf
+\fB#include <QN_Range.H>\fR
+
+QN_Range::\fBQN_Range\fR(char *\fIspec\fR, int \fIminval\fR=0, int \fIulimval\fR=RNG_VAL_BAD);
+int QN_Range::\fBSetLimits\fR(int \fIminval\fR=0, int \fIulimval\fR=RNG_VAL_BAD);
+int QN_Range::\fBSetDefStr\fR(char *\fIspec\fR);
+int QN_Range::\fBlength\fR(void);	// total number of points in range
+int QN_Range::\fBfirst\fR(void);	// first value in list, substitute for min()
+int QN_Range::\fBlast\fR(void);	// last value in list, like max()
+int QN_Range::\fBcontains\fR(int val);	// how many times does val occur?
+int QN_Range::\fBfull\fR(void);	// is this the range of "all"?
+QN_Range::iterator QN_Range::\fBbegin\fR(void);
+
+int QN_Range::iterator::\fBat_end\fR(void);
+QN_Range::iterator& QN_Range::iterator::\fBoperator ++\fR(void);
+int QN_Range::iterator::\fBoperator *\fR(void);
+int QN_Range::iterator::\fBint\fR(void);
+
+.fi
+.SH DESCRIPTION
+The 
+.PN QN_Range
+library provides functions to simplify the specification of lists of
+integers through a command-line interface.  The basic object takes as
+input a definition string (typically entered by a user through a 
+command-line interface)
+along with optional minimum and maximum values, and can then be used as
+the basis for an iterator that will step through each distinct value
+indicated by the definition string.  The C++ class and 
+definition string syntax offer the following features:
+.TP 4
+- 
+Simple comma- or space-separated lists (e.g. "1,2,3,4" or "5 10 15 20").
+.TP 4
+-
+True lists, respecting repetitions and order (i.e. not just sets).  Thus 
+"1,2,3,4" is different from "4,3,2,1" and "1,1,2,3,4" is different again.
+.TP 4
+- 
+Ranges specified in simple form (e.g. "1-4") or Matlab-style, including 
+an optional step size (e.g. "5:5:20").
+.TP 4
+- 
+List terms may have certain values excluded, indicated by a second 
+list after a slash.  Thus "1:10/5" is 
+the same as "1,2,3,4,6,7,8,9,10".  Exclusion sets take the same form 
+as inclusion lists, and it's OK to exclude values not in the original 
+list, thus "0:2:99/20-29" gives all the even numbers under 100 except 
+those in the twenties.  (As sets, exclusion lists are 
+.I not
+sensitive to order or repetition).
+.TP 4
+- 
+Multiple terms can be concatenated in a single statement using a 
+semicolon separator.  Thus 
+"1:8/3,5;11:18/13,15" is the same as "1,2,4,6,7,8,11,12,14,16,17,18".
+(Note that the semicolon separator requires the entire specification 
+to be quoted in most shells).
+.TP 4
+- 
+Support Jeff's "^n" syntax to meaning n steps before the end, when the 
+list is being defined over a known range.  Also, "all" is a synonym for 
+"0:^0" (for data that start at 0), which is the same as plain ":" (in 
+Matlab fashion).  "nil" is a synonym for "", meaning no elements.
+.TP 4
+- 
+Range specifications can be read from file by specifying the range 
+string as "@filename.txt".  The entire file is parsed, with each 
+line treated as a separate range (i.e. linebreaks are treated like 
+semicolons).  (Previously, the file was read incrementally by 
+the iterator and could only contain simple explicit lists, but 
+this has been superceded.)
+.TP 4
+- 
+Software interface requires minimal changes to code that uses 
+Jeff's existing range.h object, at least in its most common form.
+.P
+The object was based on the Range class used extensively in 
+Jeff Bilmes's
+.MS pfile_utils 1 
+package, but incorporates additional features suggested by 
+Eric Fosler-Lussier.
+.P
+The actual use of the object is pretty straightforward.  The 
+range-specification string \fIspec\fR can be specified in the 
+constructor, or later with \f4SetDefStr\f1.  The minimum and 
+maximum sensible values are used for the default values in 
+cases such as "all", ":", "n:" and ":n", and can be specified 
+in the constructor or with \f4SetLimits\f1; note that limits 
+are only used to set these defaults, and there is no other range 
+checking e.g. to reject explicitly-specified values outside 
+the limits.  
+.B Note also that the \f4ulimval\f1 
+.B is actually one beyond the maximum allowable value in the range, for consistency with Jeff's range.
+Thus \f4QN_Range("all",a,b)\f1 corresponds to a:(b-1) in Matlab notation.
+The limits or the 
+specification string can be changed at any time, whereupon the 
+the actual set is recalculated.  \f4length\f1 returns the actual 
+number of points implied by the current list specification.
+.P
+Again for consistency with Jeff's code, and as a special case, a 
+\fIspec\fR string of NULL (i.e. 0) is equivalent to "all".
+.P
+The specified range is accessed through the \f4QN_Range::iterator\f1
+subclass.  This can be initialized from the QN_Range object's 
+\f4begin\f1 method, then stepped through its sequence of 
+values with the \f4++\f1 operator until the \f4at_end\f1 method 
+becomes true, indicating end-of-list (\f4--\f1 is not supported). 
+The current value is conveniently retrieved via the \f4*\f1 
+operator (or simply by casting the iterator to an \f4int\f1).
+.P
+\f4first\f1 and \f4last\f1 return, respectively, the first and last 
+elements that would be returned by an iterator stepping through the 
+list.  They are sometimes substitutes for the \f4min\f1 and \f4max\f1 
+methods provided in Jeff's range class, although because ranges 
+can be non-monotonic, there is no particlar reason why the last value 
+should be the largest.  \f4contains\f1 returns the number of times 
+a particular value will be retured by an iterator stepping through the 
+list (and is thus zero if the value is not contained).  \f4full\f1 
+checks that the defined range covers all possible values for that 
+dataset in simple ascending order, as it will if the range string 
+was "all".
+.P
+The QN_Range object is part of the QuickNet library.  It is 
+defined in the files 
+QN_Range.h and QN_Range.cc in the /u/drspeech/src/quickknet directory.  
+QN_Range.cc includes the source for the qnrange demo program, 
+and you can find an example of how to use an iterator 
+at the bottom of that file.
+.SH FORMAL SYNTAX
+The specification syntax is defined a little more formally in the 
+following grammar:
+.ta .5i +1.2i +2.5i
+.nf
+	RANGESPEC	-> \fB@\fRFILENAME|RANGELIST	Top level can be file of indices
+	RANGELIST	-> RANGETERM[\fB;\fRRANGELIST]	Semicolon-separated terms
+	RANGETERM	-> SEQUENCE[\fB/\fRSEQUENCE]	Items after slash are excluded
+	SEQUENCE	-> RANGE[\fB,\fRSEQUENCE]	Comma-separated terms 
+	RANGE   	-> [POS][[\fB:\fRNUM]\fB:\fR[POS]]	Matlab range specification
+	POS	-> [\fB^\fR]NUM	Jeff's from-the-end format
+.fi
+.LP
+"-" is a synonym for ":", SPACE is a synonym for "," and 
+RETURN is a synonym for ";". 
+.SH BUGS
+The "@filename" extension compiles the entire file into memory when 
+it is executed.  Originally, I avoided this so there would be no limit 
+on the size of specification that could be read from file, but 
+realistically the longest specs defined in files are only tens of 
+thousands of numbers long, and the worst-case memory usage is 16 bytes 
+per pair of values (since any two distinct values are compiled down to a 
+two-element list), so we're only talking a few megabytes.  Some of the 
+old code, which had the iterator incrementally reading the original 
+index file, is still there, but it isn't used at all.
+.SH SEE ALSO
+.MS feacat 1 ,
+.MS pfile_utils 1 .
+.SH AUTHOR
+Dan Ellis, 
+.B dpwe@icsi.berkeley.edu

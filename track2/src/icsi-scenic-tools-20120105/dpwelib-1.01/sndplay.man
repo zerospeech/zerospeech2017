@@ -1,0 +1,190 @@
+.de Sh
+.br
+.ne 5
+.PP
+\fB\\$1\fR
+.PP
+..
+.de Sp
+.if t .sp .5v
+.if n .sp
+..
+.               \" Path Name
+.               \"      uses Courier fonts for V4.0
+.de PN
+.ie t \&\f(CB\\$1\f(NR\\$2
+.el \fI\\$1\fP\\$2
+..
+.		\" The following macros added by dpwe for Ultrix 4..
+.               \" Manual section reference
+.               \"      uses Courier fonts for V4.0
+.de MS
+.ie t \&\f(CB\\$1\f(NR(\\$2)\\$3
+.el \fI\\$1\fP(\\$2)\\$3
+..
+.de EX		\" Begin Example
+.ie \\n(.$ .nr EX \\$1n
+.el \{\
+.	ie n .nr EX 0n
+.	el .nr EX 0n
+.\}
+.in +\\n(EXu
+.if n .sp 1
+.if t .sp .5v
+.nf
+.CW
+.ft CB
+..
+.de EE		\" End example
+.in -\\n(EXu
+.fi
+.}f             \" restore basic text attributes
+.if n .sp 1
+.if t .sp .5v
+..
+.TH SNDPLAY 1 "1996 nov 19" dpwe   \" $Header: /u/drspeech/repos/dpwelib/sndplay.man,v 1.10 2000/03/30 20:22:10 dpwe Exp $
+.SH NAME
+sndplay - play a soundfile through audio hardware.
+.SH SYNOPSIS
+\fBsndplay 
+[\-r \fIsampleRate\fB]
+[\-b \fIbufferSize\fB]
+[\-z \fIchunkSize\fB]
+[\-c \fIchannels\fB]
+[\-S \fIsffmt\fB]
+[\-K \fIskipFrames\fB]
+[\-D \fImaxFrames\fB]
+[\-k \fIskiptime\fB]
+[\-d \fImaxtime\fB]
+[\-e \fIendtime\fB]
+[\-g \fIgain\fB]
+[\-l] 
+[\-m] 
+[\-q]
+[\-v] 
+[\fIinputSoundFiles ...\fB]
+\fR
+.SH DESCRIPTION
+.PN sndplay
+plays a soundfile through built-in audio hardware.  Although most 
+systems provide their own command to do this, 
+.PN sndplay
+provides a single interface to this function that has been ported 
+over a number of Unix implementations, and can be compiled to accept 
+a range of soundfile formats (using the 
+.MS sndf 3
+sound file interface library).
+.SH OPTIONS
+.TP 12
+.B \-r \fIsampleRate\fR
+Force the soundfile to be played at the specified sampling rate 
+(without resampling), so the sampling rate in the header will be 
+ignored.
+.TP 12
+.TP 12
+.B \-g \fIgain\fR
+Scale each sample by this factor before playback e.g. to boost 
+very quiet samples.  The factor is a floating point number;
+default value of 1.0 performs no modification.
+.TP 12
+.B \-b \fIbufferSize\fR
+The size (in frames) of the buffer that will be requested for the 
+audio hardware.  This buffer size needs to be a compromise between 
+processing delay and system responsiveness.  Only some systems 
+provide control of this buffer.
+.TP 12
+.B \-z \fIchunkSize\fR
+The size (in frames) of the blocks which will be passed to the audio 
+hardware.  Although the program will attempt to choose the 'right' value 
+for the available conditions, certain stressful situations may require 
+hand-tuning to achieve a good balance of low overhead load and latency, 
+or to accommodate intrinsic system limitations on buffer size. 
+The default value is half the buffer size.
+.TP 12
+.B \-K \fIskipFrames\fR
+Skip over this many frames at the beginning of the sound (after reading the 
+header).  This is provided mainly to permit the test routines use sndplay 
+as a way to test the seek function within the 
+.MS snd 3
+library!
+.TP 12
+.B \-D \fImaxFrames\fR
+Play at most this many frames from the sound file.  Thus, -K and -D 
+may be used in conjunction to play any subset of a long soundfile.
+.TP 12
+.B \-k \fIskiptime\fR
+Skip over this amount of time (in sencods) at the beginning of 
+the sound.  This option takes precedence over -K if both 
+are specified.
+.TP 12
+.B \-d \fImaxtime\fR
+Play sound for at most this long, specified in seconds.  This 
+option takes precedence over -D if both are specified.
+.TP 12
+.B \-e \fIendtime\fR
+As an alternative to specifying the duration, you can specify the 
+end time (in seconds), which takes precedence over the duration.  
+In this case, the sound will be played from skiptime to endtime, or 
+to EOF if this comes first.
+.TP 12
+.B \-c \fIchannels\fR
+Convert the sound data to have this many channels before playing it.  
+Unlike the -b option, this option does respect the number of channels 
+specified in the soundfile header, but will either combine or distribute 
+them so that the data passed to the hardware has exactly the requested 
+number of channels.
+.TP 12
+\fB\-S \fIsffmt\fR
+Force the input soundfile to be treated as the type specified by 
+the keyword.  This only applies if the 
+.MS sndf 3
+library has been compiled to use run-time determination of soundfile 
+type; otherwise this option is ignored.  When it is active, the 
+available soundfile keywords are listed in the usage message:
+.EX
+sndplay --
+.EE
+but currently include "AIFF" (Mac/SGI), "NeXT" (Sun/NeXT *.au/*.snd), 
+"MSWAVE" (Microsoft RIFF/WAVE), "NIST" (NIST/SPHERE) and "PCM" 
+(raw data, format optionally controlled by PCMFORMAT environment 
+string or extra arguments after a slash, see
+.MS sndf 3
+).
+.TP 12
+.B \-l
+Loop the soundfile to produce continuous, unending playback.
+.TP 12
+.B \-m
+Attempt to read multiple soundfiles from the stream, for formats such 
+as Abbott that support concatenated streams.  By default, each stream 
+is just discarded after the first sound is read from it.
+.TP 12
+.B \-q
+No-play operation (literally quiet).  Goes through all the motions of
+playing sounds (including reporting messages to the console), but does 
+not attempt to open sound hardware or write samples to it.  This is 
+to allow sndplay to be used as a test program for the 
+.MS snd 3
+interface without it making a lot of noise.
+.TP 12
+.B \-v
+Verbose mode - print diagnostic messages.
+.TP 12
+.B InputSoundFiles...
+Zero or more soundfiles to be played in the order specified.  If there are 
+none, sound input will be accepted from a pipe feeding the standard input.
+.SH BUGS
+Should maybe provide options to override all the 'header' information 
+(sample rate, number of channels, sample format).
+.SH NOTES
+This program was originally called 'newplay' and was installed on the 
+Media Lab Machine Listening Group machines as plain 'play'.  At ICSI, it 
+is called 'sndplay' to reflect its common heritage with sndcvt and sndrfmt. 
+(all using dpwelib).
+.SH SEE ALSO
+.MS sndf 3
+.SH AUTHOR
+Dan Ellis, 
+.B dpwe@icsi.berkeley.edu 
+(written as dpwe@media.mit.edu)
+

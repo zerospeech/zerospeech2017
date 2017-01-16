@@ -1,0 +1,11 @@
+prefix=@QN_BUILDDIR@
+exec_prefix=${prefix}
+libdir=${prefix}
+includedir=@QN_SRCDIR@
+
+Name: QuickNet
+Description: QuickNet MLP Training Program and Library (uninstalled)
+Version: @PACKAGE_VERSION@
+Requires: 
+Libs: -L${libdir} @LDFLAGS@ -lquicknet3 @LIBS@
+Cflags: -I${libdir} -I${includedir} @CXXFLAGS@ @CPPFLAGS@

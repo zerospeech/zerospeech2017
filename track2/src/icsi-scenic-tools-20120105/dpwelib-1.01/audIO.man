@@ -1,0 +1,159 @@
+.de Sh
+.br
+.ne 5
+.PP
+\fB\\$1\fR
+.PP
+..
+.de Sp
+.if t .sp .5v
+.if n .sp
+..
+.               \" Path Name
+.               \"      uses Courier fonts for V4.0
+.de PN
+.ie t \&\f(CB\\$1\f(NR\\$2
+.el \fI\\$1\fP\\$2
+..
+.		\" The following macros added by dpwe for Ultrix 4..
+.               \" Manual section reference
+.               \"      uses Courier fonts for V4.0
+.de MS
+.ie t \&\f(CB\\$1\f(NR(\\$2)\\$3
+.el \fI\\$1\fP(\\$2)\\$3
+..
+.de EX		\" Begin Example
+.ie \\n(.$ .nr EX \\$1n
+.el \{\
+.	ie n .nr EX 0n
+.	el .nr EX 0n
+.\}
+.in +\\n(EXu
+.if n .sp 1
+.if t .sp .5v
+.nf
+.CW
+.ft CB
+..
+.de EE		\" End example
+.in -\\n(EXu
+.fi
+.}f             \" restore basic text attributes
+.if n .sp 1
+.if t .sp .5v
+..
+.TH audIO 3 "1997 feb 06" dpwe   \" $Header: /u/drspeech/repos/dpwelib/audIO.man,v 1.2 1997/03/11 20:30:38 dpwe Exp $
+.SH NAME
+audIO - portable interface layer for sound input/output hardware.
+.SH SYNOPSIS
+.nf
+\fB#include <audIO.h>\fR
+
+AUSTRUCT \fI*\fBAUOpen\fR(int \fIformat\fR, double \fIsrate\fR, int \fIchans\fR, long \fIdesbuf\fR, int \fImode\fR);
+void	\fBAUClose\fR(AUSTRUCT *\fIau\fR, int \fInow\fR);
+long	\fBAURead\fR(AUSTRUCT *\fIau\fR, void *\fIbuf\fR, long \fIframes\fR);
+long	\fBAUWrite\fR(AUSTRUCT *\fIau\fR, void *\fIbuf\fR, long \fIframes\fR);
+long	\fBAUBufConts\fR(AUSTRUCT *\fIau\fR);
+long	\fBAUBufSpace\fR(AUSTRUCT *\fIau\fR);
+long	\fBAUDroppedFrames\fR(AUSTRUCT *\fIau\fR);
+.fi
+.SH DESCRIPTION
+The 
+.PN audIO
+library provides a portable way to write programs that use the sound 
+input and output facilities available on many workstations.  A single 
+functional interface can be used in applications, which will then run 
+on any architecture for which a back-end has been written.  Supported 
+platforms include SGI Indigo, SUN Sparcstations, DEC Alpha and Linux OSS.  
+.SH USAGE
+An opaque \f4AUSTRUCT\f1 is created by \fBAUOpen\fR which establishes a 
+link to the audio hardware, and configures it for the sampling rate and 
+channel count requested.  Where hardware cannot support the requested 
+data characteristics directly, the library may provide on-the-fly 
+translation, or it may return a NULL pointer indicating failure.  
+Otherwise, a pointer to the \f4AUSTRUCT\f1 is returned which is used 
+to refer to the channel in all the other calls.  The \f4format\f1 
+argument to \fBAUOpen\fR specifies the representation used 
+for the samples pointed 
+to by the \f4buf\f1 arguments to \fBAURead\fR and \fBAUWrite\fR, 
+and takes one of the \f4AFMT_\f1 codes defined 
+in \f4audIO.h\f1, which mirror the \f4SFMT_\f1 codes used in 
+.MS sndf 3 .
+\f4mode\f1 is either \f4AIO_INPUT\f1 or \f4AIO_OUTPUT\f1 for record 
+or playback operations respectively.  \f4desbuf\f1 requests the number of 
+sample frames (one sample for each channel) that the hardware should 
+buffer.  Smaller values give less delay through the audio hardware, but 
+increase the risk of buffer under or overruns.  Passing a \f4desbuf\f1 of 
+zero selects a default value for the platform.  Not all implementations 
+permit buffer size specification.
+.P
+When a sound operation is complete, \fBAUClose\fR releases the audio 
+hardware and destroys the \f4AUSTRUCT\f1.  If the \f4now\f1 argument is 
+nonzero, a port opened for output will be closed as soon as possible, 
+otherwise any samples buffered for output will be played before closing 
+the port.
+.P
+\fBAUWrite\fR and \fBAURead\fR are used to supply and obtain samples to and 
+from the hardware respectively.  The actual number of sample frames 
+transferred is returned, which will be zero on error.  \fBAURead\fR may 
+only be used on ports opened with mode \f4AIO_INPUT\f1, and \fBAUWrite\fR 
+may only be used on ports opened with mode \f4AIO_OUTPUT\f1.  The format of 
+the data pointed to by \f4buf\f1 is determined by the \f4format\f1 
+argument passed to \fBAUOpen\fR.
+.P
+\fBAUBufConts\fR is used in conjunction with an output port to read how 
+many frames remain in the output buffer waiting to be written out.  Where 
+supported, this can be used for synchronization.  However, some platforms 
+allow only very crude estimation of output buffer contents, if at all.
+.P
+\fBAUBufSpace\fR is the corresponding call for use in input ports, and 
+returns the number of sample frames remaining before the input buffer 
+becomes full (and overruns occur).
+.P
+\fBAUDroppedFrames\fR will return the cumulative count of sample frames 
+dropped through overrun or underrun, where such information can be 
+obtained from the system.
+
+.SH IMPLEMENTATION DETAILS
+The SGI interface (which translates the calls into AL calls) supports 
+all the features - buffer sizing, buffer space reading and dropped-frame 
+count.  
+.P
+The Sun interface limits the buffer size to 2000 frames, since 
+the system appears to hang for larger values.  \fBAUBufConts\fR and 
+\fBAUBufSpace\fR are implemented, but operate very coarsely and may not 
+be accurate.  \fBAUDroppedFrames\fR returns a very approximate number, 
+but it will increase as more buffer over/underruns occur.
+.P
+The DEC wmm interface ignores buffer size requests and never reports any 
+dropped frames.  The buffer size calls do return information, but quantized 
+at one quarter of the total buffer space (which is 16 kBytes).  Since the 
+DEC mmeserver tends to crash if it is repeatedly opened and closed by a 
+single application, calls to AUClose do not actually release the port, but 
+hold it open to be re-used by subsequent calls to AUOpen.  This means that 
+attempting to reopen the audio port with new configurations is unlikely to 
+work.  It's possible that the audio interface is improved in newer 
+releases of DEC OSF, but I've had no motivation to rewrite the code.
+.P
+The Linux/OSS interface ignores the requested buffer size (except for its 
+internal translation buffer) and currently returns -1 for both buffer space 
+requests.  \fBAUDroppedSamples\fR always returns zero.
+
+.SH BUGS
+Not all features (for instance, reading remaining buffer space) are actually 
+supported by all platforms.
+.P
+Some platforms provide translation for unsupported data types (such as 
+\f4AFMT_FLOAT\f1), whereas others provide on-the-fly translation.  In any 
+case, there is no way for a client application to query the hardware to 
+find out which data types, channel counts and sample sizes are handled 
+most efficiently.
+.P
+The interpretation of the the \f4bufsize\f1 parameter is a little murky.
+
+.SH SEE ALSO
+.MS sndf 3 ,
+.MS snd 3 .
+.SH AUTHOR
+Dan Ellis, 
+.B dpwe@icsi.berkeley.edu

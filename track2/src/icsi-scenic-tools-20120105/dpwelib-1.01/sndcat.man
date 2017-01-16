@@ -1,0 +1,220 @@
+.de Sh
+.br
+.ne 5
+.PP
+\fB\\$1\fR
+.PP
+..
+.de Sp
+.if t .sp .5v
+.if n .sp
+..
+.               \" Path Name
+.               \"      uses Courier fonts for V4.0
+.de PN
+.ie t \&\f(CB\\$1\f(NR\\$2
+.el \fI\\$1\fP\\$2
+..
+.		\" The following macros added by dpwe for Ultrix 4..
+.               \" Manual section reference
+.               \"      uses Courier fonts for V4.0
+.de MS
+.ie t \&\f(CB\\$1\f(NR(\\$2)\\$3
+.el \fI\\$1\fP(\\$2)\\$3
+..
+.de EX		\" Begin Example
+.ie \\n(.$ .nr EX \\$1n
+.el \{\
+.	ie n .nr EX 0n
+.	el .nr EX 0n
+.\}
+.in +\\n(EXu
+.if n .sp 1
+.if t .sp .5v
+.nf
+.CW
+.ft CB
+..
+.de EE		\" End example
+.in -\\n(EXu
+.fi
+.}f             \" restore basic text attributes
+.if n .sp 1
+.if t .sp .5v
+..
+.TH SNDCAT 1 "$Date: 2012/01/05 21:21:40 $" dpwe   \" $Header: /u/drspeech/repos/dpwelib/sndcat.man,v 1.8 2012/01/05 21:21:40 dpwe Exp $
+.SH NAME
+sndcat - Copy between soundfiles using the snd interface library
+.SH SYNOPSIS
+\fBsndcat
+[\fIoptions\fB]
+[-o \fIoutputSoundfile\fB]
+[\fIinputSoundFiles ...\fB]
+\fR
+.SH DESCRIPTION
+.PN sndcat
+Copies standard input, or any number of input soundfiles specified on the 
+command line, to an output soundfile, accessing all the files through the 
+.MS snd 3 
+library, thereby permitting automatic selection of soundfile format, 
+access to compressed streams, etc.  As such, it encompasses some of 
+the functions of the existing 
+.MS sndrfmt 1 ,
+.MS sndplay 1 , 
+and 
+.MS sndrecord 1 
+programs.
+.SH OPTIONS
+Options are shown as alternates (separated by "|") with minimal 
+abbreviations (the part before the "?"), according to the conventions 
+of 
+.MS cle 3 .
+Defaults are shown parens.
+.TP 12
+.B \-o?utputfilename \fIname\fR ("-")
+Name of the output file to be written.  If not specified (or if it is 
+"-"), output will 
+be written to standard output.  However, if -query is set, no output 
+is written at all.
+.TP 12
+.B \-S|\-ip?format \fIkey\fR (none)
+Input sound file format, defined by one of the 
+.MS sndf 3 
+tokens.  If none is specified, the program will attempt to guess 
+the soundfile format from its first few bytes.
+.TP 12
+.B \-T|\-op?format \fIkey\fR (none)
+As ipformat, but for output soundfile.  If none is specified, it 
+will copy the format of the input file.
+.TP 12
+.B \-k|\-sk?ip \fIskiptime \fR(0.0)
+Skip over the first part of sound, skipping this much time's worth in 
+seconds.  As with -d and -e, this option uses
+.MS cle 3 's
+CLE_TIME type, so times in the form [[hh:]mm:]ss[.sss] can be used.
+.TP 12
+.B \-K|\-skipf?rames \fIskipFrames\fR (0)
+Skip over this many frames at the beginning of the sound (after reading the 
+header).  If a skip time is specified as well, skipframes takes precedence.
+.TP 12
+.B \-d?uration \fIdurtime \fR(0.0)
+If greater than zero, force the output sound to be exactly this long.  
+If zero, the input sound will be copied to EOF.
+.TP 12
+.B \-D|\-durf?rames \fIdurFrames\fR (0)
+If greater than zero, force the output sound to have exactly this many frames. 
+Takes precedence over -duration.
+.TP 12
+.B \-e?ndtime \fIendtime \fR(0.0)
+If greater than skiptime, force the output sound to extend just to 
+this point in the original sound (extending it if necessary).  This is 
+an alternative to -duration, -d and -D take precedence over -e and -E.  If it 
+is less than or equal to starttime, it is ignored.
+.TP 12
+.B \-E|\-endf?rame \fIendFrames\fR (0)
+If greater than effective skipframes, and if duration has not been 
+specified by other means (-d, -D or -e), only frames prior to this one 
+(counted from the start of the input file) will be transferred.  
+Specifying in frames takes precedence (once again) over specifying in 
+seconds.
+.TP 12
+.B \-c?hans|\-chann?els \fIchans\fR (0)
+If greater than zero, force the output sound to have this many channels.  
+The distribution between input and output channels is controlled by 
+\f4-chanmode\f1.
+.TP 12
+.B \-chanm?ode|\-cm?ode \fImode\fR ("mono")
+Control how sound is distributed when input and output have different 
+numbers of channels.  In the default mode, when copying a single channel 
+file to a multi-channel file, each output channel is a copy of the input 
+channel; when copying a multi-channel file to a single-channel output, the 
+input channels are all averaged together. Alternatively, you might wish 
+to extract a single channel from a multichannel input sound, or to write 
+to just one channel of a multichannel output sound.  In this 
+case, the chanmode should be set to "A" thru "H" for selecting the first 
+thru eighth channels respectively.  "0" to "7" are aliases, and "L" and "R" 
+are aliases for "A" and "B".  Lower case is equivalent.
+.TP 12
+.B \-f?ormat|-fmt \fIformat\fR (none)
+A sample coding can be specified for the output, which otherwise will 
+attempt to copy the input. Acceptable tokens are:
+.P
+.ta .5i +1.5i
+.nf
+	\f4a?law\f1	a-law bytes (8 bit/sample)
+	\f4u?law|mu?law\f1	u-law bytes (8 bit/sample)
+	\f4c?har\f1	linear bytes (8 bit/sample)
+	\f4o?ffsetchar\f1	linear bytes offset so that zero is at 0x80
+	\f4s?short|i16\f1	linear short ints (16 bits/sample)
+	\f4l?long|i32\f1	linear long ints (32 bit/sample)
+	\f4f?loat|f32\f1	floating point (32 bit/sample)
+	\f4d?ouble|f64\f1	double precision floats (64 bit/sample)
+.fi
+.TP 12
+.B \-r?ate|\-sr?ate|\-s?amplerate \fIsampleRate\fR
+Force the output soundfile to be tagged with the specified sampling rate 
+(without resampling).
+.TP 12
+.B \-g?ain \fIgain\fR (1.0)
+Scale the sound data by the specified factor.
+.TP 12
+.B \-n?omerge\fR (no)
+The default action of sndcat (since the introduction of this option 
+anyway) is to concatenate all soundfiles into a single output sound. 
+With this option, each input sound will be separated by a new 
+soundfile header in the output sound, suitable for reading with 
+-multi later on.
+.TP 12
+.B \-mu?lti\fR (no)
+If specified, the program will check to see if it can read multiple 
+sounds from each input file or stream; this is disabled by default to 
+avoid forcing the program to seek to the end of possibly very long 
+compressed streams before closing each file.
+.TP 12
+.B \-q?uery
+Query the input sound files only; do not write any output
+.TP 12
+.B \-v?erbose
+Verbose mode - print information on each input soundfile.
+.SH EXAMPLES
+.I sndcat
+uses the 
+.MS snd 3
+library to access different file formats.  This allows it to read and 
+write MP3 format files, provided the appropriate encoder/decoder 
+are installed (currently mpg123 and lame).  However, this interface 
+is clumsy; MP3 encode/decode is based on matching the .mp3 extension 
+in the file name, and employs underlying raw audio streams.  Thus, 
+the input file parameters must be explicitly specified by the 
+PCM format parameters.  Thus, to extract the fourth minute from 
+a stereo 44kHz mp3 file to another, mono-mixed MP3 file:
+.EX
+sndcat -k 3:00 -d 1:00 infile.mp3 -o out.mp3 -S PCM/R44C2 -T PCM -c 1 
+.EE
+Support for flac files is similar, based on the external flac binary.
+.SH BUGS
+I'm not sure why I need the -multi option, or what I've broken by 
+introducing it.  Without it, extracting one small section led to 
+decompressing the whole file.
+.PP
+.I sndcat 
+will allow you to merge several soundfiles together.  But if their 
+formats are not compatible, you may not get what you want.  In 
+particular, if the input soundfiles have different sampling rates 
+they will not be resampled, but will be copied to a single output 
+file whose sampling rate is taken from the first file (unless -nomerge).
+.SH NOTES
+This program was created to allow access to the "shorten" interface in 
+.MS snd 3 .
+It functions as an equivalent to 
+.MS sndrfmt 1 , 
+but accessing files through the more general
+.MS snd 3 
+layer, rather than 
+.MS sndf 3
+as that program does.
+.SH SEE ALSO
+.MS snd 3
+.SH AUTHOR
+Dan Ellis, 
+.B dpwe@icsi.berkeley.edu

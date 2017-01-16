@@ -1,0 +1,434 @@
+# Makefile for dpwelib - dan's personal library
+# 08nov90 dpwe
+# Makes a library - 23jan91
+# Modified for standalone tksound package - 1995jan21
+# 1997jan22 dpwe@icsi.berkeley.edu autoconf version
+#
+# @configure_input@
+#
+# $Header: /u/drspeech/repos/dpwelib/Makefile.in,v 1.36 2011/03/09 02:10:47 davidj Exp $
+
+# Standard things we need
+
+.SUFFIXES: 
+.SUFFIXES: .c .o
+
+SHELL=/bin/sh
+
+# Installation stuff.
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+libdir = $(exec_prefix)/lib
+bindir = $(exec_prefix)/bin
+includedir = $(exec_prefix)/include
+mandir = $(prefix)/man
+man1dir = $(mandir)/man1
+man3dir = $(mandir)/man3
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+VPATH = @srcdir@
+
+# Actual library headers go into <dpwelib/foo.h>
+dpweincldir = ${exec_prefix}/include/dpwelib
+
+# Programs we use.
+
+CC = @CC@
+LD = $(CC)
+AR = @AR@
+RANLIB = @RANLIB@
+INSTALL = @INSTALL@
+INSTALL_PROG = $(INSTALL)
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_LIB = $(INSTALL_DATA)
+
+# Tool arguments.
+
+CFLAGS = @CFLAGS@
+LDFLAGS = @LDFLAGS@
+AUDILIB = @AUDILIB@
+LIBS = @LIBS@ 
+
+# This is a standard autoconf idiom, but actually we don't use 
+# the AC_FLAGS here since they go into config.h
+AC_FLAGS = @DEFS@
+
+# Preliminary shared-library support
+# SHLIB_CFLAGS will be set to flags for, e.g. position-independent code,
+# or nothing if dpwelib is not configure --enable-shared
+SHLIB_CFLAGS 	= @SHLIB_CFLAGS@
+SHLIB_LD	= @SHLIB_LD@
+SHLIB_SUFFIX	= @SHLIB_SUFFIX@
+LD_FLAGS	= @LD_FLAGS@
+LD_SEARCH_FLAGS	= @LD_SEARCH_FLAGS@
+LIB_RUNTIME_DIR	= 
+
+cflags = $(CFLAGS) $(SHLIB_CFLAGS) $(DFLAGS) -I. -I$(srcdir)
+ldflags = $(LDFLAGS)
+libs = $(DANLIB) $(AUDILIB) $(LIBS)
+compile.c = $(CC) $(cflags)
+
+config_srcs = \
+	configure.in \
+	Makefile.in \
+	install-sh \
+	mkinstalldirs \
+	config.guess \
+	config.sub \
+	dpwelibConfig.sh.in \
+	dpwelib.h.in
+
+config_outfiles = \
+	configure \
+	config.h.in
+
+################################################################
+# Implicit rules
+################################################################
+
+.c.o:
+	$(compile.c) -c $<
+
+
+################################################################
+# The default target
+################################################################
+
+default: all
+
+DANLIB = libdpwe.a
+
+# The script to initialize config variables for library client
+# (written by configure)
+CONFIGSH = dpwelibConfig.sh
+
+AUDIOBS = @AUDIOBS@
+# audIOfake.o         for dummy stubs if no audio
+# audIOlofi.o LoFi.o  for DECaudio on DECstations
+# audIOdecwmm.o       for DEC OSF/1 with MultiMedia Extensions
+# audIOsgi.o          for SGI indigo sound IO
+# audIOlinux.o	      for Linux/OSSI
+# audIOstub.o         (dummy stubs) on non-sound-producing systems
+
+# Choose between static compile-time single-sound-file robust soundfile 
+# interface (sndf.o), or somewhat-slower dynamic-run-time little-tested 
+# newfangled soundfile interface (sndfbyptr.o).  See sndf.3. 
+SNDFOB = sndfbyptr.o
+#SNDFOB = sndf.o
+
+# Choose the default soundfile format.  For sndf.o, this selects 
+# which of the sndf*.c 'personality modules' is installed, and thus 
+# which is the sole soundfile type it will read/write.  For 
+# sndfbyptr.o, this simply chooses the 'default' soundfile type 
+# that the library will *write* if no additional cues are given.  
+# For sndfbyptr.o on *read*, it will try all known header types 
+# on read (but fail on raw unless the application specifies it).
+SNDFFLAG = -DPCM
+# -DAIFF	Audio Interchange File Format (sndfaif.c)
+# -DIRCAM	Csound/IRCAM (sndfirc.c)
+# -DNeXT	NeXT/Sun *.au/*.snd (sndfnxt.c)
+# -DICSI_NIST	NIST SPHERE (sndfnist.c)
+# -DMS_WAVE	Microsoft WAVE/RIFF (sndfwav.c)
+# -DPCM		Raw PCM files + $PCMFORMAT (sndfpcm.c)
+# -DESPS	ESPS - only reading supported! (sndfesps.c)
+# -DPHONDAT	VerbMobil PhonDat - only reading supported! (sndfphdat.c)
+
+SRCS   = genutils.c ulaw.c \
+	 vecops.c IEEE80.c cle.c \
+	 byteswap.c snd.c fft.c \
+	 sndfbyptr.c sndf.c \
+	 sndffname.c sndfutil.c pushfileio.c \
+	 sndfnist.c sndfirc.c sndfpcm.c sndfwav.c sndfaif.c \
+	 sndfnxt.c sndfesps.c sndfphdat.c sndfstrut.c \
+	 audIOsun.c audIOsgi.c audIOdecwmm.c audIOfake.c audIOlinux.c \
+	 audIOstub.c
+
+# These ones aren't compiled, but are part of the pkg because 
+# they're used by a lot of programs (C++ wrappers for soundfile IO)
+XTRASRCS	=	Sound.C
+XTRAHDRS	=	Sound.H
+
+PROGSRCS = sndplay.c sndrecord.c sndcmp.c sndmix.c sndrfmt.c sndrsmp.c sndcat.c
+
+# Some subsidiary sources needed for sndrsmp
+RSMPSRCS = resample.c resambuf.c
+RSMPHDRS = resample.h resambuf.h
+
+# Headers that define the functional interface
+HDRS   = audIO.h sndf.h snd.h \
+	 sndfutil.h pushfileio.h genutils.h ulaw.h \
+	 vecops.h IEEE80.h cle.h \
+	 byteswap.h fft.h
+
+# Headers that don't need to be installed
+IHDRS  = sndfbyptr.h dpweaiff.h
+
+OBJS   = genutils.o  sndfutil.o pushfileio.o ulaw.o \
+	 vecops.o IEEE80.o cle.o \
+	 byteswap.o snd.o fft.o \
+	 $(SNDFOB) $(AUDIOBS)
+
+DOCS   = README CHANGES
+
+TESTERS  = cletest.tcl
+
+PROGS  = sndplay sndrecord sndcmp sndmix sndrfmt sndrsmp sndcat
+
+MAN1S  = sndplay.man sndrecord.man sndcmp.man sndmix.man sndrfmt.man sndrsmp.man sndcat.man
+MAN3S  = sndf.man snd.man audIO.man cle.man
+
+all:	$(DANLIB) $(PROGS) \
+	dpwelibConfig.sh dpwelibConfig-install.sh dpwelib-dir
+
+# dpwelib is a local directory containing all the header files.  We build it 
+# here so that programs can do "#include <dpwelib/sndf.h> even if 
+# we haven't been fully installed
+dpwelib-dir:	dpwelib.h $(HDRS) $(XTRAHDRS)
+	rm -rf dpwelib
+	mkdir dpwelib
+	for i in $(HDRS) ; do \
+		file=`basename $$i`; \
+		$(INSTALL_DATA) $(srcdir)/$$file dpwelib/$$file; \
+	done
+	for i in $(XTRAHDRS) ; do \
+		file=`basename $$i`; \
+		$(INSTALL_DATA) $(srcdir)/$$file dpwelib/$$file; \
+	done
+	$(INSTALL_DATA) dpwelib.h dpwelib/dpwelib.h
+
+
+dpwelibConfig-install.sh: dpwelibConfig.sh
+	sed -e 's/{DPWELIB_BUILD_/{DPWELIB_INSTALL_/' dpwelibConfig.sh \
+		>dpwelibConfig-install.sh || rm -f dpwelibConfig-install.sh
+
+$(DANLIB): $(OBJS)
+	-rm -f $(DANLIB)
+	$(AR) rcv $(DANLIB) $(OBJS)
+	$(RANLIB) $(DANLIB)
+
+dpwelib.h: $(srcdir)/dpwelib.h.in config.h
+	rm -f dpwelib.h
+	cat config.h $(srcdir)/dpwelib.h.in > dpwelib.h || rm dpwelib.h
+
+genutils.o: $(srcdir)/genutils.c $(srcdir)/genutils.h dpwelib.h
+	$(compile.c) -c $(srcdir)/genutils.c -o $@
+
+pushfileio.o: $(srcdir)/pushfileio.c $(srcdir)/pushfileio.h dpwelib.h
+	$(compile.c) -c $(srcdir)/pushfileio.c -o $@
+
+sndfutil.o: $(srcdir)/sndfutil.c $(srcdir)/sndfutil.h $(srcdir)/sndf.h $(srcdir)/ulaw.h dpwelib.h
+	$(compile.c) -c $(srcdir)/sndfutil.c -o $@
+
+sndf.o: $(srcdir)/sndf.c $(srcdir)/sndf.h $(srcdir)/sndfirc.c $(srcdir)/sndfaif.c $(srcdir)/dpweaiff.h dpwelib.h
+	$(compile.c) $(SNDFFLAG) -c $(srcdir)/sndf.c -o $@
+
+sndfbyptr.o: $(srcdir)/sndfbyptr.c $(srcdir)/sndf.c $(srcdir)/sndf.h $(srcdir)/sndfirc.c $(srcdir)/sndfaif.c $(srcdir)/dpweaiff.h $(srcdir)/sndfwav.c $(srcdir)/sndfpcm.c $(srcdir)/sndfnist.c $(srcdir)/sndfnxt.c $(srcdir)/sndfesps.c $(srcdir)/sndfphdat.c $(srcdir)/sndfstrut.c $(srcdir)/sndfbyptr.h $(srcdir)/sndffname.c dpwelib.h $(srcdir)/pushfileio.h
+	$(compile.c) $(SNDFFLAG) -c $(srcdir)/sndfbyptr.c -o $@
+
+snd.o:  $(srcdir)/snd.c $(srcdir)/snd.h dpwelib.h $(srcdir)/pushfileio.h
+	$(compile.c) -c $(srcdir)/snd.c -o $@
+
+ulaw.o: $(srcdir)/ulaw.c $(srcdir)/ulaw.h dpwelib.h
+	$(compile.c) -c $(srcdir)/ulaw.c -o $@
+
+vecops.o: $(srcdir)/vecops.c $(srcdir)/vecops.h dpwelib.h
+	$(compile.c) -c $(srcdir)/vecops.c -o $@
+
+IEEE80.o: $(srcdir)/IEEE80.c $(srcdir)/IEEE80.h dpwelib.h
+	$(compile.c) -c $(srcdir)/IEEE80.c -o $@
+
+cle.o: $(srcdir)/cle.c $(srcdir)/cle.h dpwelib.h
+	$(compile.c) -c $(srcdir)/cle.c -o $@
+
+byteswap.o: $(srcdir)/byteswap.c $(srcdir)/byteswap.h dpwelib.h
+	$(compile.c) -c $(srcdir)/byteswap.c -o $@
+
+fft.o:  $(srcdir)/fft.c $(srcdir)/fft.h dpwelib.h
+	$(compile.c) -c $(srcdir)/fft.c -o $@
+
+audIOdecwmm.o: $(srcdir)/audIOdecwmm.c $(srcdir)/audIO.h dpwelib.h
+	$(compile.c) -c $(srcdir)/audIOdecwmm.c -o $@
+
+audIOsgi.o: $(srcdir)/audIOsgi.c $(srcdir)/audIO.h dpwelib.h
+	$(compile.c) -c $(srcdir)/audIOsgi.c -o $@
+
+audIOfake.o: $(srcdir)/audIOfake.c $(srcdir)/audIO.h dpwelib.h
+	$(compile.c) -c $(srcdir)/audIOfake.c -o $@
+
+audIOsun.o: $(srcdir)/audIOsun.c $(srcdir)/audIO.h dpwelib.h
+	$(compile.c) -c $(srcdir)/audIOsun.c -o $@
+
+audIOlinux.o: $(srcdir)/audIOlinux.c $(srcdir)/audIO.h dpwelib.h
+	$(compile.c) -c $(srcdir)/audIOlinux.c -o $@
+
+audIOstub.o: $(srcdir)/audIOstub.c $(srcdir)/audIO.h dpwelib.h
+	$(compile.c) -c $(srcdir)/audIOstub.c -o $@
+
+######################
+# programs
+######################
+
+sndplay.o: $(srcdir)/sndplay.c dpwelib.h
+	$(compile.c) -c $(srcdir)/sndplay.c -o $@
+
+sndrecord.o: $(srcdir)/sndrecord.c dpwelib.h
+	$(compile.c) -c $(srcdir)/sndrecord.c -o $@
+
+sndcmp.o: $(srcdir)/sndcmp.c dpwelib.h
+	$(compile.c) -c $(srcdir)/sndcmp.c -o $@
+
+sndmix.o: $(srcdir)/sndmix.c dpwelib.h
+	$(compile.c) -c $(srcdir)/sndmix.c -o $@
+
+sndrfmt.o: $(srcdir)/sndrfmt.c dpwelib.h
+	$(compile.c) -c $(srcdir)/sndrfmt.c -o $@
+
+sndrsmp.o: $(srcdir)/sndrsmp.c dpwelib.h
+	$(compile.c) -c $(srcdir)/sndrsmp.c -o $@
+
+sndcat.o: $(srcdir)/sndcat.c dpwelib.h cle.h
+	$(compile.c) -c $(srcdir)/sndcat.c -o $@
+
+resample.o: $(srcdir)/resample.c $(srcdir)/resample.h dpwelib.h
+	$(compile.c) -c $(srcdir)/resample.c -o $@
+
+resambuf.o: $(srcdir)/resambuf.c $(srcdir)/resambuf.h $(srcdir)/resample.h dpwelib.h
+	$(compile.c) -c $(srcdir)/resambuf.c -o $@
+
+sndplay: sndplay.o $(DANLIB)
+	$(LD) $(ldflags) sndplay.o $(libs) -o $@
+
+sndrecord: sndrecord.o $(DANLIB)
+	$(LD) $(ldflags) sndrecord.o $(libs) -o $@
+
+sndcmp: sndcmp.o $(DANLIB)
+	$(LD) $(ldflags) sndcmp.o $(libs) -o $@
+
+sndmix: sndmix.o $(DANLIB)
+	$(LD) $(ldflags) sndmix.o $(libs) -o $@
+
+sndrfmt: sndrfmt.o $(DANLIB)
+	$(LD) $(ldflags) sndrfmt.o $(libs) -o $@
+
+sndrsmp: sndrsmp.o resambuf.o resample.o $(DANLIB)
+	$(LD) $(ldflags) sndrsmp.o resambuf.o resample.o $(libs) -o $@
+
+sndcat: sndcat.o $(DANLIB)
+	$(LD) $(ldflags) sndcat.o $(libs) -o $@
+
+#####################
+# test targets
+#####################
+
+# Special test programs for the command-line interface utilities
+cletest: $(srcdir)/cle.c $(srcdir)/cle.h $(srcdir)/cletest.tcl
+	$(compile.c) -DMAIN -c $(srcdir)/cle.c -o cle.o
+	$(LD) -g $(ldflags) cle.o $(libs) -o $@
+	$(srcdir)/cletest.tcl
+	rm -f cle.o cletest
+
+test: sndrfmt sndcmp sndmix sndplay sndrecord sndcat sndrsmp
+	$(srcdir)/testsnds/test-sndrfmt.tcl
+	$(srcdir)/testsnds/test-pcm.tcl
+	$(srcdir)/testsnds/test-etc.tcl
+
+#####################
+# maintenance
+#####################
+
+Makefile: $(srcdir)/Makefile.in $(srcdir)/configure
+	$(SHELL) config.status
+
+$(srcdir)/configure: $(srcdir)/configure.in
+	cd $(srcdir) && autoconf
+
+clean: 
+	rm -f dpwelib.h dpwelibConfig-install.sh *.o *.a *~ core $(PROGS)
+	rm -rf dpwelib
+
+distclean: clean
+	rm -f config.status config.h config.log config.cache Makefile dpwelibConfig.sh
+
+install: install-libs install-progs install-man
+
+install-libs: $(DANLIB) installdirs $(HDRS) $(XTRAHDRS)
+	@echo "Installing $(DANLIB)"
+	$(INSTALL_LIB) $(DANLIB) $(libdir)/$(DANLIB)
+	$(RANLIB) $(libdir)/$(DANLIB)
+	@echo "Installing dpwelibConfig.sh"
+	$(INSTALL_PROG) dpwelibConfig-install.sh $(libdir)/dpwelibConfig.sh
+	@echo "Installing dpwelib/ include headers"
+	for i in $(HDRS) ; do \
+		file=`basename $$i`; \
+		$(INSTALL_DATA) $(srcdir)/$$file $(dpweincldir)/$$file; \
+	done
+	for i in $(XTRAHDRS) ; do \
+		file=`basename $$i`; \
+		$(INSTALL_DATA) $(srcdir)/$$file $(dpweincldir)/$$file; \
+	done
+	$(INSTALL_DATA) dpwelib.h $(dpweincldir)/dpwelib.h
+
+install-progs: $(PROGS) installdirs
+	for i in $(PROGS) ; do \
+		$(INSTALL_PROG) $$i $(bindir)/$$i; \
+	done
+
+install-man: installdirs $(MAN1S) $(MAN3S)
+	for i in $(MAN1S) ; do \
+		base=`basename $$i .man`; \
+		$(INSTALL_DATA) $(srcdir)/$$base.man $(man1dir)/$$base.1; \
+	done
+	for i in $(MAN3S) ; do \
+		base=`basename $$i .man`; \
+		$(INSTALL_DATA) $(srcdir)/$$base.man $(man3dir)/$$base.3; \
+	done
+
+
+installdirs: $(srcdir)/mkinstalldirs
+	$(srcdir)/mkinstalldirs $(libdir) $(dpweincldir) $(bindir) \
+		$(man1dir) $(man3dir)
+
+#################################################################
+## Package distribution.
+#################################################################
+
+dist_files = $(SRCS) $(HDRS) $(IHDRS) \
+	$(PROGSRCS) $(RSMPSRCS) $(RSMPHDRS) \
+	$(XTRASRCS) $(XTRAHDRS) \
+	$(DOCS) $(TESTERS) $(MAN1S) $(MAN3S) \
+	$(config_srcs) $(config_outfiles)
+
+# The name of the distribution
+name = @PACKAGE_NAME@
+version = @PACKAGE_VERSION@
+distname = $(name)-$(version)
+
+# The file name of the compressed tar file
+distfile = $(distname).tar.gz
+
+# Where to build the disttree
+distroot = .
+
+# The directory in which the distribution is built
+distdir = $(distroot)/$(distname)
+
+# Build a distribution
+dist: Makefile $(distfile)
+
+# Build the file that contains the distribution
+$(distfile): disttree
+	rm -f $(distfile); \
+	(cd $(distroot); tar cvf - $(distname) ) | gzip >$(distfile)
+
+# Build a directory tree that can be tared and gzipped to form the distribution
+disttree: Makefile $(dist_files)
+	rm -fr $(distdir); \
+	mkdir $(distdir); \
+	chmod a=rwx $(distdir); \
+	for i in $(dist_files) ; do \
+		file=`basename $$i`; \
+		cp -p $(srcdir)/$$file $(distdir)/$$file || exit 1; \
+	done
+
+# DO NOT DELETE THIS LINE -- make depend depends on it.

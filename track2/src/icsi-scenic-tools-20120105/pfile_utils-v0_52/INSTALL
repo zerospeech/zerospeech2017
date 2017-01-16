@@ -1,0 +1,25 @@
+$Header: /u/drspeech/repos/pfile_utils/INSTALL,v 1.2 2005/06/06 22:38:38 davidj Exp $
+
+This is the INSTALL file for the pfile_utils package.
+
+Prerequisites
+=============
+
+Pfile_utils needs the QuickNet3 MLP library.
+
+
+
+Pfile_utils is configured under GNU Autoconf for ease of installation.  
+It does, however, depend on several other pieces.  Hence, ./configure 
+accepts the following specific options:
+
+
+    --with-quicknet=DIR	Where to find the QuickNet library.
+			This should point to the "lib" directory.  The
+			configure script will look in lib/pkgconfig for
+			the quicknet3.pc package config file.
+
+Once you've located these, it should just be ./configure ...
+then make, then make install.
+
+

@@ -1,0 +1,294 @@
+$Header: /u/drspeech/src/rasta/RCS/README,v 1.17 1997/06/27 03:42:43 dpwe Exp $
+
+This is the README for RASTA, a feature extraction program for use in
+speech recognition systems.  For instructions on installation, see the
+accompanying `INSTALL' file.  For details of recent modifications,
+consult the `NEWS' file.
+
+
+**************************************************
+	INTRODUCTION
+**************************************************
+
+RASTA is a program for performing feature extraction in speech
+recognition systems.  It takes files or streams of audio data and
+produces files or streams of feature vectors.  Three
+feature extraction approaches are supported - PLP, log-rasta and
+J-rasta.  For each case, cepstral features are typically produced,
+although there are some options for spectrum-like features.
+RASTA handles various file formats and can be used in either
+batch mode or an interactive demonstration system.
+
+**************************************************
+	HISTORY
+**************************************************
+
+This directory holds the current debugged (at least we think so)
+release materials for the rasta-plp program. This code comes from (in
+ancient history) a Fortran source written by Hynek Hermansky to
+implement PLP.  Later versions done by H. Hermansky and C. Wooters
+used automatically translated C code and hand modifications to add in
+the RASTA processing.  This version (by N. Morgan) is pretty much a
+complete rewrite, splitting up analysis elements into reasonably-sized
+modules. A few routines from the past linger on with little change,
+(e.g., the fft and the Durbin recursion) because they work fine and
+suspect data structures (e.g. most arrays with short fixed lengths)
+have been changed to dynamically allocate what is needed and to check
+for array bounds.
+
+See the front of "rasta.c" for a description of the algorithm.
+
+**************************************************
+	WHAT IS AND ISN'T HERE
+**************************************************
+
+What is frozen here in reasonable form is the most debugged version of
+the rasta algorithm.  Some of the things that we are currently
+experimenting with are not yet included, since they are not yet
+sufficiently mature for release (although we will be happy to talk
+about them with you). However, it should be relatively easy for you to
+modify the program to play with some of these ideas.  Some of the
+unimplemented pieces are:
+
+	1) General linear filters - what we have implemented is
+a ``standard'' rasta filter, which consists of a delta
+calculation followed by a single-pole integration.
+We have used data structures in the core filtering
+routine that permit a more general filtering function
+consisting of numerator and denominator polynomials,
+but as of this release we don't read in such files
+or allow for general polynomials in the routine that calls
+the filt() function. 
+
+	2) Similarly, we currently use the same rasta
+filter for each band. Putting in the modifications for (1)
+will also permit more flexibility in this regard.
+
+	3) Nonlinear modifications within the filtering
+are potentially possible (such as suppression of small
+changes, or median filtering) but have not yet been tested.
+
+	4) Noise estimation - we currently do not
+include any adaptive (or non-adaptive) noise estimation.
+Thus the J factor that can be entered at the command line
+must be separately estimated. We have successfully estimated
+this quantity on-line for some of our experiments, but
+the code is not yet in shape and tested for a more general
+facility. The J that we have found to work well is something
+like 1 / (3 * noisepower), but it is possible that
+for a new type of task a different constant would be needed. 
+(See the commentary in rasta.c for a discussion of the potential
+pitfalls in using an adaptive J).
+
+CAUTION: Even with the current code, you can get in trouble by
+using the J-RASTA option if you don't measure the noise,
+since the default J value we use is just something that worked
+for one experiment at ICSI; you might have a radically different
+noise, or different gain or #bits in the A/D, etc. . In general,
+it is best not to just run rasta with default values unless you
+look at what they are and see if they match your problem
+(e.g., for sampling rate). Just type the program name to
+see the options.
+
+**************************************************
+	SUPPORT
+**************************************************
+
+There is none.  We cannot fix your modifications or even
+guarantee fixing bugs in this release. However, if you find
+improvements, bug fixes, etc., please do share them with us so that we
+can (if possible) include them in the next release. Send them to
+	
+	morgan@icsi.berkeley.edu
+
+**************************************************
+	A BIT OF PHILOSOPHY
+**************************************************
+While some users may find the existing program useful
+as is (we have put in quite a few command line options to
+encourage this), this package is intended as a research tool.
+Therefore it is likely that many users will want to hack at it.
+The program has been split up into reasonably-sized modules for this
+purpose. Some users will modify or replace various
+files in the source directory, and the structure of the code has
+been made as regular as possible to facilitate this, in particular
+to facilitate modification of the speech analysis steps.
+While we obviously can't guarantee that all such mods will work,
+we can make this more likely by a couple of RASTA 1.0
+coding tips:
+
+1) Use a coding model - each of the core analysis steps
+look very similar , and if one of them is replaced,
+try to follow the same model. The general pattern is that each
+analysis routine is called in rastaplp(), and that each one
+is passed a pointer to a read-only structure of parameter
+values (such as sampling rate) and a pointer to an "fvec"
+structure, which contains a float array and its integer length.
+The routine then processes this data as you wish, and
+returns a pointer to an output fvec. Within the routine
+itself, analysis tables are initialized and space is allocated
+(but only the first time the routine is called).
+Note that this is always a frame-based analysis in the current
+implementation. Look at nl_audspec.c, for instance, for a
+simple example of such a routine.
+
+2) Use the fvec/fmat utility routines - in fvecsubs.c are several
+relevant routines. Whenever possible,
+use fvecs rather than simple arrays of floats, as the relevant
+routines allow you to pretty painlessly allocate space,
+bounds-check array references, copy, etc. .
+You also can use show_vec() in debugging, which saves you
+a bit of time in writing fprintf lines.
+	
+**************************************************
+	SRC FILES
+**************************************************
+
+What follows is a list of the relevant files for the rasta program,
+(all found in src) along with a brief description for each.
+
+Makefile - the usual compilation script. Type "make" to build the new
+	executable, and "make print" to print out the source.
+	Copy in non_ESPS_Makefile if you don't have ESPS.
+
+**************************************
+	GOOD GENERAL READING
+**************************************
+rasta.h - the header file, including definitions for the 2 main
+	data structures used: an fvec, which is a floating point vector
+	with an associated integer vector length, and a parameter
+	structure, which is the collection of all analysis parameters
+	such as window size. It also defines upper-case constants that
+	are used throughout the routines.
+
+functions.h - a header file with globally accessible function
+	prototypes (i.e., showing the calling argument types).
+	Note that fft.c, rasta.c, lpccep.c, and audspec.c all
+	have some local function prototypes not listed in this file.
+	
+rasta.c - the main program, including a front comment that
+	briefly explains the algorithm and a few more things about the
+	code.
+
+init.c  - routines to initialize things, such as initial values for
+	parameters, reading the command line to possibly update these
+	values. a usage printing routine that is accessed by typing
+	the command without arguments, and a routine to compute a
+	couple of required parameters such as the number of
+	analysis frames.
+
+**************************************
+	ANALYSIS ROUTINES
+**************************************
+anal.c  - the main calling analysis routine that is used for
+	each new frame, along with a couple of routines that
+	do windowing and fill the frame structure with data.
+
+powspec.c - a routine to compute the power spectrum for a frame.
+	This mostly computes a couple of parameters and then calls fft,
+	but it is separate so that later mods can alter this step.
+
+audspec.c - a file with routines to compute an auditory spectrum.
+	In current form, it computes critical band ranges in the fft
+	and weights for the integration within band (the first time 
+	it is called) and then it uses this information to integrate
+	the power spectrum into equivalent critical band powers.
+
+nl_audspec.c - a file to compute a compressive nonlinearity, used 
+	to get the auditory spectrum into an appropriate 
+	domain for rasta filtering.
+
+rasta_filt.c - a file that does the rasta filtering.
+
+inverse_nl.c - a file to compute an inverse nonlinearity, used
+	to get back to the auditory-like spectral domain after
+	rasta filtering.
+
+post_audspec.c - a file with routines to equalize and compress
+	 an auditory spectrum. 
+
+lpccep.c - a file to approximate the auditory-like spectrum 
+	by the spectrum of the all-pole model and
+	compute its cepstrum using an inverse DFT, 
+	autocorrelation-based LPC analysis, 
+	and a recursion to compute cepstra. A lot of the
+	core recursions are relatively unchanged from the fortran.
+
+deltas_c.h - the code for calculating the deltas (derivatives) and 
+	double-deltas of the features along time.  Since these 
+	filters are non-causal (i.e. they look a short way into 
+	the future), this involves keeping a buffer of the most-
+	recently calculated output frames.
+
+fft.c	- old, ugly, but efficient code to compute the fft for a vector;
+	actually the current form of the routine returns the power
+	spectrum in the form of the magnitude squared of the fft.
+
+fvecsubs.c - a file with basic routines for allocation and
+	some arithmetic for float vectors (fvec structure) and matrices
+	(fmat structure). It includes an fvec_check routine that
+	makes sure that the array element you are planning to
+	access (read or write) is within the allocated space.
+	This seems to take about 1/2 microsecond on a Sparc 10,
+	so you might not generally call it in the inner loop
+	but it is nice to use at least once for a loop when you
+	can figure out what the largest array index is going to be.
+	For things out of the inner loop it is simplest to
+	just use it whenever you access an array element if
+	the fvec pointer has been passed to you from elsewhere.
+	This may seem like extra work, but it can save you
+	a lot of time tracking down an overwriting-type bug.
+
+svecsubs.c - similar to fvecsubs, but for shorts; a file with 
+	basic routines for allocation and
+	some arithmetic for short vectors (svec structure).
+
+**************************************
+	GOTTA HAVE I/O
+**************************************	
+io.c    - routines to open input and output files, and to read
+	them in one of a number of specified forms; as of 7/21/93,
+	the input forms supported are binary shorts, ascii, and esps
+	formatted files. The output can be binary floats,
+	ascii, or esps files. Note: if you do not have an ESPS
+	license, you will want to use the alternate Makefile which
+	is a non_ESPS_Makefile ; then if you unwittingly try to
+	use ESPS input or output you will get tossed out of the program.
+
+	If you use binary inputs from stdin, you can run in online
+	mode. In this mode, there is no preliminary step of reading
+	in the whole input file; instead, you just read as you process,
+	and it goes on until the fread fails, for instance at
+	the end of file. The routine to do this kind of
+	input, get_online_bindata(), is also in this file.
+
+debug.c - printing routines so you can look at things if something gets
+	messed up. Some are rather specific to looking at particular
+	structures, while show_vec() prints out the length and values
+	for the fvec pointed to by the argument.
+ 
+*****************************************************
+        ACKNOWLEDGEMENTS
+  
+  Thanks to Bill Byrne for his help with the ESPS interface;
+  to Chuck Wooters, Joachim Koehler, and especially Phil Kohn for 
+  critical comments; to Jordan Cohen for providing the environment
+  in which I wrote this code; to ICSI and UC Berkeley for providing
+  my financial support during this time; and most of all to Hynek
+  Hermansky for being at the source of all the basic ideas.
+
+
+****************************************************************************
+
+ (C) 1995 US West and International Computer Science Institute,
+     All rights reserved
+ U.S. Patent Numbers 5,450,522 and 5,537,647
+
+ Embodiments of this technology are covered by U.S. Patent
+ Nos. 5,450,522 and 5,537,647.  A limited license for internal
+ research and development use only is hereby granted.  All other
+ rights, including all commercial exploitation, are retained unless a
+ license has been granted by either US West or International Computer
+ Science Institute.
+
+****************************************************************************

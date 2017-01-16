@@ -1,0 +1,135 @@
+#!@PERL@
+#
+# $Header: /u/drspeech/src/rasta/RCS/create_mapping.in,v 1.2 1996/12/07 01:34:39 davidj Exp $
+#
+# $Log: create_mapping.in,v $
+# Revision 1.2  1996/12/07 01:34:39  davidj
+# Added $Header$.
+#
+# Revision 1.1  1996/12/07 01:34:11  davidj
+# Initial revision
+#
+# Revision 1.1  1995/10/20 20:11:57  bedk
+# Initial revision
+#
+#
+# create_mapping is a perl script that automates the generation of 
+# the critical band mapping matrices needed by jah-rasta with automatic
+# selection of J values.
+#
+
+if ($#ARGV == -1) {
+    print "\ncreate_mapping fileList=<files> jahList=<jahs> ";
+    print "cleanJah=<cleanJah> \\\n   mapFile=<mapfile> [radius=<radius>]";
+    print " [rastaOpts=<rastaOpts>] [rasta=<rasta>]\n\n";
+    exit -1;
+}
+
+# The following code is stolen from Eric Fosler's icsiargs.pl package
+#
+# this little package will parse arguments of the form key=value, and
+# set the perl variable "$key" to value value.  it will remove these
+# arguments from the command line and leave the following args unchanged.
+
+while ($#ARGV > -1) {
+    if (($key,$value) = ($ARGV[0] =~ /(.*[^\\])=(.*)/)) {
+	$key =~ s/\\=/=/g;	# unescape =
+	$value =~ s/\\=/=/g;
+	if ($value ne "") {
+	    $foos =  '$' . "$key = " . '$' . "value ;" ;
+	    eval $foos;
+	}
+	undef $key;
+	undef $value;
+	shift @ARGV;
+    }
+    else { last; }
+}
+
+# Check arguments
+#
+die("Unknown arguments @ARGV") if ($#ARGV != -1);
+die("fileList not specified") if (!defined($fileList));
+die("cleanJah not specified") if (!defined($cleanJah));
+die("jahList not specified") if (!defined($jahList));
+die("mapFile not specified") if (!defined($mapFile));
+
+# Make sure the arguments to rasta do not contain any options that mess
+# us up and add to the arguments the options we do need
+#
+$rastaOpts =~ s/-[OdAEBLJCRPh]//g;
+$rastaOpts =~ s@-[iofH] [\w\./]+@@g;
+$rastaOpts =~ s/-j [0-9e\.\-\+]+//g;
+$rastaOpts =~ s/[ ]+/ /g;
+$rastaOpts .= " -J -C -R";
+
+# Read in the file list
+#
+die("Unable to open $fileList for reading")
+    if (!open(FILELIST, $fileList));
+@speech = <FILELIST>;
+close(FILELIST);
+die("No files in $fileList") if ($#speech == -1);
+
+# set up the other variables we need
+#
+@tmpjahs = sort {$b <=> $a} split(' ', $jahList." $cleanJah");
+$jahs[0] = $tmpjahs[0];
+$j = 0;
+for ($i = 1; $i <= $#tmpjahs; $i++) {
+    if ($tmpjahs[$i] != $jahs[$k]) {
+        $jahs[++$k] = $tmpjahs[$i];
+    }
+}
+if (!defined($rasta)) { $rasta = "rasta" };
+$nframes = 0;
+
+# Run rasta for the clean case and collect the results
+#
+foreach $speechFile (@speech) {
+    open(RASTA,
+         $rasta." ".$rastaOpts." -j ".$cleanJah." -i ".$speechFile." |");
+    while (<RASTA>) {
+        $B[$nframes++] = $_;
+    }
+    close(RASTA);
+}
+@tmp = split(' ', $B[0]);
+$ncrit = $#tmp + 1;
+if (!defined($radius)) {
+    $radius = $#tmp;
+}
+die("radius must be less than number of critical bands.")
+    if ($radius >= $ncrit);
+die("radius must be greater than or equal to 0.") if ($radius < 0);
+
+# Fire up the least-squares solver and give it the initial data
+#
+open(LSQ, "| lsqsolve");
+printf(LSQ  "%d %d %d %d %g %s\n", $ncrit, $radius, $nframes,
+       $#jahs + 1, $cleanJah, $mapFile);
+for ($i = 0; $i < $nframes; $i++) {
+    print LSQ $B[$i], " ";
+}
+
+# Main loop:  send out the Jah value.  If it is not the clean Jah value,
+#             run rasta to get the corresponding critical-band values, 
+#             and send them down the pipe.
+#
+foreach $curJah (@jahs) {
+    print LSQ $curJah, " ";
+    next if ($curJah == $cleanJah);
+    foreach $speechFile (@speech) {
+        open(RASTA,
+             $rasta." ".$rastaOpts." -j ".$curJah." -i ".$speechFile." |");
+        while (<RASTA>) {
+            print LSQ $_, " ";
+        }
+        close(RASTA);
+    }
+}
+
+# Done!  Clean up and terminate.
+#
+close LSQ;
+exit;

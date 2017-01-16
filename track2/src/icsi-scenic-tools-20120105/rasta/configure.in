@@ -1,0 +1,168 @@
+dnl -*- sh -*-
+dnl $Header: /n/abbott/da/drspeech/src/rasta/RCS/configure.in,v 1.21 2001/04/30 22:01:51 dpwe Exp $
+dnl
+dnl configure.in for the RASTA program
+dnl Process this file with autoconf to produce a configure script.
+
+AC_INIT(rasta.h)
+
+RASTA_VERSION=v2_6
+
+AC_CANONICAL_SYSTEM
+AC_PREFIX_DEFAULT(/usr/local)
+if test "${exec_prefix}" = "NONE" 
+then
+	exec_prefix=${prefix}
+fi
+AC_CONFIG_HEADER(config.h)
+AC_ARG_WITH(esps, [  --with-esps[=DIR]         use the ESPS libraries (in DIR)],,with_esps=no)
+AC_ARG_WITH(esps, [  --with-sphere-lib[=DIR]   use the SPHERE libraries (in DIR)])
+
+dnl Checks for programs.
+#AC_PROG_CC
+ACDPWE_PROG_CC_CXX(0)
+# added 2012-01-05
+AC_SYS_LARGEFILE
+
+AC_PROG_INSTALL
+AC_PATH_PROG(AR,ar)
+AC_PATH_PROG(RANLIB,ranlib,:)
+AC_PATH_PROG(PERL, perl, "/usr/bin/perl")
+
+dnl Checks for byte-swapped machines (Intel, DEC)
+AC_C_BIGENDIAN
+
+dnl Checks for header files.
+AC_HEADER_STDC
+
+dnl Preset the test list, which will be added to depending on what 
+dnl we find.  This gets passed to testsuite/Makefile via the "test"
+dnl target of the Makefile we emit
+TESTS="main"
+
+dnl Check for libraries.
+dnl We can only use ESPS or SPHERE (although the ESPS libs include the
+dnl sphere functionality, so if we have ESPS, we can set HAVE_LIBSP).
+if test "$with_esps" !=  "no"; then
+	if test "$with_esps" != "yes"; then
+	    dnl An indication of where they are
+	    ESPSLIB="-L$with_esps"
+	    ESPSINC="-I`echo $with_esps | sed -e 's@/lib@/include@'`"
+	else
+	    ESPSLIB=""
+	    ESPSINC=""
+        fi
+
+	dnl ESPS needs extra network libraries on some systems.
+	AC_CHECK_LIB(socket,bind,
+		     AC_DEFINE(HAVE_LIBSOCKET) LIBS="$LIBS -lsocket -lnsl",
+			,
+		     -lnsl)
+	dnl The ESPS libraries. (Also check if sphere works under ESPS)
+	AC_CHECK_LIB(exv,zero_fill,
+		AC_DEFINE(HAVE_LIBESPS) 
+		AC_MSG_CHECKING(sphere access through ESPS) 
+		LIBS_pre=$LIBS; LIBS="$ESPSLIB -lexv -lhdre -lespsg -lm $LIBS"; 
+		CFLAGS_pre=$CFLAGS; CFLAGSS="$CFLAGS $ESPSINC"; 
+		AC_TRY_LINK(#include <sp/sphere.h> 
+			    int debug_level=4; , \
+			    sp_open("file", "r"); , 
+			AC_MSG_RESULT("yes"); 
+			AC_DEFINE(HAVE_LIBSP) TESTS="$TESTS sphere", 
+			AC_MSG_RESULT("no"); 
+			AC_MSG_WARN("failed to find sphere libs - sphere I/O not supported") ) 
+		LIBS="$LIBS_pre $ESPSLIB -lexv -lhdre -lespsg"; \
+		TESTS="$TESTS esps"; \
+		CFLAGS=$CFLAGS_pre; INCS="$SPINC $INCS", 
+		LIBS=$LIBS_pre; \
+		CFLAGS=$CFLAGS_pre; \
+		AC_MSG_WARN([failed to find ESPS libs in $with_esps - ESPS & sphere I/O not supported]), 
+		-lhdre -lespsg -lm)
+else
+    dnl The sphere libraries.  Make sure we can find the include header
+    dnl as well as the library.
+
+    if test "$with_sphere_lib" !=  "no"; then
+	AC_MSG_CHECKING(for -lsp)
+	if test "$with_sphere_lib" != "yes"; then
+	    dnl An indication of where they are
+	    SPLIB="-L$with_sphere_lib"
+	    SPINC="-I`echo $with_sphere_lib | sed -e 's@/lib@/include@'`"
+	else
+	    SPLIB=""
+	    SPINC=""
+        fi
+
+	LIBS_pre=$LIBS; LIBS="$SPLIB -lsp -lutil -lm $LIBS";
+	CFLAGS_pre=$CFLAGS; CFLAGS="$CFLAGS $SPINC"
+	AC_TRY_LINK(#include <sp/sphere.h> 
+		    int debug_level=4; , \
+		    sp_open("file", "r"); , \
+		AC_MSG_RESULT("yes"); \
+		AC_DEFINE(HAVE_LIBSP) TESTS="$TESTS sphere"; \
+			LIBS="$LIBS_pre $SPLIB -lsp -lutil"; \
+			CFLAGS=$CFLAGS_pre; INCS="$SPINC $INCS", \
+		AC_MSG_RESULT("no"); \
+		AC_MSG_WARN("failed to find sphere libs in $with_sphere_lib - sphere I/O not supported"); \
+		LIBS=$LIBS_pre;\
+		CFLAGS=$CFLAGS_pre)
+
+dnl	AC_CHECK_LIB(sp,sp_open,
+dnl		AC_DEFINE(HAVE_LIBSP) LIBS="$LIBS -lsp -lutil"; \
+dnl		TESTS="$TESTS sphere",
+dnl		AC_MSG_WARN("failed to find sphere libs - sphere I/O not supported"),
+dnl		-lutil -lm)
+    fi
+fi
+
+dnl The matlab library (done through a common macro).
+ACDPWE_PKG_MATLAB([
+    TESTS="$TESTS matlab";
+    LIBS="$LIBS $MATLAB_LIB_SPEC";
+    INCS="$INCS $MATLAB_INC_SPEC";
+    AC_DEFINE(HAVE_LIBMAT)],
+    AC_MSG_WARN(matlab I/O not supported))
+
+# ----------------------
+# for rastaConfig.sh
+# ----------------------
+# (setup fullSrcDir first)
+ACDPWE_PATH_FULLSRCDIR
+fullBuildDir=`pwd`
+RASTA_INSTALL_INC_SPEC="-I${exec_prefix}/include $INCS"
+RASTA_BUILD_INC_SPEC="-I$fullSrcDir $INCS"
+RASTA_INSTALL_LIB_SPEC="-L${exec_prefix}/lib -lrasta $LIBS"
+RASTA_BUILD_LIB_SPEC="-L$fullBuildDir -lrasta $LIBS"
+# Point to src to be able to find testsuite etc
+RASTA_SRC_DIR="$fullSrcDir"
+
+AC_SUBST(RASTA_BUILD_INC_SPEC)
+AC_SUBST(RASTA_INSTALL_INC_SPEC)
+AC_SUBST(RASTA_BUILD_LIB_SPEC)
+AC_SUBST(RASTA_INSTALL_LIB_SPEC)
+
+# Also put the absolute src dir into the config.sh file
+AC_SUBST(RASTA_SRC_DIR)
+
+# Record in the cache where other peer packages can find us
+AC_MSG_CHECKING(rasta path is saved in cache)
+AC_CACHE_VAL(acdpwe_cv_path_rasta, acdpwe_cv_path_rasta=$fullBuildDir)
+# Do it again in case it didn't do it before because it was already in cache
+acdpwe_cv_path_rasta=$fullBuildDir
+AC_MSG_RESULT($acdpwe_cv_path_rasta)
+
+# Append our build dir to the growing list of build path dirs
+fullBuildDir=`pwd`
+AC_CACHE_CHECK(drspeech build path, acdpwe_cv_env_path, 
+		acdpwe_cv_env_path=)
+if echo $acdpwe_cv_env_path | fgrep -v $fullBuildDir > /dev/null ; then
+    acdpwe_cv_env_path="$fullBuildDir $acdpwe_cv_env_path"
+fi
+
+AC_SUBST(INCS)
+
+AC_SUBST(TESTS)
+
+AC_SUBST(RASTA_VERSION)
+
+AC_OUTPUT(Makefile create_mapping rastaConfig.sh)

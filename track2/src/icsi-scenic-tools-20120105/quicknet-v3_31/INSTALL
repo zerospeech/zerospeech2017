@@ -1,0 +1,367 @@
+$Header: /u/drspeech/repos/quicknet2/INSTALL,v 1.27 2011/03/22 05:55:01 davidj Exp $
+
+Installing `QuickNet'
+=====================
+
+This file contains instructions for installing the `QuickNet', a suite
+of programs and libraries that can be used to train MLPs for audio
+processing.  For more details about the package, check the associated
+`README'.
+
+Note that the build process relies on facilities not present in all
+versions of make.  Although several versions of make work, the
+recommended program is GNU make, as installed on all Linux boxes.  In
+the example below it is assumed that GNU make is being used, that it
+is called `make' and is available in the PATH of the installing user
+(the normal situation on most linux, GNU and BSD-based OSs).
+
+
+Prerequisites
+=============
+
+By default QuickNet version 3 does not require any other libraries to
+build.  This is in contrast to version 1 and 2 of QuickNet that
+required the somewhat obscure intvec and fltvec libraries.
+
+The performance of QuickNet will be improved if it is linked with an
+optimized version of the BLAS library.  Specifically the ATLAS
+(http://math-atlas.sourceforge.net/) optimized BLAS library works well
+on many common machines.  Vendor BLAS libraries may also work well.
+
+Another way to increase performance is to use the Posix Threads
+library, as available in most modern OSs. This can improve performance
+on machines with multiple cores.  Optimized BLAS and Posix Threads can
+be combined to get maximum performance.
+
+Finally, QuickNet can be built using the nVidia CUDA libraries, and
+the resulting program can use nVidia GPUs to accelerate training and
+forward pass.
+
+Although the main programs and libraries have no prerequisites, the
+`rtst' library is required for running the test programs in the
+"testsuite" subdirectory.
+
+Detailed Install Instructions
+=============================
+
+Basic Installation
+------------------
+
+1.  `cd' to the directory containing the package's source code and type
+`./configure'.  Running configure takes a while.  Whilst running, it
+prints information as to programs and features it is checking for.
+
+2.  Type `make' to compile the package.
+
+3.  Type `make install' to install the executables and man pages in
+    /usr/local/.
+
+Optionally:
+
+4.  Type `make clean' to remove unwanted derived files.
+
+
+Advanced Installation
+---------------------
+
+the `configure' script has numerous options, selected using command
+line arguments and enviroment variables, that can be used to allow
+more advanced installs.  For a summary of these options, run
+`./configure --help' in the source directory.
+
+Some specific options are described below.
+
+
+Installing to Non-Standard Locations
+------------------------------------
+
+By default, `make install' will install the package's files in
+`/usr/local/bin', `/usr/local/lib', etc.  You can specify an
+installation prefix other than `/usr/local' by using the `configure'
+option `--prefix=PATH'. 
+
+It is also possible to support file systems containing a mixture of
+architectures.  The `--exec-prefix' argument to configure can be used
+to specify the directory used for finding and/or installing
+architecture-dependent files - typically executables, libraries and
+header files.  Man pages, documention etc. are installed using the
+`--prefix' argument.
+
+
+Using a Different Build Directory
+---------------------------------
+
+You can compile the package in a different directory than the one
+containing the source code.  To do this, `cd' to the directory where
+you want the object files to be created, then run the `configure' script
+from the `QuickNet' source directory.  If `configure' fails to find the
+source files, you can specify the requisite directory using the
+`--srcdir' command line option.
+
+e.g.	mkdir H-sun4-sunos5
+	cd H-sun4-sunos5
+	../configure --srcdir=..
+
+
+Using Different Optimization Options
+------------------------------------
+
+Alternate optimization options can be supplied to QuickNet using the
+CPPFLAGS and LDFLAGS arguments.  CPPFLAGS indicates flags that are
+passed to the C and C++ compilers on the command line, LDFLAGS are
+passed on the the linker.
+
+e.g.	./configure CPPFLAGS='-O3 -march=athlon64' \
+	  LDFLAGS='-O3 -march=athlon64'
+
+Upper-case variables such as these can either be passed on the command
+line or as environment variables.
+
+
+Using Posix Threads
+-------------------
+
+Using threads allows QuickNet to use multiple cores, processors or
+hyperthreads on systems that support these types of paralelism.  The
+requisite Posix Threads libraries are part of most modern OSs and use
+of the library will be enable by default when available.  To disable
+threading support, e.g. on an OS where the Posix threading
+implementation is buggy, the `--with-pthreads=no' command line option
+can be used.  If compiled with thread support, the `mlp3_threads'
+command-line option can be used to take advantages of available SMP
+parallelism.
+
+
+Compiling to Use Optimized BLAS
+-------------------------------
+
+QuickNet usually runs faster if it is linked with a version of the
+BLAS matrix/vector libraries optimized for the machine on which it is
+running.  There are various BLAS libraries that can be used and the
+`--with-blas' configure-time option is used to select which.  Note
+that the argument of the --with-blas option specifies the type of BLAS
+library to use, which in turn sets which header files and library
+files to use.  However, the CPPFLAGS and LDFLAGS options may also be
+needed to find the header and library files if they are not
+automatically found by the compilers.  For a full listing of supported
+BLAS libraries, use `./configure --help'
+
+ - Atlas BLAS
+
+The ATLAS BLAS libraries are open source code and produce fast code on
+a wide range of systems - see http://math-atlas.sourceforge.net/ for
+more details.  Building the libraries from souce is quite time
+consuming and a binary installation may be preferable.
+
+If the ATLAS BLAS libraries are available, then the value `atlas' is
+used for the --with-blas argument.
+
+e.g.      ./configure --with-blas=atlas \
+	    CPPFLAGS='-I/usr/local/atslas/include' \
+	    LDFLAGS='-L/usr/local/atlas/lib'
+
+ATLAS can optionally be compiled to create an additional threaded
+library on SMP machines.  Note that using this option is _not_
+recommmend as the built-in QuickNet threading is more flexible and
+usually faster.  Also note that the number of ATLAS threads needs to
+be selected at compile time, and defaults to the number of virtual
+CPUs that that the OS can see.  To use the threaded version of the
+library, use the `--with-blas=ptatlas' command line option.
+
+e.g.	      ./configure --with-blas=ptatlas \
+                CPPFLAGS='-I/usr/local/atlas/include' \
+  	        LDFLAGS='-L/usr/local/atlas/lib'
+
+ - Intel Math Kernel Library
+
+The Intel Math Kernel Library (MKL) includes high-performance BLAS
+routines.  On Intel x86 hardware, this is often the fastest non-CUDA
+option, although it is licensed software and typically is only
+available in conjunction with the Intel C,C++ or Fortran compiler.  On
+AMD-based hardware they are often somewhat slower than would be
+expected based on raw CPU throughput.
+
+If the Intel MKL BLAS libraries are available, then the value `imkl' is
+used for the --with-blas argument.
+
+e.g.      ./configure --with-blas=imkl \
+	    CPPFLAGS='-I/usr/local/imkl/include' \
+	    LDFLAGS='-L/usr/local/imkl/ia32/lib'
+
+If built with gcc, the native gcc OpenMP runtime is used for thread handling. 
+
+The MKL BLAS routines will dynamically set the number of threads used
+for the BLAS routines at run time based on the available resources.
+If the mlp_threads argument is being used to create more than one MLP
+thread, then the OMP_NUM_THREADS environment variable should be used
+to limit the number of BLAS threads to an appropriate number.
+
+
+ - ESSL
+
+On IBM systems, the ESSL library can be used.  Using --with-blas=essl
+uses the single-processor version, which is recommended as it works
+well in combination with MLP-level threading.
+
+          ./configure --with-blas=essl \
+	    CC='xlc' CXX='xlC'
+
+Using --with-blas=esslsmp selects the OMP-based threaded version of
+ESSL, which is likely to be slower than the built-in QuickNet
+threading.  Note that when using esslsmp, the OMP_NUM_THREADS
+environment variable is used to select the level of run-time
+parallelism rather than the mlp3_threads command line option.
+
+ - MacOS vecLib
+
+An MacOS-based systems, the --with-blas=macos option can be used to
+select the built in MacOS vecLib framework.
+
+e.g.     ./configure --with-blas=macos
+
+ - Sun sunperf
+
+On Sun systems with the full Sun compiler suite installed,
+--with-blas=sunperf can be used.  On SPARC-based systems this may well
+provide the fastest solution.  Note that the sunperf library only
+works with the Sun compilers, not gcc.
+
+e.g.     ./configure --with-blas=sunperf \
+	   CC='/opt/SUNWspro/bin/cc' CXX='/opt/SUNWspro/bin/CC'
+	   CPPFLAGS='-fast -xtarget=ultra3'
+
+ - AMD ACML
+
+On AMD-processor based systems, the AMD Core Math Library ('ACML') can
+be used.  This has typically proven to be slower than ATLAS.  Use "acml-gcc"
+for the gcc/gfortran version and "acml-psc" for the version used with the Pathscale compilers.
+
+	 ./configure --with-blas=acml-gcc \
+	   CPPFLAGS="-I/usr/lib/acml/gfortran32/include" \
+	   LDFLAGS="-L/usr/lib/acml/gfortran32/lib -Wl,-rpath="/usr/lib/acml/gfortran32/lib"
+
+ - generic CBLAS
+
+Using a value of `cblas' allows QuickNet to use the standard 
+CBLAS interface to the BLAS library.  The example below assumes the
+cblas library is installed under /usr/local/blas/ and that all of the
+code is in the default libcblas.a or libcblas.so.
+
+e.g.	  env CPPFLAGS='-I/usr/local/blas/include' \
+	      LDFLAGS='-L/usr/local/blas/lib' \
+	      ./configure --with-blas=cblas
+
+ - generic BLAS
+
+Using a value of `blas' allows QuickNet to use the less-standard 
+Fortran BLAS interface to the BLAS library.  
+
+
+Compiling to Use CUDA
+---------------------
+
+In order to compile QuickNet to us nVidia GPUs, the nVidia CUDA tools
+need to be available at install time and the `--with-cuda'
+configure-time option selected.  As of QuickNet v3_30, only version
+3.2 of the CUDA tools have been tested.  Both 32 bit and 64 bit builds
+work, and in theory it should be possible to build with CUDA,
+optimized BLAS and threading all in one executable (although threading
+and BLAS cannot be used with CUDA).  The version of nvcc available on
+the PATH at configure time will be used and libraries will be found
+automatically if they are installed alongside nvcc.  Alternatively the
+NVCC variable can be used to select the compiler and the variables LDFLAGS,
+NVCCFLAGS etc. used to find include files and libraries.
+
+Versions of QuickNet built with CUDA will display any available CUDA
+hardware at run time but they will only use the GPU if the `use-cuda'
+option is set to true.  When enabled, the first available CUDA card is
+used with the card selected being listed in the log tagged as "CUDA
+using device".
+
+
+Run-time Location of Shared Libraries
+-------------------------------------
+
+If shared libraries are being used from non-standard locations it may
+be necessary to use a flag to add a value to the shared library search
+path in the executiable.  Using gcc on Linux systems, the necessary
+flag is `-Wl,-rpath='.  On some systems, such as gcc on Solaris, the
+`-R' flag can be used.  Doing either of these should eliminate the
+need to use LD_LIBRARY_PATH or something similar to set paths to
+libraries at run time.
+
+
+Compiling QuickNet as a Shared Library
+--------------------------------------
+
+Provisional shared library support has been added to QuickNet although
+it has not been tested recently.  Note that shared library
+functionality changed considerably between QuickNet version 1 and
+QuickNet version 3 and programs that linked with the shared verison of
+QuickNet 1 may need to their build scripts changed to work with
+QuickNet 3.
+
+To compile the QuickNet libraries as shared objects, use the
+"--enable-shared" option of configure.
+
+e.g.	../configure --enable-shared
+
+Compiling QuickNet for SPERT
+----------------------------
+
+Compiling QuickNet for SPERT is no longer supported.
+
+
+Example QuickNet Configure
+--------------------------
+An example of a non-trivial QuickNet configure line is:
+
+ env \
+   LDFLAGS="-L/u/drspeech/i586-linux/lib/atlas3.7.8/HAMMER32SSE2/lib \
+            -Wl,-rpath=/u/drspeech/i586-linux/lib \
+            -L/u/drspeech/i586-linux/lib" \
+   CPPFLAGS="-march=athlon64  \
+             -I/u/drspeech/i586-linux/lib/atlas3.7.8/HAMMER32SSE2/include \
+	     -I/u/drspeech/i586-linux/include" \
+ ../configure --with-blas=atlas \
+	      --with-testdata=/u/drspeech/share/quicknet_testdata  
+
+Note that in this example we need the atlas libraries are statically
+linked but the QuickNet libraries themselves are dynamically linked,
+hence the need for the -rpath option.
+
+
+Testing QuickNet
+================
+Using the QuickNet Test Data to Run Programs
+--------------------------------------------
+A set of example data files for use with QuickNet are available at
+ftp://ftp.ICSI.Berkeley.EDU/pub/real/davidj/quicknet_testdata.tar.gz.
+Scripts to perform some example runs using this data are included with
+the QuickNet distribution, named "testdata_*.sh".  Arguments can be
+passed to these scripts to override default values.
+
+The scripts are:
+
+	testdata_qnmultitrn.sh - example training
+	testdata_qnmultifwd.sh - example forward pass
+	testdata_qnnorm.sh - example normalization
+	testdata_qnstrn_ps.sh - example training using previous state info
+	testdata_qnsfwd_ps.sh - example forward pass using previous state info
+
+By default the testdata scripts look in
+${quicknet_srcdir}/../quicknet_testdata/ for the data files.  If this
+data is located elsewhere, the "--with-testdata" argument to configure
+can be used to point to the alternate location.
+
+    E.g. cd quicknet
+	 ./configure --with-testdata=/u/drspeech/src/quicknet_testdata
+	 gmake
+	 ./testdata_qnstrn.sh mlp3_hidden_size=1000 mlp3_threads=2
+
+
+Using the QuickNet Testsuite
+----------------------------
+A set of test routines that can be used for testing QuickNet library
+functions are included in the QuickNet distribution.  This testsuite
+requires the "rtst" library to build.

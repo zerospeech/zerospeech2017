@@ -1,0 +1,125 @@
+dnl -*- sh -*-
+dnl
+dnl $Header: /u/drspeech/repos/pfile_utils/configure.in,v 1.11 2012/01/05 21:36:07 dpwe Exp $
+dnl
+dnl	This file is an input file used by the GNU "autoconf" program to
+dnl	generate the file "configure", which is run during installation
+dnl	to configure the system for the local environment.
+
+dnl	configure.in for pfile_utils
+dnl	1998jun09 dpwe@icsi.berkeley.edu
+
+AC_PREREQ(2.57)
+AC_INIT(pfile_utils, v0_52, quicknet-bugs@icsi.berkeley.edu, pfile_utils)
+AC_CONFIG_SRCDIR([pfile_select.cc])
+AC_PREFIX_DEFAULT([/usr/local])
+test "$exec_prefix" = "NONE" && exec_prefix="$prefix"
+
+# Sort out program_transform_name
+AC_ARG_PROGRAM
+
+# Set up prefix to actually hold defaults (for use later)
+ACDPWE_INIT_PREFIX
+
+AC_PROG_INSTALL
+AC_PROG_RANLIB
+
+ACDPWE_PROG_CC_CXX
+# added 2012-01-05
+AC_SYS_LARGEFILE
+
+ACDPWE_LIB_MATH
+
+#
+# Does the C++ compiler have the "bool" type? (used by Jeff's range)
+# Define HAVE_BOOL if so.
+#
+ACDPWE_CXX_BOOL
+
+AC_SYS_LARGEFILE
+AC_FUNC_FSEEKO
+
+
+### Ask the user for the quicknet lib dir, defaulting to the exec_prefix/lib
+AC_CACHE_VAL(acdpwe_cv_path_qn, acdpwe_cv_path_qn=${qn_exec_prefix/lib})
+AC_ARG_WITH([quicknet],
+    AC_HELP_STRING([--with-quicknet=ARG],[find quicknet3 library in specified directory]),
+    [qn_dir=$withval],
+    [qn_dir=${acdpwe_cv_path_qn}] )
+
+### If we cannot find the user-specified dir, then default to exec_prefix/lib
+if test -f ${qn_dir}/pkgconfig/quicknet3.pc; then
+    QN_DFLT_PC=${qn_dir}/pkgconfig
+elif test -f ${qn_dir}/quicknet3.pc; then
+    QN_DFLT_PC=${qn_dir}
+else
+    QN_DFLT_PC=${exec_prefix}/lib/pkgconfig
+fi
+
+### Put the new pacakge config dir at the front of the pkg config path
+### and then check for the library
+old_PKG_CONFIG_PATH=${PKG_CONFIG_PATH}
+PKG_CONFIG_PATH="${QN_DFLT_PC}:${PKG_CONFIG_PATH}"
+export PKG_CONFIG_PATH
+PKG_CHECK_MODULES(QN,quicknet3,,:)
+PKG_CONFIG_PATH=${old_PKG_CONFIG_PATH}
+
+QN_INC_SPEC=$QN_CFLAGS
+QN_LIB_SPEC=$QN_LIBS
+AC_SUBST(QN_INC_SPEC)
+AC_SUBST(QN_LIB_SPEC)
+
+#
+# See if the user has pointed us to a place for the mvec lib
+#
+AC_ARG_WITH(mvec, [  --with-mvec=PATH     path to libmvec.a],
+    AC_DEFINE(HAVE_MVEC) LIBS="$LIBS $with_mvec")
+
+#
+# Test for fp errors support
+#
+
+AC_MSG_CHECKING(if fpsetmask available)
+AC_TRY_LINK(	#include <ieeefp.h>
+		    , \
+		fp_except mask; \
+		fpsetmask(mask); , \
+		AC_MSG_RESULT(yes); \
+		AC_DEFINE(HAVE_FPSETMASK) AC_DEFINE(HAVE_IEEEFP_H), \
+		AC_MSG_RESULT(no))
+
+AC_MSG_CHECKING(if ieee_flags available)
+AC_TRY_LINK(	#include <sys/ieeefp.h>
+		    , \
+		char *action; char *mode; char *in; char **out; \
+		ieee_flags(action, mode, in, out); , \
+		AC_MSG_RESULT(yes); \
+		AC_DEFINE(HAVE_IEEE_FLAGS) AC_DEFINE(HAVE_SYS_IEEEFP_H), \
+		AC_MSG_RESULT(no))
+
+AC_MSG_CHECKING(if sigset available (for C++))
+AC_LANG_CPLUSPLUS
+#ac_cxx=$CXX
+AC_TRY_LINK(	#include <signal.h>
+		    , \
+		if (sigset(SIGUSR1,0) == SIG_ERR) {}
+		sigset(0,0); , \
+		AC_MSG_RESULT(yes); \
+		AC_DEFINE(HAVE_SIGSET), \
+		AC_MSG_RESULT(no))
+
+#--------------------------------------------------------------------
+
+# Append our build dir to the growing list of build path dirs
+fullBuildDir=`pwd`
+AC_CACHE_CHECK(drspeech build path, acdpwe_cv_env_path, 
+		acdpwe_cv_env_path=)
+if echo $acdpwe_cv_env_path | fgrep -v $fullBuildDir > /dev/null ; then
+    acdpwe_cv_env_path="$fullBuildDir $acdpwe_cv_env_path"
+fi
+
+AC_SUBST(CFLAGS)
+AC_SUBST(CXXFLAGS)
+AC_SUBST(LDFLAGS)
+
+AC_OUTPUT(Makefile)

@@ -1,0 +1,34 @@
+Some notes on the sphinx file format:
+
+The Sphinx file format is just raw 32 bit floats with a single 32 bit
+int at the front, which is the total number of frames.  It's very much
+like the lna formats, in that it requires the user to specify the
+width as it isn't stored in the file (I guess you could look at the
+file length and divide by the number of frames).  So it's a very
+simple class to add, for what it's worth.
+
+From an associate E-mail:
+>
+>
+> In response to your question concerning the format of the typical features
+> used in Sphinx: For one particular audio file, the appropriate format of the
+> MFCC vector is as follows. As you know, in general, each frame of the audio
+> file is represented by the first 13 MFC coefficients for that time interval.
+> The entire .mfc file for one audio input is an N+1 length column vector
+> whose first element contains the value N (and is a 32-bit integer) and where
+> N is the total number of MFCCs for the file (e.g. if the total number of
+> frames for the file is X, then N=13*X). The remaining N elements are the
+> cepstral coefficients for the audio file "stacked" upon one another: the
+> first 13 correspond to the first time frame, the second 13 correspond to the
+> second time frame, and so on. Each cepstral coefficient is a
+> single-precision floating point number.
+>
+> To demonstrate, I've attached test.sph which is simply an example audio file
+> from the AN4 database. Additionally, test_cep.mfc is the .mfc file obtained
+> using extract_mfcc_sph.m (or use extract_mfcc.m for WAV files) which calls
+> the subroutines that are all bundled in the zip file(this makes use of the
+> my MFCC Matlab code, mfcc.m). The scripts readmfcc.m and writemfcc.m are
+> given by Kshitiz and clearly illustrate the format for reading and writing
+> feature files in accordance with Sphinx's needs. In general, run
+> extract_mfcc_sph.m first using the command format
+> extract_mfcc_sph(OutFile,InFile);.

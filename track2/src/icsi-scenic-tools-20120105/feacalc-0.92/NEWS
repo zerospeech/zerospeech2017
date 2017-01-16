@@ -1,0 +1,82 @@
+# $Header: /u/drspeech/repos/feacalc/NEWS,v 1.6 2007/08/30 23:04:26 davidj Exp $
+
+====================
+=== feacalc 0.91 ===
+====================
+
+Version 0.91 adds one feature:
+ - Added the -numFilts argumen to control the number of filters in the
+   auditory filter bank (correspons to the rasta -c option)
+ - Added the INSTALL-icsi file
+
+====================
+=== feacalc 0.90 ===
+====================
+
+This is a new version of feacat based on the previous version
+nominally called 0.5 that was maintained by Dan Ellis and others.
+Until version 0.9 there wasn't a news file.
+
+Changes from 0.5 include:
+ - Addition of --with-quicknet configure argument.
+ - Usage message now includes desciption and version number.
+ - Moved to use quicknet3.
+ - Some documentation errors fixed.
+ - Support for program_suffix et al added to configure
+ - Added program-transform stuff.
+ - Source now under CVS.
+ - Fixed to get rid of C++ #include issues.
+
+
+===================
+=== feacalc 0.5 ===
+===================
+
+The following changes correspond to feacalc 0.4 and earlier and were
+copied from the CHANGES file:
+
+
+1998nov16 dpwe@icsi.berkeley.ed
+	- configure/make now uses librasta.a rather than recompiling 
+	  the rasta srcs.  Also, irasta eliminated since its one src 
+	  file is now part of rasta.
+	- changes to make it compile cleanly under Linux/g++
+	- checks machine endianness and sets mapping of "swap" output 
+	  formats into byteswap flags accordingly. -output swap means 
+	  "write little-endian raw floats" now.
+	- added support for psuedo-online-downsampling via FFT truncation, 
+	  as has been added to RASTA.
+
+1998apr24 dpwe@icsi.berkeley.edu
+	- Realized that you couldn't use feacalc for your basic DIGITS 
+	  pfile because it didn't support the 'ranged' indices in the 
+	  standard lists.  Added -rangeRate option and code to 
+	  pick up start and end times from file, and correctly push 
+	  them around to work with the DIGITS lists.  Also, now 
+	  warns if extra stuff (e.g. unused ranges) are seen on 
+	  lines of list file.
+	- Added -firstutt and -nutts options to allow subsetting from 
+	  a file list.  Quite slow to skip through several thousand 
+	  list entries, because it executes the filecmd for each one 
+	  anyway.
+	- version now nominally 0.5
+
+1998feb09 dpwe@icsi.berkeley.edu
+	- Was still writing a debug file in OutputFile.C.  Removed
+	- changed version (in configure.in) to 0.4 & made new release.
+
+1998jan23 dpwe@icsi.berkeley.edu
+CmdLineStuff.C:	In HandleCmdLine(), I was adding quotes around 
+		args containing spaces, but not figuring those extra 
+		chars into the space allocated, hence overrunning the 
+		string buffer (turned up as a crash in cleSetDefaults, 
+		which I guess was the next time alloc was called - but 
+		only if the command line was *just* the right size.
+1997nov05 dpwe
+ - -list <listfile> becomes -list?s, a boolean indicating that the extra 
+   filenames on the command line are lists of utids, not soundfiles.
+
+1997oct16 dpwe
+ - Made %u be the substitution token (for utid) in the filecmd (FileList.C)
+   %s is still accepted too.  Man page (feacalc.man) fixed accordingly.
+

@@ -1,0 +1,442 @@
+. $Header: /u/drspeech/repos/feacat/feacat.man,v 1.29 2007/06/06 04:43:19 davidj Exp $
+.de EX		\" Begin Example
+.ie \\n(.$ .nr EX \\$1n
+.el \{\
+.	ie n .nr EX 0n
+.	el .nr EX 0n
+.\}
+.in +\\n(EXu
+.if n .sp 1
+.if t .sp .5v
+.nf
+.CW
+.ft CB
+..
+.de EE		\" End example
+.in -\\n(EXu
+.fi
+.}f             \" restore basic text attributes
+.if n .sp 1
+.if t .sp .5v
+..
+.de MS
+.ie t \&\f(CB\\$1\f(NR(\\$2)\\$3
+.el \fI\\$1\fP(\\$2)\\$3
+..
+.TH FEACAT 1 "$Date: 2007/06/06 04:43:19 $" ICSI "ICSI SPEECH SOFTWARE"
+.SH NAME
+feacat \- universal conversion between feature stream formats
+.SH SYNOPSIS
+.B feacat 
+[\fIoptions\fR]
+[\fI-o outfile\fR]
+[\fIinfile ...\fR]
+.SH DESCRIPTION
+.I feacat
+can convert between any of the standard utterance-structured 
+feature stream file formats, namely 
+.MS pfile 5 ,
+.MS rapact 5 
+(in binary, hex and ascii guises), 
+.MS lna 5 ,
+.MS online_ftrs 5 ,
+the Cambridge "pre" feature format, and SRI's file format. 
+All these interfaces are 
+simply using the appropriate FtrStream classes from the 
+.I QuickNet 
+library, which regrettably has no section 3 man pages.
+.I feacat
+will also read and write HTK feature files and ascii data.
+.PP
+In addition to converting between the feature formats, 
+.I feacat
+will also permit subsetting of utterance ranges (using the comprehensive 
+.MS Range 3 
+range-specification syntax), feature ranges (within each 
+frame) and padding or trimming a fixed number of frames at each end 
+of every utterance.  When padding, the first (or last) feature frame is 
+simply repeated the appropriate number of times.
+.PP
+.I feacat
+can merge multiple feature files in various ways.  Multiple input 
+files on the command line will be treated as if joined 'end to end' 
+to form one very long sequence of feature vectors.  Using the "//" 
+syntax to join the names of two feature files together will 
+cause them to be read 'in parallel' i.e. corresponding feature 
+vectors from each file will be concatenated to make a single wider 
+feature vector (but only if -usedoub is set; see inputfile below).
+.PP
+.I feacat
+will automatically construct 
+.MS popen 3S
+pipes to 
+.MS gzip 1
+to read or write filenames that end in ".gz".  This should allow 
+transparent access to gzipped files, although indexing will 
+not be possible in this case (see options -ix, -ox).
+.PP
+.I feacat
+has a sister command, 
+.MS labcat 1 ,
+which performs the same operations on label archive files (mainly 
+pfiles) rather than feature files.  Since 
+.MS labcat 1 
+is actually generated from the feacat.C source via some crafty #defines, 
+much of this manual page applies equally to both programs.
+.SH OPTIONS
+.I feacat
+accepts the following options (with defaults in parens).  Argument 
+parsing is done by dpwelib's 
+.MS cle 3 
+and the alternates (separated by "|") and minimum prefixes (marked by 
+"?") are shown below.
+.TP 1i
+.B -o?utfile \fIname\fR ("-")
+The name of the output feature file.  The default value of "-" indicates 
+that the output file is to be written to the standard output.
+.TP 1i
+.B -ip?format \fIformat\fR ("pfile")
+Specifies the feature stream format to be read from the input file. 
+This can be one of the following keys:
+.PP
+.ta .5i +1.5i
+.nf
+	\f4u?nknown\f1	Unspecified file type (an error at present)
+	\f4p?file\f1	ICSI PFile feature file
+	\f4r?apbin\f1	Binary version of ICSI rapact format
+	\f4raph?ex\f1	Hexadecimal version of ICSI rapact format
+	\f4rapa?scii\f1	ASCII version of ICSI rapact format
+	\f4o?nlftr\f1	ICSI online feature format
+	\f4pr?e\f1	Cambridge byte-encoded feature format (requires width)
+	\f4ln?a8\f1	Cambridge/Sheffield byte-encoded log probs (req. width)
+	\f4h?tk\f1	HTK-format feature files (12 byte header per utt)
+	\f4st?rut\f1	STRUT-format probabilities file (only)
+	\f4sr?i\f1	SRI (NIST) feature files
+	\f4a?scii\f1	Each line is "segno frameno feature ..." (req. width)
+	\f4asciif\f1	As ascii, but uses %f for printf (req. width)
+        \f4raw?be\f1    big-endian 32 bit floats, no header, 1 utt (req. width)
+        \f4rawle\f1     little-endian raw 32 bit floats
+.fi
+.LP
+.TP 1i
+.B -op?format \fIformat\fR ("pfile")
+Format of the output feature stream to be written, using the same 
+codes as -ipformat.
+.TP
+.B -w?idth|-fw?idth|-ftrw?idth \fInum\fR
+Certain formats (namely lna and pre) do not define the number of 
+features per frame in the file; this has to be specified externally.  
+In these cases, that width must be supplied with this option.  For 
+other cases, if a width is specified, it must agree with the input 
+feature stream, otherwise it is just inferred.
+.TP
+.B -sr|-s?entrange|-ur|-u?ttrange \fIrangeSpec\fR ("all")
+Specifies a range of utterances to process, where input utterances are 
+numbered sequentially from 0.  This uses the range-specification 
+format defined in 
+.MS Range 3
+modelled after the one in Jeff Bilmes's
+.MS pfile_utils 1 ;
+briefly, to specify the first ten utterances, the range spec would 
+be "0:9", and the last ten would be "^9:^0" (which will work only if 
+the total number of utterances can be read ahead of time i.e. not 
+for online formats).  To reverse the first five without the third, 
+specify "4,3,1,0".
+.IP
+Note that there is a single logical utterance continuum constructed 
+from all the input files.  Thus if fileA contains 10 utterances and 
+fileB has 5, 
+.EX
+feacat -sr 0,10,9,14 fileA fileB ...
+.EE
+will output the first utterance of fileA, then the first utterance of fileB, 
+then the corresponding last utterances.
+.TP
+.B -fr|-f?trrange \fIrangeSpec\fR ("all")
+Which features from the input set to copy across to the output.  Same format 
+as -uttrange.
+.TP
+.B -pr|-pe?ruttrange|-fra?merange \fIrangeSpec\fR ("all")
+Which frames within the utterance to use.  This can be used for trimming, 
+but you can only successfully trim from the end of an utterance this 
+way if \f4-indexedin\f1 is successfully specified; \f4-pad\f1 with a negative 
+argument avoids this limitation (see discussion under \f4-indexedin\f1).
+.TP
+.B -p?adframes \fInum\fR (0)
+If greater than zero, specifies the number of extra frames to add at
+each end of each utterance.  The content of these extra frames is
+taken from the nearest 'real' frame.  Thus the total number of added
+frames in the output will be 2 x padframes x num_utts more than the
+input.  If padframes is negative, it means to trim this many frames
+from each end of each utterance; the equation for the number of output
+frames still holds.
+.IP
+Note that the padding mechanism is applied subsequent to the 
+per-utterance range specification (-pr).  Thus a positive pad will 
+replicate the first and last frames selected by the per-utterance range, 
+and negative pads trim frames away from any subselection already 
+effected through the -pr option.
+.TP
+.B -ind?exedin|-ix \fIopt_val\fR
+Set the \f4indexed\f1 flag to the QuickNet feature stream modules 
+for input files.  This 
+allows faster access to particular utterances and points within them, 
+but will fail unless the feature file can be randomly accessed (i.e. 
+not a pipe or other stream).  Some file formats store indexing 
+information internally (e.g. most pfiles); QuickNet will generate 
+this information on-the-fly for other files as long as they are 
+randomly-accessible (although this might cause a noticeable start-up
+delay for long files, since the entire file must be scanned).  
+.IP
+If this option is not specified, the default behavior depends on the 
+file type.  Since pfiles usually contain indexing information, 
+the default is to use indexing with pfiles.  Other file formats 
+have indexed input off by default.  You can specify "-ix", "-ix 1" 
+or "-ix yes" to enable indexed input (i.e. any of the "*T" symbols 
+known to 
+.MS cle 3 ), 
+and you can specify "-ix 0" or "-ix no" to force pfiles not to be 
+read with indexing.
+.IP
+When you specify \f4-indexedin\f1 (and the QuickNet library is able to 
+index input files successfully i.e. they are seekable), you can
+usefully use the "^n" syntax of the Range specification syntax 
+to specify a certain distance from the end.  Thus, when using 
+\f4-indexedin\f1, \f4-framerange 5:^5\f1 has the same effect as 
+\f4-pad -5\f1 (although specifying both is cumulative).  If 
+\f4-indexedin\f1 is not specified, \f4-framerange 5:^5\f1 will 
+successfully trim 5 frames from the start of each utterence, but 
+not from the end, since the program does not know when at utterance 
+is going to end.   When using a negative \f4-pad\f1, the program 
+maintains an internal buffer to allow it to look ahead the 
+appropriate number of frames, and avoid emitting the last few frames 
+as required, even when the input is not seekable.
+.TP
+.B -indexedo?ut|-ox \fIopt_val\fR
+Set the \f4indexed\f1 flag to the QuickNet feature stream output 
+file module, meaning that index information should be collected for 
+the file being written, and written out to the file when it is closed.  
+This avoids QuickNet rescanning the 
+whole file when the pfile is later opened with indexed=1, so it 
+is advisable in most circumstances when writing pfiles.
+I think this only works if the output is a pfile 
+and it is seekable (i.e. writing to a file not a pipe).  
+The default value is true if the output file type is a pfile, 
+otherwise false;  this behavior can be overridden by "-ox", "-ox 1" 
+or "-ox yes" to enable, or "-ox 0" or "-ox no" to disable.
+.TP
+.B -r?epeatutts \fIcount\fR (1)
+Each output utterance is processed this number of times, creating 
+repeated segments in the output.  This was put in as a special favor 
+to Eric, who wanted it to be able to generate N-best lists by decoding 
+the same probability streams with a sequence of different settings (I think). 
+Since this operates by seeking back to the beginning of each utterance 
+within the input stream, the input stream must be opened in indexed mode 
+i.e. -ix.  This is not done silently for you, however.
+.TP
+.B -m?ergeutts (0)
+All frames are written to a single utterance segment in the output file 
+i.e. the segment boundaries that would otherwise be written are all 
+skipped.  This allows you to concatenate several segments into a single 
+uber-segment.
+.TP
+.B -des?lenfile|-dl?f \fIfile\fR ()
+Situations commonly arise when, in order to make two feature files usable 
+with one another, small adjustments need to be made to the lengths of the 
+segments in one or other of them.
+.I feacat
+supports this to some extent with the -pad option, but in more dire 
+cases, it may be necessary to specify the length, in frames, 
+of every individual utterance in the desired output file.  This can 
+be done by preparing a file of the integer frame lengths, one per output 
+utterance, separated by whitespace, and passing it to
+.I feacat
+via the -deslenfile option.  
+.I feacat
+then simply pulls a desired frame count from this file for each 
+new utterance it emits, and either trims or repeats the last frame in 
+the input utterance (after the action of -pad and -pr) to match this length. 
+You can also use a feature file to define the desired utterance segments by 
+specifying the deslenfiletype (-dltype) as something other than "list".
+It's an error to run out of frame lengths in the deslenfile, but it's OK 
+to have too many.  If -repeatutts is greater than 1, there must be a 
+separate desired length specified for each repetition.  The deslenfile 
+must contain only whitespace-separated integers, with the exception of 
+comment lines which start with "#"; spaces and newlines are otherwise treated 
+equally.
+.TP
+.B -dl?type|-dt \fItoken\fR ("list")
+The format of the file specifying the desired file lengths.  The default 
+of "list" specifies a file containing an ascii list of frame lengths.  
+However, various feature file types (specifically "pfile") will allow 
+a feature file to be used as the deslenfile, to generate an output file 
+whose segment lengths match an existing feature file.
+.TP
+.B -sk?ipfile|-sf \fIfile\fR ()
+Similar to the -deslenfile, this specifies an optional file containing 
+counts of frames to be skipped at the beginning of a segment, one number 
+for each output segment.  The skipping is done prior to other processing 
+(such as per-utterance frame ranges with -pr or padding with -pad); hence, 
+-deslenfile, -skipfile and -repeatutts may be used in combination to make 
+one long utterance appear as if it were segmented into a series of 
+shorter segments (see EXAMPLES).
+.TP
+.B -ol?ist|-outl?ist|-outfi?lelist \fIfile\fR ()
+Specifies an optional file containing the names of several output 
+files to write, each to contain one utterance.  This is specifically 
+provided to support writing HTK-style feature `archives', which are 
+actually lists of feature files, one per utterance.  However, this 
+option allows any feature file to be split into single-utterance 
+files of any supported type.  Like -deslen etc. there must be 
+a whitespace-delimited filename for each emitted utterance, 
+blank lines are OK and lines whose first nonwhite character is "#" 
+are taken as comments.  The default empty value disables this 
+option.  It is an error to specify both -olist and -outfile.
+.TP
+.B -l?ists (0)
+As the converse to -olist, this boolean flag indicates that the input
+files do not contain data but rather are lists of data file names.
+This is useful for converting from HTK and SRI data file sets (which
+are typically defined by a single list file containing all the data
+file names) into other supported file formats.
+.TP
+.B -st?eptime|-peri?od \fItime_ms\fR (10.0)
+The frame period (in milliseconds).  At present, this is used only 
+to write the "period" field in any HTK-format output files.
+.TP
+.B -htk?code \fIcode\fR (9)
+The type code to write in the headers of any HTK format output 
+files.  The default value of 9 is the HTK code for "user-defined type".
+.TP
+.B -srif?trname \fIname\fR (none)
+The feature name to written in the headers of any SRI format
+output files.  The default value of nothing means to produce a
+"cepfile" rather than a "featurefile".
+.TP
+.B -tr?ansform \fItoken\fR (none)
+Apply a fixed transformation to the data on its way through.  Currently 
+supported options are "l?og" and "e?xp" to apply the corresponding 
+static nonlinearity to every data point (data must be strictly greater 
+than zero to take the log); "sa?felog" is the same as "log" but adds a
+very small value first, hence avoiding -infinity;
+"s?oftmax" applies the softmax nonlinearity  
+across entire vectors (exponential followed by normalizing to sum 
+to 1); "d?ct" takes a discrete cosine transform across each vector.  
+This doesn't quite match the cepstral outputs of rasta/feacalc, 
+but I think it is mathematically sound none-the-less.  "norm" 
+scales each output vector so its elements sum to one.  Thus, 
+"feacat -tr exp" followed by "feacat -tr norm" is the same as 
+"feacat -tr softmax".
+.TP
+.B -used?oublslash
+Enable the "//" sytax for pasting of multiple input files
+in parallel (see -inputfile below).
+.TP
+.B -q?uery\fR (no)
+When running in query mode, no output file is written.  Instead, 
+details of each input file are printed to standard output.  These 
+are normally just the filename followed by the number of sentences, 
+total number of frames and number of features per frame.  With 
+-verbose, -query prints, for each segment, the segment number 
+and the number of frames in that segment.
+.TP
+.B -d?ebug \fIlevel\fR (0)
+Debug level passed to the QuickNet library.
+.TP
+.B -v?erbose
+Generate some diagnostic messages, limited mainly to a report of how 
+many features, frames and utterances were written at the end, and 
+also warnings when utterances or files have fewer components than 
+expected (which is usually the case if not operating in 
+\f4-indexed\f1 mode).
+.TP 
+.B -i?nputfile
+Because this command is in the style of 
+.MS cat 1 ,
+any command-line arguments not explicitly recognized as options 
+are treated as input filenames.  However, so as not to penalize 
+those accustomed to the syntax of, for example, 
+.MS pfile_select 1 , 
+which uses "-i inputfile -o outputfile", -i is silently 
+accepted as specifying a single input file.  It is, however, 
+an error to use both -i and extra untagged filename 
+arguments (i.e. "feacat -i file1 file2 file3" won't work but "feacat file1 file2 file3" will).
+.IP
+Multiple input files are treated as one long input file whose total number 
+of utterances is the sum of the utterances in each component file.  
+Selection can then be done from any file by specifying sentence 
+ranges relative to this integrated numbering.
+.IP
+In order to specify that two files should be read 'in parallel' -- i.e. with 
+their individual feature vectors concatenated to form a wider 
+feature space -- the two filenames should be joined together 
+with the special separator "//" and the -usedoubleslash option should be set.  
+For this to work, the files must 
+have the same number of utterances and the same number of frames 
+in each utterance.  If this condition is met, any number of 
+files may be glued together as "file1.pf//file2.pf//file3.pf" etc.
+There can be no spaces between the filenames and the separators.
+.SH EXAMPLES
+To convert the pfile tmp.pf to a "pre" format feature file, tmp.pre:
+.EX
+feacat -ipf pfile -opf pre -out tmp.pre tmp.pf
+.EE
+To pad an LNA stream with four extra frames at each end (perhaps because you 
+lost them through the NN context window):
+.EX
+qnsfwd ... | feacat -ip lna -op lna -width 54 -pad 4 > padded.lna
+.EE
+To break up an undivided LNA file (obtained, for instance, by passing 
+an entire unsegmented Broadcast News show through a classifier) into 
+an LNA file with segment markers, first construct files skip.txt and 
+deslen.txt specifying the starting frame and frame length of each 
+output segment, then:
+.EX
+feacat -ip lna -op lna -width 54 -o seg.lna \\
+  -skip skip.txt -des deslen.txt -ix -rep nn unseg.lna
+.EE
+where \f4nn\f1 denotes the number of segments defined in the *.txt files.
+.PP
+To convert an online feature stream into a set of HTK format feature files, 
+.EX
+feacat -olist outfiles.list -opf htk -ipf olf inftrs.olf
+.EE
+where \f4outfiles.list\f1 is a file containing the names of the HTK-format 
+files to write, one per line.  Each HTK file contains the data for one of 
+the segements in the online features file, \f4inftrs.olf\f1 (which could have
+come in on standard input).
+.SH NOTES/BUGS
+Although pfiles and pre files can contain labels as well as features, these
+are simply thrown away by 
+.I feacat.
+.PP
+Indexed mode (-indexed) involves reading over the entire feature file 
+when it is opened.  For large pfiles read over the network, this is 
+inadvisable.  But the user doesn't really want to worry about this.  
+It might be nicer to decide if input and/or output are seekable, and 
+open them indexed if so (especially output, since writing unindexed 
+output files can result in mysteriously slow performance when they are 
+opened later).  Currently, we just always open pfiles as indexed, 
+and other types as non-indexed.  As long as the pfile was written with 
+an index, this doesn't impose a large penalty, but because earlier
+versions of feacat used to write unindexed pfiles by default, there 
+are a few such files around.
+.PP
+Wouldn't it be nice if it was able to infer a feature stream type by 
+looking at its first few bytes?  Unfortunately, this isn't supported.
+Another possible way to do this would be to guess stream type based on 
+the filename.
+.SH AUTHOR
+.na
+Dan Ellis  <dpwe@ICSI.Berkeley.EDU>
+.br
+SRI file format support by Chuck Wooters (wooters@ICSI.Berkeley.EDU)
+.SH SEE ALSO
+.MS labcat 1 ,
+.MS Range 3 ,
+.MS pfile_concat 1 ,
+.MS pfile_merge 1 ,
+.MS qncopy 1 ,
+.MS cle 3 ,
+.MS gzip 1 ,
+.MS qnnorm 1 .

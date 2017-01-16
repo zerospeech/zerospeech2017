@@ -1,0 +1,105 @@
+Overview
+========
+
+This document contains some details about various hardware
+architectures that might be useful when analysing QuickNet
+performance.
+
+
+nVidia
+======
+Basic performance assumptions for 2011-era CUDA hardware:
+
+ - host->device - 5GB/s
+ - transfer/call round trip - 2us->5us
+ - memory bandwidth within card - 100-200GB/s
+
+Common cards include:
+
+ - Tesla C1060 (as in squids)
+    - compute capability 1.3
+    - 100GB/s
+    - 600MHz
+    - 240 cores
+    - 622 GFLOPs (single precision multiply/accumulate)
+    - 4096MB @ 1600MHz video memory
+ - Tesla C2050 [Fermi]
+    - compute capability 2.0
+    - 144GB/s
+    - 575MHz
+    - 448 cores
+    - 1030 GFLOPs (single precision multiply/accumulate)
+ - Quadro 6000
+    - compute capability 2.1
+    - 144GB/s
+    - 575MHz
+    - 448 cores
+ - Quadro 5000
+    - compute capability 2.1
+    - 120GB/s
+    - 513 MHz
+    - 352 cores
+ - GTX 580
+    - compute capability 2.0
+    - 192GB/s
+    - 772 MHz
+    - 512 cores
+    - 1581 GFLOPs (single precision multiply/accumulate)
+
+Apparently the main technical differences (ignoring support and
+reliability) between Tesla-2 cards and
+GeForce is:
+ - 4 x double precision throughpot on Tesla
+ - ECC only on Tesla
+ - more memory on Tesla
+ - 2 DMA Engines on Teslfa cf 1 on GeForce
+Ref:   http://nvidia.custhelp.com/cgi-bin/nvidia.cfg/php/enduser/std_adp.php?p_faqid=2595 
+
+Intel Core-i/Nehalem
+====================
+ - using SSE, peak 16/FLOPs/cycle/core (MAC)
+ - roughly 50GB/s off-chip memeory bandwidth
+
+
+Disabling speedstep whilst tuning
+=================================
+
+2011-era Intel processors automatically scale clock speed based on CPU
+load as a way of saving power.  This makes tuning, and specifically
+auto-tuning (e.g. when building Atlas) hard.  The technology has
+various names, incuding "Speedstep" and "EIST" (Enhanced Intel
+Speedstep Technology).
+
+The CPU speed can be found at:
+
+  /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_cur_freq 
+
+Sometimes (e.g. on squids with RHEL5U5 it's necessary to manually load
+the driver:
+
+  modprobe acpi-cpufreq
+
+Trying to control the frequency using this file didn't work.
+
+In theory the "cpuspeed" porgram can handle control of the frequency
+if the governor is set to "userspace" but I never worked out how to do this.
+
+On the squids, disabling EIST in the BIOS made the real time clock
+very inaccurate and caused a bunch of related problems.  However,
+auto-tuning Atlas with EIST enabled seemed to work, at least superficially.
+
+
+
+ICSI hardware
+=============
+
+The machines that are typically used at ICSI to run QuickNet are:
+
+squid[1-9]
+ - dual Intel Xeon X5550 @ 2.67GHz
+ - peak 170GFLOPs
+octopus[1-7]
+ - dual Athlon
+squid[1-9] Tesla card
+ - nVidia C1060
+ - two cards/squid

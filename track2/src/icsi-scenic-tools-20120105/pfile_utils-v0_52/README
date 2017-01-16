@@ -1,0 +1,14 @@
+$Header: /u/drspeech/repos/pfile_utils/README,v 1.3 2005/06/13 22:38:06 davidj Exp $
+
+This is the README for the "pfile_utils" package.
+
+"pfile_utils" is a a collection of utilities for manipulating
+"PFiles", the ICSI feature file archive format.
+
+See the file "INSTALL" for installation instructions.
+
+Written by Jeff Bilmes <bilmes@icsi.berkeley.edu>, 1997
+
+pfile_utils is Copyright (c) 1997-2005 The International Computer Science
+Institute.  All rights reserved.  See the file "COPYING" in the source
+directory for more details.

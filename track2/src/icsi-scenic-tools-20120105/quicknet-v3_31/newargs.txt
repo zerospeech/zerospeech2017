@@ -1,0 +1,114 @@
+# $Header: /u/drspeech/repos/quicknet2/newargs.txt,v 1.6 1996/07/22 23:18:28 davidj Exp $
+#
+# This document contains descriptions of the proposed new arguments for
+# QuickNet programs and libraries.
+
+# "ftr1" - the first input feature file.
+ftr1_file - name of the feature file
+ftr1_format - format of the feature file
+ftr1_width - the number of features in the feature file
+ftr1_norm_file - file containing normalizaton data for the features
+ftr1_ftr_start - the first feature we use
+ftr1_ftr_count - the number of features we use
+ftr1_bunch_size - the size of chunks (controls latency v. throughput)
+ftr1_debug - enable debugging
+
+# "ftr1_window" - windowing on ftr1 stream
+ftr1_window_offset - the offset of the window on this file
+ftr1_window_len - the length in frames of the window on this file
+ftr1_window_debug - enable debugging
+
+# "ftr2" - the second input feature file.
+...as ftr1...
+
+# "hardtarget" - the target file for hard training
+hardtarget_file - name of the target file
+hardtarget_format - format of the target file
+hardtarget_lab - the column number of the label we use in each frame
+hardtarget_size - the maximum value of the target label+1 (ie net output size)
+hardtarget_bunch_size - the size of chunks we work with (latency v. throughput)
+hardtarget_debug - enable debugging
+
+# "softtarget" - the target file used for soft training
+...as ftr1...
+
+# "hardtarget_window" - windowing on target stream.
+hardtarget_window_offset - the offset of the window on this file
+hardtarget_window_debug - enable debugging
+
+# "unary" - the file used to provide a unary input to the net
+#           (the same as "hardtarget" when doint previous state training)
+...as hardtarget...
+unary_enumerate - try all possible values of unary input (forward pass)
+
+# Windowing.
+window_extent - the number of frames from the first frame of the first
+	window to the last frame of the last window
+
+# Which sentences to use and how to access them.
+train_cache_frames - the number of frames in the training data cache
+train_cache_seed - the seed used for random frame selection
+train_sent_start - the first sentence used for training
+train_sent_count - the number of sentences used for training
+cv_sent_start - the first sentence used for cross validation
+cv_sent_count - the number of sentences used for cross validation
+fwd_sent_start - the first sentence used for forward pass
+fwd_sent_count - the number of sentences used for forward pass
+
+# "net" - general net features.
+net_type - the type of net used
+net_fx - true if fixed point net required
+net_bunch_size - the number of frames used in bunch mode training
+net_input_size - number of input layer units
+net_output_size - number of output layer units
+
+# "mlp3" - details of the three layer MLP being used.
+mlp3_hidden_size - number of hidden layer units
+mlp3_output_type - the unit type in the MLP output layer
+mlp3_in2hid_exp - exponent for fixed point net
+mlp3_hid2out_exp - exponent for fixed point net
+
+# "learnrate" - controlling the learning rate schedule (training only).
+learnrate_schedule - the type of the learning rate schedule
+learnrate_vals - the values of the learning rate
+learnrate_epochs - maximum number of training epochs
+learnrate_debug - enable debugging
+
+# "init" - initializing the MLP.
+init_weight_file - weight file for initializing the MLP
+init_weight_format - format of weight file
+init_weight_debug - enable debugging
+init_random_bias_min - minimum bias value for random initialization
+init_random_bias_max - maximum bias value for random initialization
+init_random_weight_min - minimum weight value for random initialization
+init_random_weight_max - maximum weight value for random initialization
+init_random_seed - seed for random weight initialization
+
+# "out_weight" - output weight file
+out_weight_file - resulting weight file
+out_weight_format - format of weight file
+out_weight_debug - enable debugging
+
+# "log_weight" - weight file used to log weights during training
+... as out_weight...
+
+# "targclass" - the correct targets for frames presented to the net
+# (effectively hardtarget file with windowing applied).
+# Useful for post-forward-pass confusion matrix building or prior calculation.
+targclass_file - correct target file
+targclass_format - correct target file format
+
+# "outclass" - the classification of frames as made by the net.
+# Useful for post-forward-pass confusion matrix generation.
+outclass_file - net output classification file
+outclass_format - net output classification file format
+
+# "activation" - analogue outputs from the net.
+activation_file - file containing net outputs
+activation_format - format of activation file
+activation_width - number of values in one frame of activation file
+activation_debug - enable debugging
+
+verbose - enable messages useful during run but irrelevant once finished
+debug - enable debugging of everything
+

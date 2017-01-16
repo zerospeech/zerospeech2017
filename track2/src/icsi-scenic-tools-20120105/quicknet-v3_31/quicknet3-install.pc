@@ -1,0 +1,11 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${exec_prefix}/include
+
+Name: QuickNet
+Description: QuickNet MLP Training Program and Library
+Version: v3_31
+Requires: 
+Libs: -L${libdir}  -lquicknet3 -lpthread -lm 
+Cflags: -I${includedir}/quicknet3 -g -O2 

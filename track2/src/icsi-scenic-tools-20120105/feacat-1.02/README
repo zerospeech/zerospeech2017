@@ -1,0 +1,35 @@
+$Header: /u/drspeech/repos/feacat/README,v 1.5 2006/03/10 22:30:00 davidj Exp $
+
+This is the README for the "feacat" package.
+
+"feacat" is a tool for "cat'ing" feature files, although it does many
+other things as well as just copying the input to the output,
+including a wide range of file format conversion funtions and subset
+extraction specifiers.
+
+Rather than having a series of special-purpose tools for converting
+pairs of formats, feacat is a single universal translator for the
+several formats that consist of frames of real values organized into
+separate utterances.  Specifically, this encompasses both feature
+files (e.g. pfiles, pre files) as well as probability files (LNAs,
+rapact).  Also within the feacat package is the "labcat" program,
+which does a similar things for labels.  A "linecat" utility performs
+some of the cutting and pasting operations on files which are just
+lines of text.  The "segpostsum" program summarizes posterior
+probabilities and can be used to compare winning classes between
+probability files and known-good label files.  Much of the
+functuionality of feacat is provided by the QuickNet library.
+
+See the feacat, labcat, linecat and segpostsum man pages for more
+description.
+
+See the file "INSTALL" for installation instructions.
+
+feacat was written by Dan Ellis although there have been
+several other contributors.
+
+feacat is Copyright (c) 1999-2006 The International Computer Science
+Institute.  All rights reserved.  See the file "COPYING" in the source
+directory for more details.
+
+

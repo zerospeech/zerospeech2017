@@ -1,0 +1,92 @@
+.de Sh
+.br
+.ne 5
+.PP
+\fB\\$1\fR
+.PP
+..
+.de Sp
+.if t .sp .5v
+.if n .sp
+..
+.               \" Path Name
+.               \"      uses Courier fonts for V4.0
+.de PN
+.ie t \&\f(CB\\$1\f(NR\\$2
+.el \fI\\$1\fP\\$2
+..
+.		\" The following macros added by dpwe for Ultrix 4..
+.               \" Manual section reference
+.               \"      uses Courier fonts for V4.0
+.de MS
+.ie t \&\f(CB\\$1\f(NR(\\$2)\\$3
+.el \fI\\$1\fP(\\$2)\\$3
+..
+.de EX		\" Begin Example
+.ie \\n(.$ .nr EX \\$1n
+.el \{\
+.	ie n .nr EX 0n
+.	el .nr EX 0n
+.\}
+.in +\\n(EXu
+.if n .sp 1
+.if t .sp .5v
+.nf
+.CW
+.ft CB
+..
+.de EE		\" End example
+.in -\\n(EXu
+.fi
+.}f             \" restore basic text attributes
+.if n .sp 1
+.if t .sp .5v
+..
+.TH SNDMIX 1 "1999 oct 06" dpwe   \" $Header: /u/drspeech/repos/dpwelib/sndmix.man,v 1.1 1999/10/07 07:04:21 dpwe Exp $
+.SH NAME
+sndmix - mix together two soundfiles
+.SH SYNOPSIS
+\fBsndmix
+[\-f \fIfactor1\fB]
+[\-g \fIfactor2\fB]
+[\-k \fIskip1\fB]
+[\-l \fIskip2\fB]
+[\-ld\fIdur\fB]
+\fIsound1\fB
+\fIsound2\fB 
+[\fIoutsound\fB]
+\fR
+.SH DESCRIPTION
+.PN sndmix
+mixes together (i.e. adds) two soundfiles to create a new file. 
+The two sound files can be scaled independently via -f and -g 
+which prefix real scale factors.  The files can also be shifted 
+relative to one another in time; a positive skip value (-k or -l) 
+skips that many seconds at the start of the first or second 
+sound files.  Either skip can be negative, meaning that silence 
+is prepended to pad out to the requested time.  The overall duration 
+of the output is determined by -d; the sound will be truncated or 
+padded to achieve this.  By default, the output continues until the 
+ends of both input files are reached.  If no output file name 
+is given, the default is the stem of sound 1 plus ".mix".
+.P
+Stereo files are mixed correctly, but both files must have the 
+same number of channels.  See 
+.MS sndrfmt 1 
+for a tool to alter the channel configuration of soundfiles.
+.SH BUGS
+.SH NOTES
+This is a Media-Lab era program, written in 1993 as "danmix".
+.P
+The program uses the soundfile access library of 
+.MS sndf 3
+which defines the kind of soundfile it will recognize, depending 
+on its compilation options.
+.SH SEE ALSO
+.MS sndf 3 ,
+.MS sndrfmt 1 .
+.SH AUTHOR
+Dan Ellis, 
+.B dpwe@icsi.berkeley.edu 
+(written as dpwe@media.mit.edu)
+

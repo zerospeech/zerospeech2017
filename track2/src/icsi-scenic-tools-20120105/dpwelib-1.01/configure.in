@@ -1,0 +1,439 @@
+dnl -*- sh -*-
+dnl $Header: /u/drspeech/repos/dpwelib/configure.in,v 1.17 2012/01/05 21:21:40 dpwe Exp $
+dnl
+dnl configure.in for dpwelib, library functions for dpwe@icsi.berkeley.edu
+dnl Process this file with autoconf to produce a configure script.
+
+AC_INIT(dpwelib, 1.01, quicknet-bugs@ICSI.Berkeley.EDU, dpwelib)
+
+AC_PREFIX_DEFAULT(/usr/local)
+if test "${prefix}" = "NONE"; then
+    prefix=/usr/local
+fi
+if test "${exec_prefix}" = "NONE"; then
+    exec_prefix=$prefix
+fi
+
+AC_CONFIG_HEADER(config.h)
+
+dnl Checks for programs.
+AC_PROG_CC
+# added 2012-01-05
+AC_SYS_LARGEFILE
+
+AC_PROG_INSTALL
+AC_PATH_PROG(AR,ar)
+AC_PATH_PROG(RANLIB,ranlib,:)
+
+dnl Checks for header files.
+AC_HEADER_STDC
+dnl select between sunos4 and solaris audio includes in audIOsun.h
+AC_CHECK_HEADERS(sys/audioio.h unistd.h)
+
+dnl Check for library functions
+LIBS="$LIBS -lm"
+AC_CHECK_FUNCS(hypot strdup popen isatty strndup)
+
+dnl Checks for byte-swapped machines (Intel, DEC)
+AC_C_BIGENDIAN
+
+dnl Check compiler characteristics
+AC_C_CHAR_UNSIGNED
+
+#--------------------------------------------------------------------
+#	The statements below define a collection of symbols related to
+#	shared libraries.  They are stolen from the Tcl7.6 configure.in
+#
+#	Note: this code sets up the symbols necessary to actually 
+#	build the library as a shared object.  Currently, we don't 
+#	actually do this, but we want to make sure the object files 
+#	are compiled position-independent, so the entire library
+#	can be included in Tcl extension shared objects.  In the 
+#	future, we may use some of the other symbols we set up here 
+#	to actually build a shared libdpwe.  It seemed wasteful to 
+#	edit out all that good logic that we might want in the future, 
+#	even though it's just wasting space at the moment.
+#
+#	1997jul03 dpwe@icsi.berkeley.edu
+#--------------------------------------------------------------------
+
+# Step 1: set the variable "system" to hold the name and version number
+# for the system.  This can usually be done via the "uname" command, but
+# there are a few systems, like Next, where this doesn't work.
+
+AC_MSG_CHECKING([system version (for dynamic loading)])
+if test -f /usr/lib/NextStep/software_version; then
+    system=NEXTSTEP-`awk '/3/,/3/' /usr/lib/NextStep/software_version`
+else
+    system=`uname -s`-`uname -r`
+    if test "$?" -ne 0 ; then
+	AC_MSG_RESULT([unknown (can''t find uname command)])
+	system=unknown
+    else
+	# Special check for weird MP-RAS system (uname returns weird
+	# results, and the version is kept in special file).
+    
+	if test -r /etc/.relid -a "X`uname -n`" = "X`uname -s`" ; then
+	    system=MP-RAS-`awk '{print $3}' /etc/.relid'`
+	fi
+	if test "`uname -s`" = "AIX" ; then
+	    system=AIX-`uname -v`.`uname -r`
+	fi
+	AC_MSG_RESULT($system)
+    fi
+fi
+
+# Step 3: set configuration options based on system name and version.
+
+AC_CANONICAL_SYSTEM
+
+AC_MSG_CHECKING([default compiler flags])
+if test -z "$CFLAGS" ; then
+    CFLAGS="-O"
+fi
+AC_ARG_WITH(cflags, [  --with-cflags=FLAGS     set compiler flags to FLAGS],
+    [CFLAGS="$with_cflags"])
+
+AC_MSG_RESULT([$CFLAGS])
+
+fullSrcDir=`cd $srcdir; pwd`
+AIX=no
+SHLIB_SUFFIX=""
+case $system in
+    AIX-*)
+	SHLIB_CFLAGS=""
+	SHLIB_LD="$fullSrcDir/ldAix /bin/ld -bhalt:4 -bM:SRE -bE:lib.exp -H512 -T512"
+	SHLIB_LD_LIBS='${LIBS}'
+	SHLIB_SUFFIX=".so"
+	LD_FLAGS=""
+	LD_SEARCH_FLAGS='-L${LIB_RUNTIME_DIR}'
+	AIX=yes
+	;;
+    BSD/OS-2.1*)
+	SHLIB_CFLAGS=""
+	SHLIB_LD="ld -r"
+	SHLIB_LD_FLAGS=""
+	SHLIB_SUFFIX=".so"
+	LD_FLAGS=""
+	LD_SEARCH_FLAGS=""
+	;;
+    HP-UX-*.08.*|HP-UX-*.09.*|HP-UX-*.10.*)
+	AC_CHECK_LIB(dld, shl_load, tcl_ok=yes, tcl_ok=no)
+	if test "$tcl_ok" = yes; then
+	    SHLIB_CFLAGS="+z"
+	    SHLIB_LD="ld -b"
+	    SHLIB_LD_LIBS='${LIBS}'
+	    SHLIB_SUFFIX=".sl"
+	    LD_FLAGS="-Wl,-E"
+	    LD_SEARCH_FLAGS='-Wl,+b,${LIB_RUNTIME_DIR}:.'
+	fi
+	;;
+    IRIX-4.*)
+	SHLIB_CFLAGS="-G 0"
+	SHLIB_SUFFIX="..o"
+	SHLIB_LD="echo tclLdAout $CC \{$SHLIB_CFLAGS\} | `pwd`/tclsh -r -G 0"
+	SHLIB_LD_LIBS='${LIBS}'
+	LD_FLAGS="-Wl,-D,08000000"
+	LD_SEARCH_FLAGS=""
+	;;
+    IRIX-5.*|IRIX-6.*)
+	SHLIB_CFLAGS=""
+	#SHLIB_LD="ld -shared -rdata_shared"
+	SHLIB_LD="ld -shared -rdata_shared -update_registry /usr/tmp/so_locations"
+	SHLIB_LD_LIBS=""
+	SHLIB_SUFFIX=".so"
+	LD_FLAGS=""
+	LD_SEARCH_FLAGS='-Wl,-rpath,${LIB_RUNTIME_DIR}'
+	;;
+    IRIX64-6.*)
+	SHLIB_CFLAGS=""
+	SHLIB_LD="ld -32 -shared -rdata_shared -rpath /usr/local/lib"
+	SHLIB_LD_LIBS=""
+	SHLIB_SUFFIX=".so"
+	LD_FLAGS=""
+	LD_SEARCH_FLAGS='-Wl,-rpath,${LIB_RUNTIME_DIR}'
+	;;
+    Linux*)
+	SHLIB_CFLAGS="-fPIC"
+	SHLIB_LD_LIBS=""
+	SHLIB_SUFFIX=".so"
+	if test "$have_dl" = yes; then
+	    SHLIB_LD="${CC} -shared"
+	    LD_FLAGS="-rdynamic"
+	    LD_SEARCH_FLAGS=""
+	else
+	    AC_CHECK_HEADER(dld.h, [
+		SHLIB_LD="ld -shared"
+		LD_FLAGS=""
+		LD_SEARCH_FLAGS=""])
+	fi
+	;;
+    MP-RAS-02*)
+	SHLIB_CFLAGS="-K PIC"
+	SHLIB_LD="cc -G"
+	SHLIB_LD_LIBS=""
+	SHLIB_SUFFIX=".so"
+	LD_FLAGS=""
+	LD_SEARCH_FLAGS=""
+	;;
+    MP-RAS-*)
+	SHLIB_CFLAGS="-K PIC"
+	SHLIB_LD="cc -G"
+	SHLIB_LD_LIBS=""
+	SHLIB_SUFFIX=".so"
+	LD_FLAGS="-Wl,-Bexport"
+	LD_SEARCH_FLAGS=""
+	;;
+    NetBSD-*|FreeBSD-*)
+	# Not available on all versions:  check for include file.
+	AC_CHECK_HEADER(dlfcn.h, [
+	    SHLIB_CFLAGS="-fpic"
+	    SHLIB_LD="ld -Bshareable -x"
+	    SHLIB_LD_LIBS=""
+	    SHLIB_SUFFIX=".so"
+	    LD_FLAGS=""
+	    LD_SEARCH_FLAGS=""
+	], [
+	    SHLIB_CFLAGS=""
+	    SHLIB_LD="echo tclLdAout $CC \{$SHLIB_CFLAGS\} | `pwd`/tclsh -r -G 0"
+	    SHLIB_LD_LIBS='${LIBS}'
+	    SHLIB_SUFFIX="..o"
+	    LD_FLAGS=""
+	    LD_SEARCH_FLAGS=""
+	])
+	;;
+    NEXTSTEP-*)
+	SHLIB_CFLAGS=""
+	SHLIB_LD="cc -nostdlib -r"
+	SHLIB_LD_LIBS=""
+	SHLIB_SUFFIX=".so"
+	LD_FLAGS=""
+	LD_SEARCH_FLAGS=""
+	;;
+    OSF1-1.0|OSF1-1.1|OSF1-1.2)
+	# OSF/1 1.[012] from OSF, and derivatives, including Paragon OSF/1
+	SHLIB_CFLAGS=""
+	# Hack: make package name same as library name
+	SHLIB_LD='ld -R -export $@:'
+	SHLIB_LD_LIBS=""
+	SHLIB_SUFFIX=".so"
+	LD_FLAGS=""
+	LD_SEARCH_FLAGS=""
+	;;
+    OSF1-1.*)
+	# OSF/1 1.3 from OSF using ELF, and derivatives, including AD2
+	SHLIB_CFLAGS="-fpic"
+	SHLIB_LD="ld -shared"
+	SHLIB_LD_LIBS=""
+	SHLIB_SUFFIX=".so"
+	LD_FLAGS=""
+	LD_SEARCH_FLAGS=""
+	;;
+    OSF1-V*)
+        # Digital OSF/1
+	SHLIB_CFLAGS=""
+	SHLIB_LD='ld -shared -expect_unresolved "*"'
+	SHLIB_LD_LIBS=""
+	SHLIB_SUFFIX=".so"
+	LD_FLAGS=""
+	LD_SEARCH_FLAGS='-Wl,-rpath,${LIB_RUNTIME_DIR}'
+	;;
+    RISCos-*)
+	SHLIB_CFLAGS="-G 0"
+	SHLIB_LD="echo tclLdAout $CC \{$SHLIB_CFLAGS\} | `pwd`/tclsh -r -G 0"
+	SHLIB_LD_LIBS='${LIBS}'
+	SHLIB_SUFFIX="..o"
+	LD_FLAGS="-Wl,-D,08000000"
+	LD_SEARCH_FLAGS=""
+	;;
+    SCO_SV-3.2*)
+        # Note, dlopen is available only on SCO 3.2.5 and greater.  However,
+        # this test works, since "uname -s" was non-standard in 3.2.4 and
+        # below.
+	SHLIB_CFLAGS="-Kpic -belf"
+	SHLIB_LD="ld -G"
+	SHLIB_LD_LIBS=""
+	SHLIB_SUFFIX=".so"
+	LD_FLAGS="-belf -Wl,-Bexport"
+	LD_SEARCH_FLAGS=""
+	;;
+     SINIX*5.4*)
+	SHLIB_CFLAGS="-K PIC"
+	SHLIB_LD="cc -G"
+	SHLIB_LD_LIBS=""
+	SHLIB_SUFFIX=".so"
+	LD_FLAGS=""
+	LD_SEARCH_FLAGS=""
+	;;
+    SunOS-4*)
+	SHLIB_CFLAGS="-PIC"
+	SHLIB_LD="ld -assert pure-text"
+	SHLIB_LD_LIBS=""
+	SHLIB_SUFFIX=".so"
+	LD_FLAGS=""
+	LD_SEARCH_FLAGS='-L${LIB_RUNTIME_DIR}'
+	;;
+    SunOS-5*)
+	SHLIB_CFLAGS="-KPIC"
+	SHLIB_LD="/usr/ccs/bin/ld -G -z text"
+	SHLIB_LD_LIBS='${LIBS}'
+	SHLIB_SUFFIX=".so"
+	LD_FLAGS=""
+	LD_SEARCH_FLAGS='-R ${LIB_RUNTIME_DIR}'
+	;;
+    ULTRIX-4.*)
+	SHLIB_CFLAGS="-G 0"
+	SHLIB_SUFFIX="..o"
+	SHLIB_LD="echo tclLdAout $CC \{$SHLIB_CFLAGS\} | `pwd`/tclsh -r -G 0"
+	SHLIB_LD_LIBS='${LIBS}'
+	LD_FLAGS="-Wl,-D,08000000"
+	LD_SEARCH_FLAGS=""
+	;;
+    UNIX_SV*)
+	SHLIB_CFLAGS="-KPIC"
+	SHLIB_LD="cc -G"
+	SHLIB_LD_LIBS=""
+	SHLIB_SUFFIX=".so"
+	# Some UNIX_SV* systems (unixware 1.1.2 for example) have linkers
+	# that don't grok the -Bexport option.  Test that it does.
+	hold_ldflags=$LDFLAGS
+	AC_MSG_CHECKING(for ld accepts -Bexport flag)
+	LDFLAGS="${LDFLAGS} -Wl,-Bexport"
+	AC_TRY_LINK(, [int i;], found=yes, found=no)
+	LDFLAGS=$hold_ldflags
+	AC_MSG_RESULT($found)
+	if test $found = yes; then
+	  LD_FLAGS="-Wl,-Bexport"
+	else
+	  LD_FLAGS=""
+	fi
+	LD_SEARCH_FLAGS=""
+	;;
+esac
+
+if test "x$SHLIB_SUFFIX" = "x" ; then
+    echo "Can't figure out how to do shared libraries on this system."
+    SHLIB_CFLAGS=""
+    SHLIB_LD=""
+    SHLIB_SUFFIX=""
+    LD_FLAGS=""
+    LD_SEARCH_FLAGS=""
+fi
+
+# If we're running gcc, then change the C flags for compiling shared
+# libraries to the right flags for gcc, instead of those for the
+# standard manufacturer compiler.
+
+if test "x$SHLIB_SUFFIX" != "x" ; then
+    if test "$CC" = "gcc" -o `$CC -v 2>&1 | grep -c gcc` != "0" ; then
+	SHLIB_CFLAGS="-fPIC"
+    fi
+fi
+
+#--------------------------------------------------------------------
+#	The statements below define a collection of symbols related to
+#	building libdpwe as a shared library instead of a static library.
+#--------------------------------------------------------------------
+
+AC_ARG_ENABLE(shared,
+    [  --enable-shared         build libdpwe suitable to be in a shared library (yes)],
+    [dpwe_ok=$enableval], [dpwe_ok=yes])
+if test "$dpwe_ok" = "yes" -a "${SHLIB_SUFFIX}" != "" ; then
+    eval "LIB_FILE=libdpwe${SHLIB_SUFFIX}"
+    # MAKE_LIB="\${SHLIB_LD} -o ${LIB_FILE} \${OBJS} ${SHLIB_LD_LIBS}"
+    # RANLIB=":"
+else
+    if test "$AIX" = "no" ; then
+	SHLIB_LD_LIBS=""
+    fi
+    SHLIB_CFLAGS=""
+    LD_SEARCH_FLAGS=""
+    # LIB_FILE=libdpwe.a
+    # MAKE_LIB="ar cr ${LIB_FILE} \${OBJS}"
+fi
+
+## Note:  in the following variable, it's important to use the absolute
+## path name of the Tcl directory rather than "..":  this is because
+## AIX remembers this path and will attempt to use it at run-time to look
+## up the Tcl library.
+#
+#if test "${TCL_LIB_VERSIONS_OK}" = "ok"; then
+#    TCL_BUILD_LIB_SPEC="-L`pwd` -ltcl${VERSION}"
+#    TCL_LIB_SPEC="-L${exec_prefix}/lib/itcl -ltcl${VERSION}"
+#else
+#    TCL_BUILD_LIB_SPEC="-L`pwd` -ltcl`echo ${VERSION} | tr -d .`"
+#    TCL_LIB_SPEC="-L${exec_prefix}/lib/itcl -ltcl`echo ${VERSION} | tr -d .`"
+#fi
+
+#
+# Choose the audio IO source file for this hardware
+#
+AC_ARG_ENABLE(audio,
+    [  --enable-audio         attempt to drive sound hardware on this platform (yes)],
+    [dpwe_ok=$enableval], [dpwe_ok=maybe])
+  AC_MSG_CHECKING(system type for audio -- ${system})
+  if test "$dpwe_ok" != "no" ; then
+  case "${system}" in 
+    SunOS-5*)	AUDIOBS=audIOsun.o    
+		  AUDILIB=		;;
+    SunOS-4*)	AUDIOBS=audIOsun.o
+		  AUDILIB=		;;
+    Irix-*)	AUDIOBS=audIOsgi.o
+		  AUDILIB=-laudio		;;
+    Linux*)	AUDIOBS=audIOlinux.o
+		  AUDILIB=		;;
+    OSF1-V*)	AUDIOBS=audIOdecwmm.o 
+		  AUDILIB=-lmme		;;
+    *)		AUDIOBS=audIOstub.o		
+		  AUDILIB=		;;
+  esac
+  if test "$dpwe_ok" = "yes" -a  "$AUDIOBS" = "audIOstub.o" ; then
+      # We asked specifically for audio but we couldn't have it - error
+      AC_MSG_ERROR(Audio not supported for this system.)
+  fi
+  AC_MSG_RESULT(ok)
+else
+  # We don't care about audio - use stubs
+  AUDIOBS=audIOstub.o		
+  AUDILIB=
+fi
+AC_SUBST(AUDIOBS)
+AC_SUBST(AUDILIB)
+
+# Specify the absolute path to the srcdir for the dpwelibConfig.sh file
+DPWELIB_SRC_DIR=$fullSrcDir
+AC_SUBST(DPWELIB_SRC_DIR)
+fullBuildDir=`pwd`
+
+# Build the paths for the dpwelibConfig.sh file
+DPWELIB_INSTALL_INC_SPEC="-I${exec_prefix}/include"
+DPWELIB_INSTALL_LIB_SPEC="-L${exec_prefix}/lib -ldpwe $AUDILIB"
+DPWELIB_BUILD_INC_SPEC="-I$fullBuildDir"
+DPWELIB_BUILD_LIB_SPEC="-L$fullBuildDir -ldpwe $AUDILIB"
+
+# Record in the cache where other peer packages can find us
+AC_MSG_CHECKING(dpwelib path is saved in cache)
+AC_CACHE_VAL(acdpwe_cv_path_dpwelib, acdpwe_cv_path_dpwelib=$fullBuildDir)
+# Do it again in case it didn't do it before because it was already in cache
+acdpwe_cv_path_dpwelib=$fullBuildDir
+AC_MSG_RESULT($acdpwe_cv_path_dpwelib)
+
+# Append our build dir to the growing list of build path dirs
+AC_CACHE_CHECK(drspeech build path, acdpwe_cv_env_path, 
+		acdpwe_cv_env_path=)
+if echo $acdpwe_cv_env_path | fgrep -v $fullBuildDir > /dev/null ; then
+    acdpwe_cv_env_path="$fullBuildDir $acdpwe_cv_env_path"
+fi
+
+AC_SUBST(SHLIB_CFLAGS)
+AC_SUBST(SHLIB_LD)
+AC_SUBST(SHLIB_SUFFIX)
+AC_SUBST(LD_FLAGS)
+AC_SUBST(LD_SEARCH_FLAGS)
+
+AC_SUBST(DPWELIB_BUILD_LIB_SPEC)
+AC_SUBST(DPWELIB_INSTALL_LIB_SPEC)
+AC_SUBST(DPWELIB_BUILD_INC_SPEC)
+AC_SUBST(DPWELIB_INSTALL_INC_SPEC)
+
+AC_OUTPUT(Makefile dpwelibConfig.sh)
