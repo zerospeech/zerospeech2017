@@ -85,7 +85,6 @@ should work as well on MacOS.
 
   * [ABXpy](https://github.com/bootphon/ABXpy) for evaluation
   * [h5features](https://github.com/bootphon/h5features) for data storage
-  * [features_extraction](https://github.com/bootphon/features_extraction) for baseline
   * **TODO** [abkhazia](https://github.com/bootphon/abkhazia) for topline
 
 * To make sure the installation is correct, you can run the tests:
