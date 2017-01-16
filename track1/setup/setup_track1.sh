@@ -55,6 +55,6 @@ make install || failure "cannot install ABXpy"
 cd -
 
 # setup features_extraction
-cd ../src/features_extraction
-python setup.py install || failure "cannot install features_extraction"
-cd -
+#cd ../src/features_extraction
+#python setup.py install || failure "cannot install features_extraction"
+#cd -
