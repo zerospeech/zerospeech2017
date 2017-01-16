@@ -47,13 +47,14 @@ pip install -r requirements_pip.txt \
 # setup tde 
 cd ../src/tde
 python setup.py install || failure "cannot install tde"
+# TODO: change setup.py to point to the bin_dir
+bin_dir=../../bin/
+mkdir -p ${bin_dir}
 cd -
 
 # setup ZRTools 
 cd ../src/ZRTools
 make  || failure "cannot install ZRTools"
-bin_dir=../../bin/
-mkdir -p ${bin_dir}
 cp plebdisc/build_index ${bin_dir} || failure "cannot copy ZRTools - build_index" 
 cp plebdisc/genproj ${bin_dir}     || failure "cannot copy ZRTools - genproj"
 cp plebdisc/lsh ${bin_dir}                  || failure "cannot copy ZRTools - lsh"
