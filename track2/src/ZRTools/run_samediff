@@ -1,0 +1,61 @@
+#!/bin/bash
+
+#
+# Copyright 2011-2015  Johns Hopkins University (Author: Aren Jansen)
+#
+
+set -o errexit
+
+NDIV=15
+NSUBSETS=$[$NDIV*$NDIV]
+
+FILEDIR=$1
+WORDLIST=$2
+RESDIR=$3
+OPTIONS=$4
+EXTENSION=$5
+
+NAME=discbench
+EXE1=samediff/wordsim
+EXE2=samediff/compute_distrib
+
+if [ -z $RESDIR ]; then
+    echo "USAGE: dist_grid <feature_set_dir> <eval_word_list> <results_dir> [ \"<wordsim options>\" <resdir ext>" ]
+    exit 1
+fi 
+
+if [[ ! -d $FILEDIR ]]; then
+    echo "Feature file directory $FILEDIR does not exist. Exiting"
+    exit 1
+fi 
+
+if [[ ! -f $WORDLIST ]]; then
+    echo "Word list $WORDLIST does not exist. Exiting"
+    exit 1
+fi 
+
+if [[ ! -d $RESDIR ]]; then
+    echo "Results directory $RESDIR does not exist. Exiting"
+    exit 1
+fi 
+    
+rm -f $RESDIR/*.info $RESDIR/*.dist $RESDIR/*.dista $RESDIR/*.distrib
+
+for (( n=1; n<=$NSUBSETS; n++)); do
+    R=$[($n-1)/$NDIV]
+    C=$[($n-1)-$NDIV*$R]
+    if [ $C -ge $R ]; then
+	command="$EXE1 -wordlist $WORDLIST -filedir $FILEDIR -subset $n $OPTIONS"
+	#echo $command
+	resfile=$RESDIR/$n.dist
+	infofile=$RESDIR/$n.info
+	# high priority: -p 0 -R y
+	qsub -q *.q -l num_proc=1,mem_free=4G,h_rt=4:00:00 -b y -cwd -V -N $NAME -e $infofile -o $resfile "$command"
+    fi
+done
+
+# consolidate distance files and compute distributions
+infofile=$RESDIR/$FEATSET.info
+distrfile=$RESDIR/$FEATSET.distrib
+command="cat $RESDIR/*.dist > $RESDIR/all.dista; $EXE2 -distlist $RESDIR/all.dista -outfile $distrfile"
+qsub -q *.q -hold_jid $NAME -l num_proc=1,mem_free=4G,h_rt=0:30:00 -b y -cwd -V -N ${NAME}_fin -e $infofile -o $infofile "$command"

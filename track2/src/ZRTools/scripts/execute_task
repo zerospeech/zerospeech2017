@@ -1,0 +1,21 @@
+#!/bin/bash
+
+#
+# Copyright 2011-2012  Johns Hopkins University (Author: Aren Jansen)
+#
+
+
+# USAGE: execute_task <cmdlist> <linespertask>
+
+TMP=${TMP:=/state/partition1}
+
+CMDLIST=$1
+LINESPERTASK=$2
+
+STARTLINE=`echo $SGE_TASK_ID $LINESPERTASK | awk '{print 1+($1-1)*$2;}'`
+
+cat $CMDLIST | tail -n +$STARTLINE | head -$LINESPERTASK > $TMP/cmd.$SGE_TASK_ID
+
+sh $TMP/cmd.$SGE_TASK_ID
+
+rm -f $TMP/cmd.$SGE_TASK_ID

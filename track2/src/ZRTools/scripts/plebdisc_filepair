@@ -1,0 +1,38 @@
+#!/bin/bash
+
+#
+# Copyright 2011-2012  Johns Hopkins University (Author: Aren Jansen)
+#
+
+
+#USAGE: ./plebdisc_filepair <base1> <base2> <expdir> <dim>
+
+. config 
+
+EXEDIR=$BASEDIR/bin
+
+BASE1=$1
+BASE2=$2
+LSHDIR=$3/lsh
+FEATDIR=$3/feats
+DIM=$4
+
+LSH1=$LSHDIR/${BASE1}.std.lsh64
+LSH2=$LSHDIR/${BASE2}.std.lsh64
+
+FEAT1=$FEATDIR/${BASE1}.std.binary
+FEAT2=$FEATDIR/${BASE2}.std.binary
+
+ulimit -c 0
+
+echo $BASE1 $BASE2 
+
+plebdisc/plebdisc -S 64 -P 8 -rhothr 0 -T 0.25 -B 50 -D 5 -dtwscore 0 -kws 0 -dx 25 -medthr 0.5 -twopass 1 -maxframes 90000 -Tscore 0.5 -file1 $LSH1 -file2 $LSH2 | awk 'NF == 2 || $5 > 0. {print $0;}' > $TMP/${BASE1}_$BASE2.match
+
+if [[ -f $FEAT1 ]] && [[ -f $FEAT2 ]] && [[ ! -z "$DIM" ]]; then
+    plebdisc/rescore_singlepair_dtw -wmvn 0 -file1 $FEAT1 -file2 $FEAT2 -matchlist $TMP/${BASE1}_$BASE2.match -D $DIM
+else
+    cat $TMP/${BASE1}_$BASE2.match
+fi
+
+rm -f $TMP/${BASE1}_$BASE2.match

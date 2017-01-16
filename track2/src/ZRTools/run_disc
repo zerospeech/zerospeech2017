@@ -1,0 +1,88 @@
+#!/bin/bash
+
+#USAGE: ./run_disc <sge_or_nosge> <filelist> [ <suffix> ]
+
+#
+# Copyright 2011-2015  Johns Hopkins University (Author: Aren Jansen)
+#
+
+SGE=$1
+FILELIST=$2
+SUFFIX=$3
+
+if [ -z "$SGE" ]; then
+    echo "USAGE: ./run_disc <sge_or_nosge> <filelist> [ <suffix> ]"
+    exit
+fi
+
+if [ "$SGE" != "sge" ] && [ "$SGE" != "nosge" ]; then
+    echo "USAGE: ./run_disc <sge_or_nosge> <filelist> [ <suffix> ]"
+    exit
+fi
+
+if [ -z "$FILELIST" ]; then
+    echo "USAGE: ./run_disc <sge_or_nosge> <filelist> [ <suffix> ]"
+    exit
+fi
+
+if [ ! -f $FILELIST ]; then
+    echo "ERROR: $FILELIST does not exist!"
+    exit
+fi
+
+# Make experiment directories
+EXPNAME=`basename $FILELIST .lst`
+if ! [ -z $SUFFIX ]; then
+    EXPNAME=$EXPNAME-$SUFFIX
+fi
+
+# Load the configuration file
+. config 
+
+echo "Experiment ID: $EXPNAME"
+
+EXPDIR=$EXPDIR/$EXPNAME 
+
+echo "Creating experiment directories in $EXPDIR"
+
+rm -r $EXPDIR
+
+mkdir -p $EXPDIR
+mkdir -p $EXPDIR/feats $EXPDIR/lsh $EXPDIR/results
+
+echo "Generating file list: $EXPDIR/files.lst"
+cp $FILELIST $EXPDIR/files.lst
+
+echo "Generating audioid lists: $EXPDIR/files.base"
+cat $FILELIST | awk -F "/" '{print $NF;}' | cut -d '.' -f1 > $EXPDIR/files.base
+
+# Generate DIM to -bit LSH project matrix
+echo "Generating LSH projection file: $EXPDIR/proj_S32xD${DIM}_seed1"
+plebdisc/genproj -D $DIM -S 64 -seed 1 -projfile $EXPDIR/proj_S64xD${DIM}_seed1
+
+# Generate LSH command list
+echo "Generating LSH command list: $EXPDIR/lsh.cmd"
+cat $EXPDIR/files.lst | awk '{print "scripts/generate_plp_lsh",$1,expdir;}' expdir=$EXPDIR > $EXPDIR/lsh.cmd
+
+# Generate discovery command list
+echo "Generating discovery command list: $EXPDIR/disc.cmd"
+cat $EXPDIR/files.base | scripts/beam_pairs.py 0 | awk '{print "scripts/plebdisc_filepair",$1,$2,expdir,dim;}' expdir=$EXPDIR dim=$DIM | awk '{print $1,"\""$2"\"", "\""$3"\"",$4,$5,$6}' > $EXPDIR/disc.cmd
+
+
+if [ "$SGE" == "sge" ]; then 
+    # Submit the LSH jobs
+    scripts/split_submit_array genlsh $EXPDIR/lsh.cmd $EXPDIR/lshlog $NJ_LSH $MEM_LSH 10:00:00
+
+    # Submit the discovery jobs (will wait on lsh completion)
+    scripts/split_submit_array discover $EXPDIR/disc.cmd $EXPDIR/matches $NJ_DISC $MEM_LSH 40:00:00 "-hold_jid genlsh"
+else
+    echo "Extracting LSH signatures"
+    mkdir -p $EXPDIR/lshlog
+    rm -rf $EXPDIR/lshlog/*  
+    sh $EXPDIR/lsh.cmd 1> $EXPDIR/lshlog/out.1 2> $EXPDIR/lshlog/err.1
+
+    ###echo "Running discovery tasks"
+    ###mkdir -p $EXPDIR/matches
+    ###rm -rf $EXPDIR/matches/*
+    ###sh $EXPDIR/disc.cmd 1> $EXPDIR/matches/out.1 2> $EXPDIR/matches/err.1
+fi

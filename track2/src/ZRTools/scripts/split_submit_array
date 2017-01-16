@@ -1,0 +1,42 @@
+#!/bin/bash
+
+#
+# Copyright 2011-2012  Johns Hopkins University (Author: Aren Jansen)
+#
+
+
+# USAGE: split_submit_array <name> <cmdlist> <outdir> <linespertask> <memory> <runtime> <extraargs>
+
+NAME=$1
+CMDLIST=$2
+OUTDIR=$3
+LINESPERTASK=$4
+MEMORY=$5
+RUNTIME=$6
+EXTRAARG=$7
+
+if [ -z $OUTDIR ]; then
+    echo ERROR: Output directory $OUTDIR does not exist.
+    exit 1
+fi
+
+if [ ! -f $CMDLIST ]; then
+    echo ERROR: Command list $CMDLIST does not exist.
+    exit
+fi
+
+mkdir -p $OUTDIR
+
+rm -f $OUTDIR/out* $OUTDIR/err*
+
+LINES=`wc -l $CMDLIST | awk '{print $1;}'`
+NTASKS=`wc -l $CMDLIST | awk '{R = $1/linespertask; print (R==int(R)) ? R : int(R)+1;}' linespertask=$LINESPERTASK`
+
+echo Submitting $CMDLIST: $NTASKS tasks, $LINESPERTASK cmd/task
+
+logout=$OUTDIR/out.\$TASK_ID
+logerr=$OUTDIR/err.\$TASK_ID
+
+QSUBOPT="-q all.q -l mem_free=${MEMORY} -l h_rt=${RUNTIME} ${EXTRAARG}"
+
+qsub $QSUBOPT -t 1-$NTASKS -cwd -b y -V -N $NAME -e $logerr -o $logout "sh scripts/execute_task $CMDLIST $LINESPERTASK"

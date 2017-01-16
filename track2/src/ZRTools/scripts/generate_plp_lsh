@@ -1,0 +1,67 @@
+#!/bin/bash
+
+#
+# Copyright 2011-2012  Johns Hopkins University (Author: Aren Jansen)
+#
+
+ulimit -c 0
+
+# USAGE: generate_fdlps_lsh <srcfile> <expdir> 
+SRCFILE=$1
+FEATOUTDIR=$2/feats
+LSHOUTDIR=$2/lsh
+
+if [ ! -f $SRCFILE ]; then
+    echo $SRCFILE does not exist. Exiting.
+    exit
+fi
+
+. config
+
+EXT=`echo $SRCFILE | awk -F "." '{print $NF;}'`
+
+# If the input list is already lsh files, just copy it to the lsh output dir
+if [ $EXT == "lsh64" ]; then 
+    cp $SRCFILE $LSHOUTDIR/`basename $SRCFILE`
+    exit
+fi
+
+ID=`basename $SRCFILE .$EXT`
+
+RAW_FILE=$TMP/${ID}.raw
+WAV_FILE=$TMP/${ID}.wav
+FEAT_BIN=$TMP/${ID}.binary
+VAD_FILE=$TMP/$ID.vad
+FEAT_STD=$FEATOUTDIR/${ID}.std.binary
+SIG_FILE=$LSHOUTDIR/${ID}.std.lsh64
+    
+# Get audio into a 16-bit 8kHz wav file
+if [ $EXT == "sph" ]; then 
+    $SPH2PIPEBIN -f rif -p $SRCFILE > $WAV_FILE
+elif [ $EXT == "wav" ]; then    
+    $SOXBIN -t wav ${SRCFILE} -t wav -e signed-integer -b 16 -c 1 -r 8000 ${WAV_FILE}
+fi
+
+# Generate vad marks for the cut (using Greg Sell's energy_sad code)
+#python scripts/mark_energy.py -i $WAV_FILE -o $VAD_FILE.tmp -s 0.4 -e 0
+#cat $VAD_FILE.tmp | awk '{print int($1*100),int($2*100);}' > $VAD_FILE
+#rm $VAD_FILE.tmp
+
+# Generate 39-dim PLP (13 cc's + delta + double-deltas using ICSI's feacalc)
+$FEACALCBIN -plp 12 -cep 13 -dom cep -deltaorder 2 -dither -frqaxis bark -samplerate 8000 -win 25 -step 10 -ip MSWAVE -rasta false -compress true -op swappedraw -o $FEAT_BIN ${WAV_FILE}
+
+# Apply per dimension mean/variance normalize with stats accumulated 
+# in speech segments only
+#plebdisc/standfeat -D $DIM -infile $FEAT_BIN -outfile $FEAT_STD -vadfile $VAD_FILE
+plebdisc/standfeat -D $DIM -infile $FEAT_BIN -outfile $FEAT_STD \
+    -vadfile /home/jbenjumea/data/check_chinese/data/chinise_vad
+
+# Generate 64-bit LSH signatures
+#plebdisc/lsh -D $DIM -S 32 -projfile $2/proj_S32xD${DIM}_seed1 -featfile $FEAT_STD  -sigfile $SIG_FILE -vadfile $VAD_FILE
+plebdisc/lsh -D $DIM -S 64 -projfile $2/proj_S64xD${DIM}_seed1 -featfile $FEAT_STD  -sigfile $SIG_FILE \
+    -vadfile /home/jbenjumea/data/check_chinese/data/chinise_vad
+
+
+# Clean-up
+rm -f $WAV_FILE $FEAT_BIN $VAD_FILE
+

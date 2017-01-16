@@ -1,0 +1,45 @@
+#!/bin/bash
+
+##############################
+# Working directories
+##############################
+
+# Temporary file directory
+TMP=$HOME/tmp
+
+# Experiment folder (each discovery run will get its own subfolder under EXPDIR)
+EXPDIR=exp
+
+# Feature dimension (39-dim PLP are produced by default)
+DIM=39
+
+##############################
+# External package executables
+##############################
+
+# The sph2pipe sphere unpacking tool
+SPH2PIPEBIN=$HOME/bin/sph2pipe
+
+# sox, a standard linux tool
+SOXBIN=/usr/bin/sox
+
+# feacalc from the ICSI Sprachcore package
+FEACALCBIN=$HOME/bin/feacalc
+
+##############################
+# Grid job parameters
+##############################
+
+# Number of files processed per LSH array job task
+NJ_LSH=1
+
+# Memory requirements per LSH array job task
+MEM_LSH=2G
+
+# Number of file pairs processed per discovery array job task
+# Note that N wav files will generate N*(N-1) pairs for processing
+NJ_DISC=20
+
+# Memory requirements per discovery array job task
+MEM_DISC=8G
+

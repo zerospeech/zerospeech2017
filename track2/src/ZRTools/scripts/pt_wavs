@@ -1,0 +1,68 @@
+#!/bin/bash
+
+#
+# Copyright 2011-2012  Johns Hopkins University (Author: Aren Jansen)
+#
+
+
+. config
+
+EXPDIR=$EXPDIR/$1 
+PTID=$2
+
+mkdir $EXPDIR/tmpwav
+rm -f $EXPDIR/tmpwav/*.wav
+
+if [ -z "$PTID" ]; then
+    PTID=0;
+fi
+
+cnt=0
+cat $EXPDIR/matches/master_graph.dedups | awk '!ptid {print NR,$0; next} NR == ptid {print NR,$0; exit;}' ptid=$PTID | awk 'length($0) < 180000000 && NF < 30000000 {print NF, $0;}' | sort -k1 -nr | cut -d ' ' -f2- |
+while read line; do 
+    PTID=`echo $line | awk '{print $1;}'`
+    line=`echo $line | cut -d ' ' -f2-`
+    line=`echo $line | tr ' ' '\n' | sort -R | tr '\n' ' '`
+
+    totnodes=`echo $line | awk '{print NF}'`
+#    if [[ $totnodes -gt 10 ]]; then
+#	continue;
+#    fi
+    cnt=$[$cnt+1]; 
+    
+    echo "$cnt, PTID $PTID, #Nodes $totnodes"
+    #echo $line >> dedups
+
+    clipcnt=0
+    for n in $line; do 
+	node=`head -$n $EXPDIR/matches/master_graph.nodes | tail -1`
+
+	t1=`echo $node | awk '{print $2/100;}'`
+	dur=`echo $node | awk '{print ($3-$2)/100;}'`
+
+	f=`echo $node | awk '{print $1;}' | cut -d '.' -f1`
+	f=`basename ./$f`
+
+	echo $f $t1 $dur
+
+	pcnt=`echo $cnt | awk '{printf "%04d", $1}'`
+
+	f=`grep "$f" $EXPDIR/files.lst`
+
+	sox "$f" $EXPDIR/tmpwav/tmp.wav trim $t1 $dur;	
+	
+	OUTWAV=${pcnt}_${totnodes}.wav
+
+	if [[ ! -f $EXPDIR/tmpwav/$OUTWAV ]]; then
+	    mv $EXPDIR/tmpwav/tmp.wav $EXPDIR/tmpwav/$OUTWAV
+	else
+	    sox $EXPDIR/tmpwav/$OUTWAV $EXPDIR/tmpwav/tmp.wav $EXPDIR/tmpwav/$OUTWAV.2.wav
+	    mv $EXPDIR/tmpwav/$OUTWAV.2.wav $EXPDIR/tmpwav/$OUTWAV
+	    rm $EXPDIR/tmpwav/tmp.wav
+	fi
+	clipcnt=$[$clipcnt+1]
+	if [ $clipcnt == 10 ]; then
+	    break
+	fi
+    done 
+done 
