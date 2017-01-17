@@ -1,0 +1,105 @@
+#!/bin/bash
+
+set -e
+
+# Load the configuration file
+. config 
+
+#USAGE: run_disc ...
+
+#
+# Copyright 2011-2015 Aren Jansen, 2016-2017 Juan Benjumea 
+#
+
+
+if [ -z "$S" ]; then 
+    echo "Missing S in config file";
+    exit 1;
+fi
+
+if [ -z "$P" ]; then
+    echo "Missing P in config file";
+    exit 1;
+fi
+
+if [ -z "$B" ]; then
+    echo "Missing B in config file"; 
+    exit 1; 
+fi
+
+if [ -z "$D" ]; then
+    echo "Missing D in config file ";
+    exit 1;
+fi
+
+if [ -z "$PAR" ]; then
+    echo "Missing PAR in config file ['par' or 'nopar']";
+    exit 1;
+fi
+
+if [ "$PAR" != "nopar" ] && [ "$PAR" != "par" ] ; then
+    echo "PAR should be 'par' or 'nopar'"
+    exit
+fi
+
+if [ -z "$FILELIST" ]; then
+    echo "Missing FILELIST in config file"
+    exit
+fi
+
+if [ ! -f $FILELIST ]; then
+    echo "ERROR: $FILELIST does not exist!"
+    exit
+fi
+
+# check if parallel is installed, if not run nopar
+if hash "parallel" 2>/dev/null; then
+    true;
+else
+    PAR="nopar";
+fi
+
+# Make experiment directoriesd
+EXPNAME=`basename $FILELIST .lst`
+
+S_=$(printf '%04d' $S);
+P_=$(printf '%04d' $P);
+B_=$(printf '%04d' $B);
+D_=$(printf '%04d' $D);
+
+EXP_DIRNAME=${EXPNAME}_S${S_}_P${P_}_B${B_}_D${D_}
+EXPDIR=$EXPDIR/$EXP_DIRNAME 
+
+echo "Experiment ID: " $EXPDIR
+echo "Creating experiment directories in $EXPDIR"
+
+rm -rf $EXPDIR
+mkdir -p $EXPDIR
+mkdir -p $EXPDIR/results
+
+echo "Generating audioid lists: $EXPDIR/files.base"
+cat $FILELIST | awk -F "/" '{print $NF;}' | cut -d '.' -f1 > $EXPDIR/files.base
+
+# Generate discovery command list; beam_pairs.py from 
+echo "Generating discovery command list: $EXPDIR/disc.cmd"
+cat $EXPDIR/files.base | scripts/beam_pairs.py 0 | \
+    awk '{print "scripts/plebdisc_filepair", $1, $2;}'  > $EXPDIR/disc.cmd
+
+#### PROCESSING WITH PARALLEL
+if [ "$PAR" == "par" ]; then
+    echo "Running discovery tasks using with gnu-parallel"
+    mkdir -p $EXPDIR/matches
+    rm -rf $EXPDIR/matches/*
+    cat $EXPDIR/disc.cmd | parallel --tmpdir $EXPDIR/matches --files -j $N_JOBS {}  
+    cat $EXPDIR/matches/*.par 1> $EXPDIR/matches/out.1
+    rm -rf $EXPDIR/matches/*.par
+
+#### PROCESSING IN A SINGLE PROCESS
+else
+    echo "Running discovery tasks"
+    mkdir -p $EXPDIR/matches
+    rm -rf $EXPDIR/matches/*
+    sh $EXPDIR/disc.cmd 1> $EXPDIR/matches/out.1 2> $EXPDIR/matches/err.1
+fi
+
+
