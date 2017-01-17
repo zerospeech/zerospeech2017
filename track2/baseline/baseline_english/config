@@ -1,0 +1,71 @@
+#!/bin/bash
+
+##############################
+# Baseline parameters 
+##############################
+
+# Plebdisc input parameters:
+S=64
+P=8
+B=50
+D=5
+
+# clustering parameters
+DTWTHR=0.88
+OLAPTHR=0.97  
+DEDUPTHR=0.9 
+DURTHR=100   
+RHOTHR=500   
+
+# other paramters used on run_disc
+PAR='par' # par or nopar: use or not gnu-parallel
+FILELIST='./data/english.lst'
+
+##############################
+# Working directories
+##############################
+
+# Temporary file directory
+TMP=/tmp
+
+# Experiment folder (each discovery run will get its own subfolder under EXPDIR)
+EXPDIR=exp
+EXPNAME=$(printf "english_S%04d_P%04d_B%04d_D%04d" $S $P $B $D)
+
+# cluster file name
+OLAPTHR_=$(echo $OLAPTHR | awk '{printf("%03d",$1*100.0)}')
+DTWTHR_=$(echo $DTWTHR | awk '{printf("%03d",$1*100.0)}') 
+DEDUPTHR_=$(echo $DEDUPTHR | awk '{printf("%03d",$1*100.0)}')
+DURTHR_=$(printf '%03d' $DURTHR) 
+RHOTHR_=$(printf '%03d' $RHOTHR) 
+MASTER_GRAPH=master_graph_OLAPTHR${OLAPTHR_}_DTWTHR${DTWTHR_}_DEDUPTHR${DEDUPTHR_}_DURTHR${DURTHR_}_RHOTHR${RHOTHR_}
+
+# Feature dimension (39-dim PLP are produced by default)
+DIM=39
+
+# directory where vad files are stored, if the vad file is found
+# it will be use instead of computing
+VAD_FILES=./data/vad
+
+# parallelization with gnu parallel: number of cores
+N_JOBS=10
+
+# cached files (no recompute what was done before!)
+CACHE=./data/cache
+
+
+##############################
+# External package executables
+##############################
+
+# change here to the location where you installed the package
+# for example: $HOME/zerospeech2017/track2/bin
+PATH=$PATH:~/bin/
+
+# sox, a standard linux tool
+SOXBIN=/usr/bin/sox
+
+# feacalc from the ICSI Sprachcore package
+FEACALCBIN=$HOME/bin/feacalc
+
+
