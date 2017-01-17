@@ -7,9 +7,9 @@ set -e
 
 ### creating lsh and feature files in data/cache
 cd data
-./run.sh
+make
 cd -
-
+exit
 
 ### run discovery for parameters on the 'config' file
 ./run_disc   

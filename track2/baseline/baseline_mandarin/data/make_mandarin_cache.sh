@@ -95,5 +95,5 @@ function p_norm() {
 for i in $(cat mandarin.lst); do p_norm $i; done
 
 rm -rf $tempdir
-exit 1;
+exit 0;
 

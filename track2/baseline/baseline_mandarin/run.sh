@@ -7,7 +7,7 @@ set -e
 
 ### creating lsh and feature files in data/cache
 cd data
-./run.sh
+make
 cd -
 
 
