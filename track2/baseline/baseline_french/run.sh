@@ -19,6 +19,6 @@ cd -
 ./post_disc 
 
 ### evaluating the results
-# mkdir -p ./out
-#python ../../bin/french_eval2.py -v $EXPDIR/results/${MASTER_GRAPH}.class out
+mkdir -p ./out
+python ../../bin/french_eval2.py -v ${EXPDIR}/${EXPNAME}/results/${MASTER_GRAPH}.class out
 

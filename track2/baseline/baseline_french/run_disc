@@ -52,7 +52,14 @@ if [ ! -f $FILELIST ]; then
     exit
 fi
 
-# Make experiment directoriesd
+# check if parallel is installed, if not run nopar
+if hash "parallel" 2>/dev/null; then
+    true;
+else
+    PAR="nopar"; 
+fi
+
+# Make experiment directories
 EXPNAME=`basename $FILELIST .lst`
 
 S_=$(printf '%04d' $S);
@@ -85,7 +92,7 @@ if [ "$PAR" == "par" ]; then
     rm -rf $EXPDIR/matches/*
     cat $EXPDIR/disc.cmd | parallel --tmpdir $EXPDIR/matches --files -j $N_JOBS {}  
     cat $EXPDIR/matches/*.par 1> $EXPDIR/matches/out.1
-    rm -rf $EXPDIR/matches/*.par
+    #rm -rf $EXPDIR/matches/*.par
 
 #### PROCESSING IN A SINGLE PROCESS
 else

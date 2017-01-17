@@ -55,7 +55,7 @@ echo "### " $tempdir
 genproj -D $DIM -S $S -seed 1 -projfile ${CACHE}/proj_S${S}xD${DIM}_seed1
 
 # trim 10 mins of waveforms
-trim="0 10:00"
+trim="trim 0 10:00"
 
 # addapted from from ZRTools/script/generate_plp_lsh
 function p_norm() {
@@ -66,7 +66,7 @@ function p_norm() {
     out_wav=${tempdir}/${id}.wav
     echo ">>>>>> doing sox";                                              
     sox -v 0.8 -t wav $file_ -t wav -e signed-integer \
-        -b 16 -c 1 -r 8000 $out_wav trim $trim;                          
+        -b 16 -c 1 -r 8000 $out_wav $trim;                          
 
     ### Generate 39-d PLP (13 cc's + delta + d-deltas using ICSI feacalc) 
     echo ">>>>>> doing feacalc";                                          
