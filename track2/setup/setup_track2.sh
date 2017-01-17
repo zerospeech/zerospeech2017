@@ -66,7 +66,6 @@ install plebdisc/plebdisc ${bin_dir}             || failure "cannot copy ZRTools
 install plebdisc/plebkws ${bin_dir}              || failure "cannot copy ZRTools - plebkws"
 install plebdisc/rescore_singlepair_dtw ${bin_dir} || failure "cannot copy ZRTools - rescore_singlepair_dtw"
 install plebdisc/standfeat ${bin_dir}            || failure "cannot copy ZRTools - standfeat"
-cp -rf scripts ${bin_dir}          || failure "cannot copy ZRTools - scripts/" 
 cd -
 
 # setup icsi (feacal)
