@@ -118,9 +118,9 @@ should work as well on MacOS.
   the sequence of features for a whole sentence on the basis of manual
   phone-level alignments for that sentence.
 
-* For each wav in the test set (e.g. `data/test/chinese/1s/aghsu09.wav`),
+* For each wav in the test set (e.g. `data/test/mandarin/1s/aghsu09.wav`),
   an ASCII features file with the same name
-  (e.g. `features/test/chinese/1s/aghsu09.fea`) as the wav should be
+  (e.g. `features/test/mandarin/1s/aghsu09.fea`) as the wav should be
   generated in the same subdirectories logic *<lang>/<length>/<name>*
 
 
@@ -133,9 +133,9 @@ should work as well on MacOS.
         ./eval_track1.py --help
 
 * For example this command will evaluate features extracted on 1s files
-  for the Chinese corpus:
+  for the mandarin corpus:
 
-	    ./eval_track1.py chinese 1 /path/to/feature/folder/ /path/to/output/folder/
+	    ./eval_track1.py mandarin 1 /path/to/feature/folder/ /path/to/output/folder/
 
 * The input feature folder must contain a collection of feature files
   as described above, one file per wav files in the test corpus.
@@ -210,8 +210,87 @@ require [abkhazia](https://github.com/bootphon/abkhazia) -> posteriors on DNN
 
 ## Track 2: Spoken term discovery
 
-**TODO** coming soon
+### Installation
 
+* With your virtual environment activated, simply have a:
+
+        ./track2/setup/setup_track2.sh
+
+  This installs the dependencies of the track 2 evaluation program,
+  baseline and topline replication from the `./track2/src` folder to
+  your virtual environment. Those dependencies are:
+
+  * [ZRTools](https://github.com/bootphon/zerospeech2017/tree/master/track2/src/ZRTools) for baseline
+  * [tde](https://github.com/bootphon/tde) for evaluation
+  * [feacalc](https://www1.icsi.berkeley.edu/~dpwe/projects/sprach/sprachcore.html) for feature computation
+
+
+**TODO** coming soon
+### Output format 
+
+  The spoken word discovery system should output an ASCII file listing
+   the set of fragments that were found with the following format:
+
+     Class <classnb>
+     <filename> <fragment_onset> <fragment_offset>
+     <...>
+     <filename> <fragment_onset> <fragment_offset>
+     <NEWLINE>
+     Class <classnb>
+     <filename> <fragment_onset> <fragment_offset>
+
+  example:
+
+     Class 1
+     dsgea01   1.238  1.763 
+     dsgea19   3.380  3.821
+     reuiz28  18.036 18.537
+
+
+     Class 2
+     zeoqx71   8.389  9.132
+     ...etc...
+  Note: the onset and offset are in seconds. If your system only does
+  matching and not clustering, your classes will only have two
+  elements each. If your system does not only matching, but also 
+  clustering and parsing, the fragments found will cover the entirety
+  of the files, and there may be classes with only one element in it
+  (the remainder of lexical-based segmentation).
+
+### Evaluation program
+
+* The Track 2 evaluation program is `./track2/eval/eval_track2.py`. The
+  detail of arguments is given by the `--help` option:
+
+        cd ./track2/eval
+        ./eval_track2.py --help
+
+* For example this command will evaluate the output for the
+  for the Mandarin corpus:
+
+	    ./eval_track2.py mandarin mandarin.classes result_dir/
+
+* To run the evaluation on multiple cores, use the j-flag. Evaluation
+  runtime and memory usage are also strongly dependent on the 
+  particulars of the input file. It is not usefule to use more than
+  10 cores (each parallel job will do one of the 10 subsampling folds)
+
+* The output directory will contain one file each for the above 
+  described measures, with scores for both cross-speaker and 
+  within-speaker performance. The directory will also contain a file 
+  called ``VERSION_$'' indicating the version of the evaluation code 
+  that was used. Please make sure to report that number in your report. 
+  The version number can also be obtained by:
+
+  	$ python ./track2/eval/eval_track2.py -V
+
+### Baseline replication
+
+**TODO** describe track2 baseline process
+
+You can replicate the baseline on one of the corpus with the command:
+
+    bash /track2/baseline/baseline_french/run.sh 
 
 ## Troubleshooting
 
