@@ -30,14 +30,14 @@ from itertools import izip
 import numpy as np
 from joblib import Parallel, delayed
 
-import tde.reader
+import tde.util.reader
 import tde.util
-import tde.token_type
-import tde.corpus
-import tde.match
-import tde.nlp
-import tde.group
-import tde.boundaries
+import tde.measures.token_type
+import tde.data.corpus
+import tde.measures.match
+import tde.measures.nlp
+import tde.measures.group
+import tde.measures.boundaries
 
 VERSION = "0.1.0"
 
