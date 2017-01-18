@@ -1,3 +1,6 @@
+**Please register sending an email to zerospeech2017@gmail.com**
+**We will keep you informed for changes in code**
+
 # Zero Speech Challenge 2017
 
 All you need to get started for the track 1 and track 2 of the
