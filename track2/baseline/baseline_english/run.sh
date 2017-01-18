@@ -9,7 +9,6 @@ set -e
 cd data
 make
 cd -
-exit
 
 ### run discovery for parameters on the 'config' file
 ./run_disc   
@@ -19,6 +18,5 @@ exit
 
 ### evaluating the results 
 mkdir -p ./out
-
 python ../../bin/english_eval2.py -v ${EXPDIR}/${EXPNAME}/results/${MASTER_GRAPH}.class out                                                                 
 

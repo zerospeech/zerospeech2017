@@ -5,17 +5,18 @@
 ##############################
 
 # Plebdisc input parameters:
+# S should be 32 or 64 
 S=64
 P=8
 B=50
 D=5
 
 # clustering parameters
-DTWTHR=0.88
-OLAPTHR=0.97  
-DEDUPTHR=0.9 
-DURTHR=100   
-RHOTHR=500   
+DTWTHR=0.85
+OLAPTHR=0.90  
+DEDUPTHR=0.8 
+DURTHR=10   
+RHOTHR=100   
 
 # other paramters used on run_disc
 PAR='par' # par or nopar: use or not gnu-parallel
@@ -48,7 +49,7 @@ DIM=39
 VAD_FILES=./data/vad
 
 # parallelization with gnu parallel: number of cores
-N_JOBS=10
+N_JOBS=20
 
 # cached files (no recompute what was done before!)
 CACHE=./data/cache
