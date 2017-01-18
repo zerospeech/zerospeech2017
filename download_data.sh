@@ -29,7 +29,13 @@ fi
 data_dir=$1
 mkdir -p $data_dir
 
+# check if the wget version accept the option --show-progress
+# source: goo.gl/JB0is8
+wget --help | grep -q '\--show-progress' && \
+  _PROGRESS_OPT="-q --show-progress" || _PROGRESS_OPT=""
+
+
 # downloading data
 wget ftp://129.199.81.135/datasets_2/ -P $data_dir \
      --user=challenge2017 --ask-password \
-     -m -nH -q --show-progress --cut-dirs=1
+     -m -nH $_PROGRESS_OPT --cut-dirs=1
