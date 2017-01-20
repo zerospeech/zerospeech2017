@@ -289,7 +289,7 @@ You can still work on the data, and the updated evaluation will be notified (and
 * The Track 2 evaluation program is `./track2/eval/eval_track2.py`. The
   detail of arguments is given by the `--help` option:
 
-        cd ./track2/eval
+        cd ./track2/bin
         ./eval_track2.py --help
 
 * For example this command will evaluate the output for the
