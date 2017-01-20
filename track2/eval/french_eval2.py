@@ -1,0 +1,1 @@
+../bin/french_eval2.py
