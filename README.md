@@ -139,7 +139,7 @@ should work as well on MacOS.
 
 ### Evaluation program
 
-* The Track 1 evaluation program is `./track1/eval/eval_track1.py`. The
+* The Track 1 evaluation programs are `./track1/eval/eval_track1.py`. The
   detail of arguments is given by the `--help` option:
 
         cd ./track1/eval
@@ -285,17 +285,18 @@ You can still work on the data, and the updated evaluation will be notified (and
   (the remainder of lexical-based segmentation).
 
 ### Evaluation program
-
-* The Track 2 evaluation program is `./track2/eval/eval_track2.py`. The
+mandarin_eval2.py
+* The Track 2 evaluation program are `./track2/eval/english_eval2.py`, 
+`./track2/eval/french_eval2.py` and `./track2/eval/mandarin_eval2.py`. The
   detail of arguments is given by the `--help` option:
 
         cd ./track2/bin
-        ./eval_track2.py --help
+        ./mandarin_eval2.py --help
 
 * For example this command will evaluate the output for the
   for the Mandarin corpus:
 
-	    ./eval_track2.py mandarin mandarin.classes result_dir/
+	    ./mandarin_eval2.py mandarin.classes result_dir/
 
 * To run the evaluation on multiple cores, use the j-flag. Evaluation
   runtime and memory usage are also strongly dependent on the 
