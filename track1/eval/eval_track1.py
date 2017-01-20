@@ -94,8 +94,8 @@ def modified(filepath, mtime):
     return not os.path.exists(filepath) or (mtime > os.path.getmtime(filepath))
 
 
-def dtw_cosine_distance(x, y):
-    return dtw.dtw(x, y, cosine.cosine_distance)
+def dtw_cosine_distance(x, y, normalized):
+    return dtw.dtw(x, y, cosine.cosine_distance, normalized)
 
 
 def parseConfig(configfile):
@@ -266,7 +266,7 @@ def makedirs(listfiles):
 
 
 def fullrun(task, data_folder, feature_folder, h5, file_sizes, corpus,
-            distance, outputdir, doall=True, ncpus=None):
+            distance, outputdir, normalized,  doall=True, ncpus=None):
     print("Processing task {}".format(task['section']))
 
     feature_file = os.path.join(outputdir, lookup('featurefile', task))
@@ -354,7 +354,7 @@ def fullrun(task, data_folder, feature_folder, h5, file_sizes, corpus,
         tryremove(distance_file)
         distances.compute_distances(
             feature_file, '/features/', taskfilename,
-            distance_file, distancefun, n_cpu=ncpus)
+            distance_file, distancefun, normalized = normalized , n_cpu=ncpus)
 
         tryremove(scorefilename)
         print("Computing the scores")
@@ -412,6 +412,14 @@ if __name__ == '__main__':
     parser.add_argument(
         '--h5', action='store_true',
         help='enable if the inputs at already in h5 format.')
+    
+    parser.add_argument(
+        '-n', '--normalized',type=int, default=None,
+        help='if using DTW distance in ABX score computation,'
+            'put to -n 1 to normalize the DTW distance by the'
+            'length of the DTW path, or put to -n 0 to just '
+            'sum the cost along the DTW path. Common choice '
+            ' is -n 1')
 
     # distance options are mutually exclusive
     group = parser.add_argument_group(
@@ -429,6 +437,9 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    if (args.distance == None) and (args.normalized == None): 
+        sys.exit("Error : using DTW distance without specifying"
+                "normalization parameter")
     assert os.path.isdir(args.features) and os.listdir(args.features), (
         'features folder not found or empty')
 
@@ -445,7 +456,6 @@ if __name__ == '__main__':
             raise
 
     taskslist = parseConfig(CONFIG_FILE)
-    speaker_type = ['old', 'new']
 
     checkIO(taskslist)
     res = {}
@@ -466,7 +476,6 @@ if __name__ == '__main__':
         warnings.simplefilter('ignore', DataTypeWarning)
         # warnings.simplefilter('ignore', ParserWarning)
         for task in taskslist:
-        #for distinction in speaker_type:
             (final_score,confidence) = fullrun(
                     task, args.data_dir,
                     args.features, args.h5, args.file_sizes,

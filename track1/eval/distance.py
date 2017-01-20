@@ -30,7 +30,7 @@ import ABXpy.distances.metrics.kullback_leibler as kullback_leibler
 import numpy as np
 
 
-def distance(x, y):
+def distance(x, y, normalized):
     """Dynamic time warping cosine distance
 
     The "feature" dimension is along the columns and the "time" dimension
@@ -38,7 +38,7 @@ def distance(x, y):
     """
     if x.shape[0] > 0 and y.shape[0] > 0:
         # x and y are not empty
-        d = dtw.dtw(x, y, cosine.cosine_distance,normalized=True)
+        d = dtw.dtw(x, y, cosine.cosine_distance,normalized)
     elif x.shape[0] == y.shape[0]:
         # both x and y are empty
         d = 0
@@ -48,10 +48,10 @@ def distance(x, y):
     return d
 
 
-def kl_divergence(x, y):
+def kl_divergence(x, y, normalized):
     """Kullback-Leibler divergence"""
     if x.shape[0] > 0 and y.shape[0] > 0:
-        d = dtw.dtw(x, y, kullback_leibler.kl_divergence)
+        d = dtw.dtw(x, y, kullback_leibler.kl_divergence, normalized)
     elif x.shape[0] == y.shape[0]:
         d = 0
     else:
