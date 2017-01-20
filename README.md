@@ -41,7 +41,7 @@ should work as well on MacOS.
         source activate zerospeech
 
 
-## Getting the hyper-training data
+## Getting the development dataset (hyperparameter training set)
 
 * To have the password to download the data, you first have to
   register yourself by sending an email to : 
@@ -97,7 +97,7 @@ should work as well on MacOS.
 
   * [ABXpy](https://github.com/bootphon/ABXpy) for evaluation
   * [h5features](https://github.com/bootphon/h5features) for data storage
-  * **TODO** [abkhazia](https://github.com/bootphon/abkhazia) for topline
+  * [abkhazia](https://github.com/bootphon/abkhazia) for topline (optional)
 
 * To make sure the installation is correct, you can run the tests:
 
@@ -216,11 +216,22 @@ with baseline features and evaluation results.
 
 ### Topline replication
 
-**TODO** Write a `track1/topline.sh`. This will
-require [abkhazia](https://github.com/bootphon/abkhazia) -> posteriors on DNN
+The topline consists in training an HMM-GMM phone recogniser with speaker adapation
+on the training set and extracting from the test set a frame-by-frame posteriorgram. 
+This is done kaldi script (`track1/topline.sh`).
+It requires [abkhazia](https://github.com/bootphon/abkhazia). 
 
+THIS IS NOT YET AVAILABLE
+When this topline is available, we will email you about the update (available with git-pull).
 
 ## Track 2: Spoken term discovery
+
+Track 2 evaluation is done on the training set only. This may seem strange, but remember this is unsupervised
+training (the test set contains files that are not cut in a way that is appropriate for Track 2). 
+
+NOTICE: The Tack 2 evaluation pipeline is as of today not in its final phase. Right now, the evaluation scripts
+only evaluate a small percentage of the files and the baseline and toplines are not finished.
+You can still work on the data, and the updated evaluation will be notified (and available through a git pull).
 
 ### Installation
 
@@ -235,9 +246,7 @@ require [abkhazia](https://github.com/bootphon/abkhazia) -> posteriors on DNN
   * [ZRTools](https://github.com/bootphon/zerospeech2017/tree/master/track2/src/ZRTools) for baseline
   * [tde](https://github.com/bootphon/tde) for evaluation
   * [feacalc](https://www1.icsi.berkeley.edu/~dpwe/projects/sprach/sprachcore.html) for feature computation
-
-
-**TODO** coming soon
+  
 ### Output format 
 
   The spoken word discovery system should output an ASCII file listing
@@ -298,9 +307,9 @@ require [abkhazia](https://github.com/bootphon/abkhazia) -> posteriors on DNN
 
 ### Baseline replication
 
-**TODO** describe track2 baseline process
+THIS IS NOT YET AVAILABLE
 
-You can replicate the baseline on one of the corpus with the command:
+When available you will be able to replicate the baseline on one of the corpus with the command:
 
     bash /track2/baseline/baseline_french/run.sh 
 
