@@ -34,8 +34,8 @@ mkdir -p $data_dir
 wget --help | grep -q '\--show-progress' && \
   _PROGRESS_OPT="-q --show-progress" || _PROGRESS_OPT=""
 
-echo "If you don't have the password, register yourself \
-by sending an email to : zerospeech2017@gmail.com"
+echo "If you don't have the password, please register \
+by sending us an email to : zerospeech2017@gmail.com"
 # downloading data
 wget ftp://129.199.81.135/datasets_2/ -P $data_dir \
      --user=challenge2017 --ask-password \
