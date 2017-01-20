@@ -15,6 +15,11 @@ several distributions (Ubuntu 16.04, Debian Jessie and CentOS 6). It
 should work as well on MacOS.
 
 
+## Registration 
+
+* In order to participate to this challenge and have access to the
+  datasets, you have to send an email to : zerospeech2017@gmail.com
+
 ## General setup
 
 * First of all install [git](https://git-scm.com/downloads)
@@ -38,8 +43,12 @@ should work as well on MacOS.
 
 ## Getting the hyper-training data
 
+* To have the password to download the data, you first have to
+  register yourself by sending an email to : 
+	zerospeech2017@gmail.com
+
 * Dowload the whole challenge hyper-training dataset using the
-  `download_data.sh` script, with the password "dataset" :
+  `download_data.sh` script :
 
         ./download_data.sh ./data
 
