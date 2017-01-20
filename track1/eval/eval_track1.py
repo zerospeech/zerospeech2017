@@ -480,7 +480,8 @@ if __name__ == '__main__':
                     task, args.data_dir,
                     args.features, args.h5, args.file_sizes,
                     args.corpus, args.distance,
-                    args.output, ncpus=ncpus)
+                    args.output,
+                    args.normalized, ncpus=ncpus)
             print "returned full_score"
 
             sys.stdout.write(
