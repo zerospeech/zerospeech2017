@@ -1,4 +1,4 @@
-**Please register bu sending us an email to zerospeech2017@gmail.com**
+**Please register by sending us an email to zerospeech2017@gmail.com**
 
 **We will keep you informed for changes in code**
 
