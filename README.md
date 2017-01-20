@@ -1,4 +1,5 @@
-**Please register sending an email to zerospeech2017@gmail.com**
+**Please register bu sending us an email to zerospeech2017@gmail.com**
+
 **We will keep you informed for changes in code**
 
 # Zero Speech Challenge 2017
@@ -225,6 +226,11 @@ THIS IS NOT YET AVAILABLE
 When this topline is available, we will email you about the update (available with git-pull).
 
 ## Track 2: Spoken term discovery
+
+**The baseline pipeline and the evaluation kit are build for the first 10 minutes of all test data.
+Results of the baselines are still preliminary**
+
+**Please register to keep you updated of changes on the results of the baseline and evaluation code**
 
 Track 2 evaluation is done on the training set only. This may seem strange, but remember this is unsupervised
 training (the test set contains files that are not cut in a way that is appropriate for Track 2). 
