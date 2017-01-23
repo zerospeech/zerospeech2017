@@ -232,7 +232,7 @@ Results of the baselines are still preliminary**
 
 **Please register to keep you updated of changes on the results of the baseline and evaluation code**
 
-Track 2 evaluation is done on the training set only. This may seem strange, but remember this is unsupervised
+Track 2 evaluation is done on the training data sets only. This may seem strange, but remember this is unsupervised
 training (the test set contains files that are not cut in a way that is appropriate for Track 2). 
 
 NOTICE: The Tack 2 evaluation pipeline is as of today not in its final phase. Right now, the evaluation scripts
@@ -241,17 +241,31 @@ You can still work on the data, and the updated evaluation will be notified (and
 
 ### Installation
 
-* With your virtual environment activated, simply have a:
+* With your virtual environment activated, simply run the following command:
 
         ./track2/setup/setup_track2.sh
 
-  This installs the dependencies of the track 2 evaluation program,
-  baseline and topline replication from the `./track2/src` folder to
-  your virtual environment. Those dependencies are:
+  By running this script you will install all the dependencies of the track 2 
+  including the evaluation program, the baseline and topline replication from the `./track2/src` folder to
+  your virtual environment in the case of python libraries and in `.track2/bin` all the binary programms. 
+  Those dependencies are:
 
-  * [ZRTools](https://github.com/bootphon/zerospeech2017/tree/master/track2/src/ZRTools) for baseline
-  * [tde](https://github.com/bootphon/tde) for evaluation
-  * [feacalc](https://www1.icsi.berkeley.edu/~dpwe/projects/sprach/sprachcore.html) for feature computation
+  * [ZRTools](https://github.com/bootphon/zerospeech2017/tree/master/track2/src/ZRTools), The same program that was
+  used for the baseline of 2015 Challenge. 
+  * [tde](https://github.com/bootphon/tde) used to compute the scores for evaluation of this challenge. 
+  * [sprachcore-feacalc](https://www1.icsi.berkeley.edu/~dpwe/projects/sprach/sprachcore.html) it is used to compute
+  speech features for the baseline.
+
+* To build and reproduce the baseline you will need to have installed on your system the following packages:
+    
+  * [GNU autoconf](https://www.gnu.org/software/autoconf/autoconf.html) to build compilation files 
+  of sprachcore-feacalc.
+  * [GNU gcc](https://gcc.gnu.org/) C/C++ compiler to build ZRTools and featcal
+  * [sox](http://sox.sourceforge.net/) to preprocess the speech waveforms (resampling, volume control, etc)
+  * [GNU-Make](https://www.gnu.org/software/make/) to builid ZRTools and featcal
+
+  The installation of the previous dependences are different on each system, please follow the installation 
+  description in those webpages.
   
 ### Output format 
 
