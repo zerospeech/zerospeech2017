@@ -241,22 +241,9 @@ You can still work on the data, and the updated evaluation will be notified (and
 
 ### Installation
 
-* With your virtual environment activated, simply run the following command:
 
-        ./track2/setup/setup_track2.sh
-
-  By running this script you will install all the dependencies of the track 2 
-  including the evaluation program, the baseline and topline replication from the `./track2/src` folder to
-  your virtual environment in the case of python libraries and in `.track2/bin` all the binary programms. 
-  Those dependencies are:
-
-  * [ZRTools](https://github.com/bootphon/zerospeech2017/tree/master/track2/src/ZRTools), The same program that was
-  used for the baseline of 2015 Challenge. 
-  * [tde](https://github.com/bootphon/tde) used to compute the scores for evaluation of this challenge. 
-  * [sprachcore-feacalc](https://www1.icsi.berkeley.edu/~dpwe/projects/sprach/sprachcore.html) it is used to compute
-  speech features for the baseline.
-
-* To build and reproduce the baseline you will need to have installed on your system the following packages:
+* The installation of track 2 depends on external packages, mainly to build/compile the source code 
+  and to preprocess speech waveforms, you will need the following packages installed on your system: 
     
   * [GNU autoconf](https://www.gnu.org/software/autoconf/autoconf.html) to build compilation files 
   of sprachcore-feacalc.
@@ -266,6 +253,22 @@ You can still work on the data, and the updated evaluation will be notified (and
 
   The installation of the previous dependences are different on each system, please follow the installation 
   description in those webpages.
+
+* With your virtual environment activated and all the dependences installed on your computer. simply run the 
+following command:
+
+        ./track2/setup/setup_track2.sh
+
+  By running that script you will install all the packages needed on the track 2 
+  including the evaluation program, the baseline and topline replication. These packages will be 
+  installed from the `./track2/src` folder to your virtual environment in the case of python 
+  libraries and in `.track2/bin` for all the binary programs. Those installed packages are:
+
+  * [ZRTools](https://github.com/bootphon/zerospeech2017/tree/master/track2/src/ZRTools), The same program that was
+  used for the baseline of 2015 Challenge. 
+  * Term Discovery Evaluation [tde](https://github.com/bootphon/tde) using the branch **zerospeech2017** is used to compute the scores of 2017 challenge. 
+  * [sprachcore-feacalc](https://www1.icsi.berkeley.edu/~dpwe/projects/sprach/sprachcore.html) it is used to compute
+  speech features for the baseline.
   
 ### Output format 
 
