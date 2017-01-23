@@ -241,7 +241,6 @@ You can still work on the data, and the updated evaluation will be notified (and
 
 ### Installation
 
-
 * The installation of track 2 depends on external packages, mainly to build/compile the source code 
   and to preprocess speech waveforms, you will need the following packages installed on your system: 
     
@@ -257,7 +256,7 @@ You can still work on the data, and the updated evaluation will be notified (and
 * With your virtual environment activated and all the dependences installed on your computer. simply run the 
 following command:
 
-        ./track2/setup/setup_track2.sh
+        $ ./track2/setup/setup_track2.sh
 
   By running that script you will install all the packages needed on the track 2 
   including the evaluation program, the baseline and topline replication. These packages will be 
@@ -270,10 +269,11 @@ following command:
   * [sprachcore-feacalc](https://www1.icsi.berkeley.edu/~dpwe/projects/sprach/sprachcore.html) it is used to compute
   speech features for the baseline.
   
-### Output format 
+### Evaluation input format 
 
-  The spoken word discovery system should output an ASCII file listing
-   the set of fragments that were found with the following format:
+To compute the scores for the Track 2, the evaluation toolkit need your results in
+an ASCII file, listing the set of fragments that were found with the following 
+format:
 
      Class <classnb>
      <filename> <fragment_onset> <fragment_offset>
@@ -282,38 +282,40 @@ following command:
      <NEWLINE>
      Class <classnb>
      <filename> <fragment_onset> <fragment_offset>
+     <...>
 
   example:
 
      Class 1
-     dsgea01   1.238  1.763 
-     dsgea19   3.380  3.821
-     reuiz28  18.036 18.537
+     dsgea01 1.238 1.763 
+     dsgea19 3.380 3.821
+     reuiz28 18.036 18.537
 
 
      Class 2
      zeoqx71   8.389  9.132
      ...etc...
-  Note: the onset and offset are in seconds. If your system only does
-  matching and not clustering, your classes will only have two
-  elements each. If your system does not only matching, but also 
-  clustering and parsing, the fragments found will cover the entirety
-  of the files, and there may be classes with only one element in it
-  (the remainder of lexical-based segmentation).
+  
+Note: the onset and offset are in seconds. If your system only does
+matching and not clustering, your classes will only have two
+elements each. If your system does not only matching, but also 
+clustering and parsing, the fragments found will cover the entirety
+of the files, and there may be classes with only one element in it
+(the remainder of lexical-based segmentation).
 
 ### Evaluation program
-mandarin_eval2.py
-* The Track 2 evaluation program are `./track2/eval/english_eval2.py`, 
+
+* The Track 2 evaluation programs are `./track2/eval/english_eval2.py`, 
 `./track2/eval/french_eval2.py` and `./track2/eval/mandarin_eval2.py`. The
   detail of arguments is given by the `--help` option:
 
-        cd ./track2/bin
-        ./mandarin_eval2.py --help
+        $ cd ./track2/bin
+        $ python ./mandarin_eval2.py --help
 
-* For example this command will evaluate the output for the
-  for the Mandarin corpus:
+* For example the following command will evaluate the output of your program formatted 
+as described on the previous section for the Mandarin corpus:
 
-	    ./mandarin_eval2.py mandarin.classes result_dir/
+	    $ python ./mandarin_eval2.py mandarin.classes result_dir/
 
 * To run the evaluation on multiple cores, use the j-flag. Evaluation
   runtime and memory usage are also strongly dependent on the 
