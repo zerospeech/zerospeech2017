@@ -95,7 +95,7 @@ if [ -f $output_file ] ; then
 fi
 
 echo "features extraction for $lang $duration "
-python $features_extraction $current_data_dir/*.wav -h5 $output_file -c $mfcc_config \
+python $features_extraction $current_data_dir -h5 $output_file -c $mfcc_config \
     || failure "cannot extract features from $current_data_dir"
 
 

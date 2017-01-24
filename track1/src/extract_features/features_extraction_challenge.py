@@ -67,7 +67,7 @@ these files in python:
 
     parser.add_argument('files', metavar='WAV',
                         nargs='+',
-                        help='input audio files')
+                        help='path to input audio files')
 
     parser.add_argument('-h5',
                         action='store',
@@ -222,9 +222,11 @@ def main(args=sys.argv):
     verbose = args['verbose']
     tempdir = args['tempdir']
 
-    # TODO strange bug from parsing where files[0] == __file__
+    ## TODO strange bug from parsing where files[0] == __file__
     if files[0][-3:] == '.py':
         del files[0]
+    path_to_files=files[0]
+    list_of_files=[os.path.join(path_to_files,f) for f in os.listdir(path_to_files) if os.path.isfile(os.path.join(path_to_files,f)) and f.endswith('.wav')]
     # print('\n'.join(files))
 
     if not (h5file or csvfile or npzdir or matdir):
@@ -260,11 +262,11 @@ def main(args=sys.argv):
         if feat == 'mel':
             del config['features']
             encoder = spectral.CubicMel(**config)
-            convert(files, outdir, encoder, force, verbose)
+            convert(list_of_files, outdir, encoder, force, verbose)
         elif feat == 'mfcc':
             del config['features']
             encoder = spectral.MFCC(**config)
-            convert(files, outdir, encoder, force, verbose)
+            convert(list_of_files, outdir, encoder, force, verbose)
         if h5file:
             npz2h5features.convert(outdir, h5file)
 
