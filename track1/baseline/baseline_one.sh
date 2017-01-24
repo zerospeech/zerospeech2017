@@ -104,7 +104,7 @@ python $features_extraction $current_data_dir -h5 $output_file -c $mfcc_config \
 current_output_dir=$output_dir/eval_$duration
 mkdir -p $current_output_dir || failure "cannot create directory $current_output_dir"
 
-$eval_track1 --h5 --njobs $njobs $lang ${duration::-1} -n 1 $data_dir $output_dir $current_output_dir \
+$eval_track1 --h5 --njobs $njobs $lang ${4} -n 1 $data_dir $output_dir $current_output_dir \
     || failure "cannot evaluate $lang $duration"
 
 exit 0
