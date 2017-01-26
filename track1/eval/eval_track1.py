@@ -231,15 +231,15 @@ def avg(filename, task):
 
     ci=[]
     
-    for i in xrange(0,N):
-        bt=boot.merge(pandas.DataFrame(index=np.random.randint(n, size=n)), left_index=True, right_index=True, how='right')
-        groups=bt.groupby(['phone_1','phone_2'],as_index=False)
-        bt=groups['score'].mean()
-        average = bt.mean()[0]
-        ci.append(average)
-    ci=sorted(ci)
-    confidence=[ci[int(round(0.5*N))],ci[int(round(0.95*N))]]
-
+    #for i in xrange(0,N):
+    #    bt=boot.merge(pandas.DataFrame(index=np.random.randint(n, size=n)), left_index=True, right_index=True, how='right')
+    #    groups=bt.groupby(['phone_1','phone_2'],as_index=False)
+    #    bt=groups['score'].mean()
+    #    average = bt.mean()[0]
+    #    ci.append(average)
+    #ci=sorted(ci)
+    #confidence=[ci[int(round(0.5*N))],ci[int(round(0.95*N))]]
+    confidence=[0,0]
     # aggregate on talker
     groups = df.groupby(['phone_1', 'phone_2'], as_index=False)
     df = groups['score'].mean()
