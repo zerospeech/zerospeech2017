@@ -493,9 +493,9 @@ if __name__ == '__main__':
             out.write('task\tscore\n')
             for key, value in res.iteritems():
                 out.write('{}:\t{:.3f}\n'.format(key, value))
-            out.write('task\tconfidence interval\n')
-            for key,value in ci.iteritems():
-                out.write('{}:\t{:.3f}-{:.3f}\n'.format(key,value[0],value[1]))
+            #out.write('task\tconfidence interval\n')
+            #for key,value in ci.iteritems():
+            #    out.write('{}:\t{:.3f}-{:.3f}\n'.format(key,value[0],value[1]))
         with open(os.path.join(args.output, 'VERSION_' + VERSION), 'w+') as v:
             v.write('')
     except:
