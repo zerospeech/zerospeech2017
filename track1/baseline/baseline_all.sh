@@ -60,6 +60,10 @@ do
     do
         $baseline_one $data_dir $output_dir/$lang $lang $duration \
             || failure "cannot compute baseline for $lang ${duration}s"
+	# output result in csv
+	echo "$lang ${duration}s" >> $output_dir/result.csv
+	cat $output_dir/$lang/eval_${duration}s/results.txt \
+		| awk -F ' ' '{if ($2 ~ /[0-9]/) print $1 " " (1-$2)*100}' >> $output_dir/result.csv
     done
 done
 
