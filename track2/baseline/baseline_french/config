@@ -12,11 +12,11 @@ B=50
 D=5
 
 # clustering parameters
-DTWTHR=0.85
-OLAPTHR=0.90  
-DEDUPTHR=0.8 
-DURTHR=10   
-RHOTHR=100   
+DTWTHR=0.90
+OLAPTHR=0.97  
+DEDUPTHR=0.9 
+DURTHR=50
+RHOTHR=500
 
 # other paramters used on run_disc
 PAR='par'
@@ -49,7 +49,7 @@ DIM=39
 VAD_FILES=./data/vad
 
 # parallelization with gnu parallel: number of cores
-N_JOBS=10
+N_JOBS=20
 
 # cached files (no recompute what was done before!)
 CACHE=./data/cache

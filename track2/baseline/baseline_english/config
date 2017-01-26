@@ -12,11 +12,11 @@ B=50
 D=5
 
 # clustering parameters
-DTWTHR=0.85
-OLAPTHR=0.90  
-DEDUPTHR=0.8 
-DURTHR=10   
-RHOTHR=100   
+DTWTHR=0.90
+OLAPTHR=0.97  
+DEDUPTHR=0.90 
+DURTHR=50   
+RHOTHR=500   
 
 # other paramters used on run_disc
 PAR='par' # par or nopar: use or not gnu-parallel
