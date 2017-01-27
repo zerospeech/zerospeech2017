@@ -244,7 +244,7 @@ def avg(filename, task):
     groups = df.groupby(['phone_1', 'phone_2'], as_index=False)
     df = groups['score'].mean()
     average = df.mean()[0]
-
+    average = (1.0-average)*100
     return (average,confidence)
 
 
