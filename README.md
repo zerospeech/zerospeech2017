@@ -350,7 +350,7 @@ issue [here](https://github.com/bootphon/zerospeech2017/issues).
 ### Troubles with software dependencies
 
 If you have problems with ABXpy, h5features or another of our tools,
-please reefer to their related github page on
+please refer to their related github page on
 the [Bootphon repository](https://github.com/bootphon).
 
 
