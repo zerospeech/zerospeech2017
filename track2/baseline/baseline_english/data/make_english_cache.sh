@@ -55,10 +55,11 @@ echo "### " $tempdir
 genproj -D $DIM -S $S -seed 1 -projfile ${CACHE}/proj_S${S}xD${DIM}_seed1
 
 # trim 10 mins of waveforms
-trim="trim 0 10:00"
+#trim="trim 0 10:00"
 
 # addapted from from ZRTools/script/generate_plp_lsh
 function p_norm() {
+    echo "#########################################################################"
     file_=$1;
     id=$(basename $file_ .wav);
 
@@ -94,6 +95,6 @@ function p_norm() {
 # do all the file
 for i in $(cat english.lst); do p_norm $i; done
 
-rm -rf $tempdir
+#rm -rf $tempdir
 exit 0;
 

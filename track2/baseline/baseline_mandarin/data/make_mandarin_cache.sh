@@ -55,7 +55,7 @@ echo "### " $tempdir
 genproj -D $DIM -S $S -seed 1 -projfile ${CACHE}/proj_S${S}xD${DIM}_seed1
 
 # trim 10 mins of waveforms
-trim="trim 0 10:00"
+trim=""  #trim="trim 0 10:00"
 
 # addapted from from ZRTools/script/generate_plp_lsh
 function p_norm() {
