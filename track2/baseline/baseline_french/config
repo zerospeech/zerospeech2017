@@ -8,13 +8,13 @@
 # S should be 32 or 64
 S=64 
 P=8
-B=50
-D=5
+B=100
+D=10
 
 # clustering parameters
-DTWTHR=0.90
+DTWTHR=0.88
 OLAPTHR=0.97  
-DEDUPTHR=0.9 
+DEDUPTHR=0.90 
 DURTHR=50
 RHOTHR=500
 
