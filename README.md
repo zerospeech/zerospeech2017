@@ -227,9 +227,6 @@ When this topline is available, we will email you about the update (available wi
 
 ## Track 2: Spoken term discovery
 
-**The baseline pipeline and the evaluation kit are build for the first 10 minutes of all test data.
-Results of the baselines are still preliminary**
-
 **Please register to keep you updated of changes on the results of the baseline and evaluation code**
 
 Track 2 evaluation is done on the training data sets only. This may seem strange, but remember this is unsupervised
@@ -329,15 +326,18 @@ as described on the previous section for the Mandarin corpus:
   that was used. Please make sure to report that number in your report. 
   The version number can also be obtained by:
 
-  	$ python ./track2/eval/eval_track2.py -V
+  	$ python ./track2/bin/mandarin_track2.py -V
 
 ### Baseline replication
 
-THIS IS NOT YET AVAILABLE
+You will be able to replicate the baseline on one of the corpus with the command:
 
-When available you will be able to replicate the baseline on one of the corpus with the command:
-
-    bash /track2/baseline/baseline_french/run.sh 
+    bash /track2/baseline/baseline_french/run.sh
+    bash /track2/baseline/baseline_english/run.sh
+    bash /track2/baseline/baseline_mandarin/run.sh
+    
+All scores are stored on individual files (ned/coverage, boundary, group  matching, and token/type) in 
+the `out` directory in each corpus directory path.  
 
 ## Troubleshooting
 
