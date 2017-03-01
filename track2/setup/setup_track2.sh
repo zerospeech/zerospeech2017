@@ -46,7 +46,7 @@ pip install -r requirements_pip.txt \
 
 # setup tde 
 cd ../src/tde
-python setup.py install || failure "cannot install tde"
+python setup.py install --force || failure "cannot install tde"
 # TODO: change setup.py to point to the bin_dir
 bin_dir=../../bin/
 mkdir -p ${bin_dir}
