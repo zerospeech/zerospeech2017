@@ -156,7 +156,9 @@ def convert(files, outdir, encoder, force, verbose=False):
                        .format(encoder.config['fs'], fs, f))
                 exit()
 
-        feats = encoder.transform(sig)[0]
+        feats_tmp = encoder.transform(sig) 
+        feats = feats_tmp[0]
+        for i in range(1, len(feats_tmp)): feats = np.hstack((feats, feats_tmp[i]))
 
         wshift_smp = encoder.config['fs'] / encoder.config['frate']
         wlen_smp = encoder.config['wlen'] * encoder.config['fs']
