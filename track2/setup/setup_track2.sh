@@ -54,7 +54,7 @@ install bin/english_eval2.py ${bin_dir} || failure "cannot copy tde - english_ev
 install bin/french_eval2.py ${bin_dir}  || failure "cannot copy tde - french_eval2.py"
 install bin/mandarin_eval2.py ${bin_dir} || failure "cannot copy tde - mandarin_eval2.py"
 cp -rf bin/resources  ${bin_dir}        || failure "cannot copy tde - bin/resources"
-bunzip2 bin/resources/*.bz2             || failure "cannot copy tde - bin/resources"
+bunzip2 ${bin_dir}/*.bz2             || failure "cannot copy tde - bin/resources"
 cd -
 
 # creating links to the evaluation scripts
