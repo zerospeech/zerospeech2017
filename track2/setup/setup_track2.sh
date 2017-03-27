@@ -58,9 +58,9 @@ bunzip2 -f ${bin_dir}/resources/*.bz2             || failure "cannot copy tde - 
 cd -
 
 # creating links to the evaluation scripts
-ln -s ../bin/english_eval2.py ../eval/english_eval2.py  || failure "cannot copy tde - english_eval2.py"  
-ln -s ../bin/french_eval2.py ../eval/french_eval2.py    || failure "cannot copy tde - french_eval2.py"
-ln -s ../bin/mandarin_eval2.py ../eval/mandarin_eval2.py|| failure "cannot copy tde - mandarin_eval2.py"
+ln -f -s ../bin/english_eval2.py ../eval/english_eval2.py  || failure "cannot copy tde - english_eval2.py"  
+ln -f -s ../bin/french_eval2.py ../eval/french_eval2.py    || failure "cannot copy tde - french_eval2.py"
+ln -f -s ../bin/mandarin_eval2.py ../eval/mandarin_eval2.py|| failure "cannot copy tde - mandarin_eval2.py"
 
 # setup ZRTools 
 cd ../src/ZRTools
