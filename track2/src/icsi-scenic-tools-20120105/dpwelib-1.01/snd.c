@@ -385,20 +385,20 @@ static int globmatch(const char *pat, const char *str)
     return rc;
 }
 
-#ifndef HAVE_STRNDUP
-// On ubuntu string.h have the strndup
-//char * strndup(const char *s, size_t n)
-//{	/* needed for Darwin? */
-//    char *t = NULL;
-//
-//    if(s)  {
-//	t = malloc(n+1);
-//	strncpy(t, s, n);
-//	t[n] = '\0';
-//	}
-//    return t;
-//}
-#endif /* HAVE_STRNDUP */
+// strndup is defined in <string>
+// #ifndef HAVE_STRNDUP
+// char *strndup(const char *s, size_t n)
+// {	/* needed for Darwin? */
+//     char *t = NULL;
+// 
+//     if(s)  {
+// 	t = malloc(n+1);
+// 	strncpy(t, s, n);
+// 	t[n] = '\0';
+// 	}
+//     return t;
+// }
+// #endif /* HAVE_STRNDUP */
 
 void sndUpdateFnPats(void)
 {   /* maybe update the fnpats_ structures dynamically from the 
