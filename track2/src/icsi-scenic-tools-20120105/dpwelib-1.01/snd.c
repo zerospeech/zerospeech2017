@@ -6,9 +6,9 @@
 
 /* std libs */
 #include "snd.h"
-/* #include <stdlib.h>
-   #include <string.h>
-*/ /* both in libdpwe.h, itself in snd.h */
+#include <stdlib.h>
+#include <string.h>
+/* both in libdpwe.h, itself in snd.h */
 #include <assert.h>
 /* personal libs */
 #include <genutils.h>	/* for fSize(), NumericQ() and SubstExtn() */
