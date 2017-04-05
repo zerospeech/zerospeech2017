@@ -48,7 +48,7 @@ pip install -r requirements_pip.txt \
 cd ../src/tde
 python setup.py install --force || failure "cannot install tde"
 # TODO: change setup.py to point to the bin_dir
-bin_dir=../../bin/
+bin_dir=../../bin
 mkdir -p ${bin_dir}
 install bin/english_eval2.py ${bin_dir} || failure "cannot copy tde - english_eval2.py"
 install bin/french_eval2.py ${bin_dir}  || failure "cannot copy tde - french_eval2.py"
