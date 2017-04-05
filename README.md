@@ -232,7 +232,7 @@ When this topline is available, we will email you about the update (available wi
 Track 2 evaluation is done on the training data sets only. This may seem strange, but remember this is unsupervised
 training (the test set contains files that are not cut in a way that is appropriate for Track 2). 
 
-NOTICE: The Tack 2 evaluation pipeline is as of today not in its final phase. Right now, the evaluation scripts
+NOTICE: The Track 2 evaluation pipeline is as of today not in its final phase. Right now, the evaluation scripts
 only evaluate a small percentage of the files and the baseline and toplines are not finished.
 You can still work on the data, and the updated evaluation will be notified (and available through a git pull).
 
@@ -258,7 +258,7 @@ following command:
   By running that script you will install all the packages needed on the track 2 
   including the evaluation program, the baseline and topline replication. These packages will be 
   installed from the `./track2/src` folder to your virtual environment in the case of python 
-  libraries and in `.track2/bin` for all the binary programs. Those installed packages are:
+  libraries and in `.track2/bin` for all the binary programs. Export `.track2/bin` to your `$PATH` before moving further. The installed packages are:
 
   * [ZRTools](https://github.com/bootphon/zerospeech2017/tree/master/track2/src/ZRTools), The same program that was
   used for the baseline of 2015 Challenge. 
