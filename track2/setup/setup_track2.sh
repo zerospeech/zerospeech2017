@@ -74,7 +74,7 @@ python setup.py install --force || failure "cannot install tde"
 install bin/english_eval2.py ${bin_dir} || failure "cannot copy tde - english_eval2.py"
 install bin/french_eval2.py ${bin_dir}  || failure "cannot copy tde - french_eval2.py"
 install bin/mandarin_eval2.py ${bin_dir} || failure "cannot copy tde - mandarin_eval2.py"
-mkdir -d ${bin_dir}/resources || failure "cannot create create dir - ${bin_dir}"
+mkdir -p ${bin_dir}/resources || failure "cannot create create dir - ${bin_dir}"
 cp -rf bin/resources/*.bz2  ${bin_dir}/resources  || failure "cannot copy tde - bin/resources"
 bunzip2 -f ${bin_dir}/resources/*.bz2             || failure "cannot copy tde - bin/resources"
 cd -
