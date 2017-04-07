@@ -44,26 +44,11 @@ conda install --yes --file requirements_conda.txt \
 pip install -r requirements_pip.txt \
     || failure "cannot install from requirements_pip.txt"
 
-# setup tde 
-cd ../src/tde
-python setup.py install --force || failure "cannot install tde"
-# TODO: change setup.py to point to the bin_dir
-bin_dir=../../bin
-mkdir -p ${bin_dir}
-install bin/english_eval2.py ${bin_dir} || failure "cannot copy tde - english_eval2.py"
-install bin/french_eval2.py ${bin_dir}  || failure "cannot copy tde - french_eval2.py"
-install bin/mandarin_eval2.py ${bin_dir} || failure "cannot copy tde - mandarin_eval2.py"
-cp -rf bin/resources  ${bin_dir}        || failure "cannot copy tde - bin/resources"
-bunzip2 -f ${bin_dir}/resources/*.bz2             || failure "cannot copy tde - bin/resources"
-cd -
-
-# creating links to the evaluation scripts
-ln -f -s ../bin/english_eval2.py ../eval/english_eval2.py  || failure "cannot copy tde - english_eval2.py"  
-ln -f -s ../bin/french_eval2.py ../eval/french_eval2.py    || failure "cannot copy tde - french_eval2.py"
-ln -f -s ../bin/mandarin_eval2.py ../eval/mandarin_eval2.py|| failure "cannot copy tde - mandarin_eval2.py"
-
 # setup ZRTools 
 cd ../src/ZRTools
+bin_dir=../../bin
+mkdir -p ${bin_dir}
+
 make  || failure "cannot install ZRTools"
 install plebdisc/build_index ${bin_dir} || failure "cannot copy ZRTools - build_index" 
 install plebdisc/genproj ${bin_dir}     || failure "cannot copy ZRTools - genproj"
@@ -80,4 +65,23 @@ cd ../src/icsi-scenic-tools-20120105
 make || failure "cannot install feacal"
 install ./feacalc-0.92/feacalc ${bin_dir} || failure "cannot copy featcalc - scripts/" 
 cd -
+
+# setup tde 
+cd ../src/tde
+python setup.py install --force || failure "cannot install tde"
+# TODO: change setup.py to point to the bin_dir
+
+install bin/english_eval2.py ${bin_dir} || failure "cannot copy tde - english_eval2.py"
+install bin/french_eval2.py ${bin_dir}  || failure "cannot copy tde - french_eval2.py"
+install bin/mandarin_eval2.py ${bin_dir} || failure "cannot copy tde - mandarin_eval2.py"
+mkdir -d ${bin_dir}/resources || failure "cannot create create dir - ${bin_dir}"
+cp -rf bin/resources/*.bz2  ${bin_dir}/resources  || failure "cannot copy tde - bin/resources"
+bunzip2 -f ${bin_dir}/resources/*.bz2             || failure "cannot copy tde - bin/resources"
+cd -
+
+# creating links to the evaluation scripts
+ln -f -s ../bin/english_eval2.py ../eval/english_eval2.py  || failure "cannot link tde - english_eval2.py"  
+ln -f -s ../bin/french_eval2.py ../eval/french_eval2.py    || failure "cannot link tde - french_eval2.py"
+ln -f -s ../bin/mandarin_eval2.py ../eval/mandarin_eval2.py|| failure "cannot link tde - mandarin_eval2.py"
+
 
