@@ -1,12 +1,12 @@
 [submodule "ABXpy"]
 	path = track1/src/ABXpy
-	url = git@github.com:bootphon/ABXpy.git
+	url = https://github.com/bootphon/ABXpy
 [submodule "h5features"]
 	path = track1/src/h5features
-	url = git@github.com:bootphon/h5features.git
+	url = https://github.com/bootphon/h5features
 [submodule "features_extraction"]
 	path = track1/src/features_extraction
-	url = git@github.com:bootphon/features_extraction.git
+	url = https://github.com/bootphon/features_extraction
 [submodule "track2/src/tde"]
 	path = track2/src/tde
 	url = https://github.com/bootphon/tde
