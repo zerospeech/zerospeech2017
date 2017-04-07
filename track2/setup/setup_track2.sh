@@ -61,8 +61,17 @@ cd -
 
 # setup icsi (feacal)
 cd ../src/icsi-scenic-tools-20120105
-./configure || failure "cannot configure ../src/icsi-scenic-tools-20120105" 
+
+./configure --includedir=${PWD}/quicknet-v3_31 \
+    --with-dpwelib=${PWD}/dpwelib-1.01 \
+    --with-rasta=${PWD}/rasta || failure "cannot configure ../src/icsi-scenic-tools-20120105"
+
+./feacalc-0.92/configure --includedir=${PWD}/quicknet-v3_31 \
+    --with-dpwelib=${PWD}/dpwelib-1.01 \
+    --with-rasta=${PWD}/rasta || failure "cannot configure ../src/icsi-scenic-tools-20120105"
+
 make || failure "cannot install feacal"
+
 install ./feacalc-0.92/feacalc ${bin_dir} || failure "cannot copy featcalc - scripts/" 
 cd -
 
