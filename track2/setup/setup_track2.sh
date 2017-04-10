@@ -65,26 +65,26 @@ cd -
 cd ../src/icsi-scenic-tools-20120105/rasta
 ./configure 
 make || failure "errors when building rasta" 
+rasta_lib=$PWD
 cd -
 
 # doing quicknet
 cd ../src/icsi-scenic-tools-20120105/quicknet-v3_31
 ./configure
 make || failure "errors when building quicknet"
+quicknet_lib=$PWD
 cd -
 
 # doing dpwelib
 cd ../src/icsi-scenic-tools-20120105/dpwelib-1.01
 ./configure 
-make || failure "errors when building dpwelib" 
+make || failure "errors when building dpwelib"
+pwelib_lib=$PWD
 cd -
 
 # doint feacal
 cd ../src/icsi-scenic-tools-20120105/feacalc-0.92
-lbs=$(dirname $(realpath ../README))
-./configure --with-dpwelib=${lbs}/icsi-scenic-tools-20120105/dpwelib-1.01 \
-    --with-rasta=${lbs}/icsi-scenic-tools-20120105/rasta \
-    --with-quicknet=${lbs}/icsi-scenic-tools-20120105/quicknet-v3_31
+./configure --with-dpwelib=$dpwelib_lib --with-rasta=$rasta_lib --with-quicknet=$quicknet_lib 
 make || failure "errors when building feacal"
 install feacalc ${bin_dir} || failure "cannot copy featcalc - scripts/" 
 cd -
