@@ -59,20 +59,34 @@ install plebdisc/rescore_singlepair_dtw ${bin_dir} || failure "cannot copy ZRToo
 install plebdisc/standfeat ${bin_dir}            || failure "cannot copy ZRTools - standfeat"
 cd -
 
-# setup icsi (feacal)
-cd ../src/icsi-scenic-tools-20120105
+# setup icsi tools to get feacal
 
-./configure --includedir=${PWD}/quicknet-v3_31 \
-    --with-dpwelib=${PWD}/dpwelib-1.01 \
-    --with-rasta=${PWD}/rasta || failure "cannot configure ../src/icsi-scenic-tools-20120105"
+# doing rasta
+cd ../src/icsi-scenic-tools-20120105/rasta
+./configure 
+make || failure "errors when building rasta" 
+cd -
 
-./feacalc-0.92/configure --includedir=${PWD}/quicknet-v3_31 \
-    --with-dpwelib=${PWD}/dpwelib-1.01 \
-    --with-rasta=${PWD}/rasta || failure "cannot configure ../src/icsi-scenic-tools-20120105"
+# doing quicknet
+cd ../src/icsi-scenic-tools-20120105/quicknet-v3_31
+./configure
+make || failure "errors when building quicknet"
+cd -
 
-make || failure "cannot install feacal"
+# doing dpwelib
+cd ../src/icsi-scenic-tools-20120105/dpwelib-1.01
+./configure 
+make || failure "errors when building dpwelib" 
+cd -
 
-install ./feacalc-0.92/feacalc ${bin_dir} || failure "cannot copy featcalc - scripts/" 
+# doint feacal
+cd ../src/icsi-scenic-tools-20120105/feacalc-0.92
+lbs=$(dirname $(realpath ../README))
+./configure --with-dpwelib=${lbs}/dpwelib-1.01 \
+    --with-rasta=${lbs}/rasta \
+    --with-quicknet=${lbs}/quicknet-v3_31
+make || failure "errors when building feacal"
+install feacalc ${bin_dir} || failure "cannot copy featcalc - scripts/" 
 cd -
 
 # setup tde 
