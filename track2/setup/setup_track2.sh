@@ -82,9 +82,9 @@ cd -
 # doint feacal
 cd ../src/icsi-scenic-tools-20120105/feacalc-0.92
 lbs=$(dirname $(realpath ../README))
-./configure --with-dpwelib=${lbs}/dpwelib-1.01 \
-    --with-rasta=${lbs}/rasta \
-    --with-quicknet=${lbs}/quicknet-v3_31
+./configure --with-dpwelib=${lbs}/icsi-scenic-tools-20120105/dpwelib-1.01 \
+    --with-rasta=${lbs}/icsi-scenic-tools-20120105/rasta \
+    --with-quicknet=${lbs}/icsi-scenic-tools-20120105/quicknet-v3_31
 make || failure "errors when building feacal"
 install feacalc ${bin_dir} || failure "cannot copy featcalc - scripts/" 
 cd -
