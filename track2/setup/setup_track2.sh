@@ -86,7 +86,7 @@ cd -
 cd ../src/icsi-scenic-tools-20120105/feacalc-0.92
 ./configure --with-dpwelib=$dpwelib_lib --with-rasta=$rasta_lib --with-quicknet=$quicknet_lib 
 make || failure "errors when building feacal"
-install feacalc ${bin_dir} || failure "cannot copy featcalc - scripts/" 
+install feacalc ../../../bin/ || failure "cannot copy featcalc - scripts/" 
 cd -
 
 # setup tde 

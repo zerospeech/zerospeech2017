@@ -339,6 +339,28 @@ You will be able to replicate the baseline on one of the corpus with the command
 All scores are stored on individual files (ned/coverage, boundary, group  matching, and token/type) in 
 the `out` directory in each corpus directory path.  
 
+
+## Packages installation on Docker
+
+If you want to install and run the tracks 1 and 2 in a
+virtualized environment, you can install and use 
+[docker](https://docs.docker.com/engine/installation). You won't need to 
+download this github repository, you can build the docker image by doing:
+
+    $ docker build -t 'zsc_img' https://github.com/bootphon/zerospeech2017.git
+    
+To run the docker image in an interactive mode using the command:
+
+    $ docker run -it zero zsc_img bash
+
+or, if you have downloaded the corpus you can run an interactive 
+session with the data attached by doing:
+
+    $ docker run -ti --name zero -v /my/host/data/folder:/root/zerospeech2017/data zsc_img bash
+
+
+
+
 ## Troubleshooting
 
 ### Troubles with track 1 or track 2
