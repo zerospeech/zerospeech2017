@@ -79,7 +79,7 @@ cd -
 cd ../src/icsi-scenic-tools-20120105/dpwelib-1.01
 ./configure 
 make || failure "errors when building dpwelib"
-pwelib_lib=$PWD
+dpwelib_lib=$PWD
 cd -
 
 # doint feacal
