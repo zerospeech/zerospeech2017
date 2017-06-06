@@ -4,10 +4,10 @@
 
 # Zero Speech Challenge 2017
 
-All you need to get started for the track 1 and track 2 of the
+All you need to get started to work on the development data and evaluation for the Track 1 and Track 2 of the
 **[Zero Speech Challenge 2017](http://www.zerospeech.com)**:
 
-* Train and test data download: raw speech, ABX tasks
+* Development data (train and test sets): raw speech, ABX tasks
 * Evaluation software setup
 * Baseline and topline replication
 
@@ -15,6 +15,8 @@ The setup procedure is described for Linux. It has been tested on
 several distributions (Ubuntu 16.04, Debian Jessie and CentOS 6). It
 should work as well on MacOS.
 
+This setup is for doing the hyper-parameter tuning of your system across the three development languages. 
+Once done, you are ready to test your system on two surprise languages. To get the surprise data and official result submission, see the **[ZeroSpeech2017_surprise github repo](https://github.com/bootphon/zerospeech2017_surprise)**
 
 ## Registration 
 
