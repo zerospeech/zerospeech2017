@@ -347,7 +347,8 @@ the `out` directory in each corpus directory path.
 If you want to install and run the tracks 1 and 2 in a virtualized
 environment, you can install and use
 [docker](https://docs.docker.com/engine/installation). After cloning
-this repository, you can build the docker image by doing:
+this repository, go to its root directory and build the docker image
+by doing:
 
     $ docker build -t zerospeech2017 .
 
