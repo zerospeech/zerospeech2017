@@ -15,10 +15,10 @@ The setup procedure is described for Linux. It has been tested on
 several distributions (Ubuntu 16.04, Debian Jessie and CentOS 6). It
 should work as well on MacOS.
 
-This setup is for doing the hyper-parameter tuning of your system across the three development languages. 
+This setup is for doing the hyper-parameter tuning of your system across the three development languages.
 Once done, you'll be ready to test your system on two surprise languages. To get the surprise data and official result submission, see the **[ZeroSpeech2017_surprise github repo](https://github.com/bootphon/zerospeech2017_surprise)**
 
-## Registration 
+## Registration
 
 * In order to participate to this challenge and have access to the
   datasets, you have to send an email to : zerospeech2017@gmail.com
@@ -47,7 +47,7 @@ Once done, you'll be ready to test your system on two surprise languages. To get
 ## Getting the development dataset (hyperparameter training set)
 
 * To have the password to download the data, you first have to
-  register yourself by sending an email to : 
+  register yourself by sending an email to :
 	zerospeech2017@gmail.com
 
 * Dowload the whole challenge hyper-training dataset using the
@@ -81,7 +81,7 @@ Once done, you'll be ready to test your system on two surprise languages. To get
   file `B07.wav`).
 
 * The test corpora have been cut into small files of controlled size
-  (1s, 10s or 120s). 
+  (1s, 10s or 120s).
   Speaker identification is *not* available for test (wav
   files randomly named).
 
@@ -220,9 +220,9 @@ with baseline features and evaluation results.
 ### Topline replication
 
 The topline consists in training an HMM-GMM phone recogniser with speaker adapation
-on the training set and extracting from the test set a frame-by-frame posteriorgram. 
+on the training set and extracting from the test set a frame-by-frame posteriorgram.
 This is done kaldi script (`track1/topline.sh`).
-It requires [abkhazia](https://github.com/bootphon/abkhazia). 
+It requires [abkhazia](https://github.com/bootphon/abkhazia).
 
 THIS IS NOT YET AVAILABLE
 When this topline is available, we will email you about the update (available with git-pull).
@@ -232,7 +232,7 @@ When this topline is available, we will email you about the update (available wi
 **Please register to keep you updated of changes on the results of the baseline and evaluation code**
 
 Track 2 evaluation is done on the training data sets only. This may seem strange, but remember this is unsupervised
-training (the test set contains files that are not cut in a way that is appropriate for Track 2). 
+training (the test set contains files that are not cut in a way that is appropriate for Track 2).
 
 NOTICE: The Track 2 evaluation pipeline is as of today not in its final phase. Right now, the evaluation scripts
 only evaluate a small percentage of the files and the baseline and toplines are not finished.
@@ -240,38 +240,38 @@ You can still work on the data, and the updated evaluation will be notified (and
 
 ### Installation
 
-* The installation of track 2 depends on external packages, mainly to build/compile the source code 
-  and to preprocess speech waveforms, you will need the following packages installed on your system: 
-    
-  * [GNU autoconf](https://www.gnu.org/software/autoconf/autoconf.html) to build compilation files 
+* The installation of track 2 depends on external packages, mainly to build/compile the source code
+  and to preprocess speech waveforms, you will need the following packages installed on your system:
+
+  * [GNU autoconf](https://www.gnu.org/software/autoconf/autoconf.html) to build compilation files
   of sprachcore-feacalc.
   * [GNU gcc](https://gcc.gnu.org/) C/C++ compiler to build ZRTools and featcal
   * [sox](http://sox.sourceforge.net/) to preprocess the speech waveforms (resampling, volume control, etc)
   * [GNU-Make](https://www.gnu.org/software/make/) to builid ZRTools and featcal
 
-  The installation of the previous dependences are different on each system, please follow the installation 
+  The installation of the previous dependences are different on each system, please follow the installation
   description in those webpages.
 
-* With your virtual environment activated and all the dependences installed on your computer. simply run the 
+* With your virtual environment activated and all the dependences installed on your computer. simply run the
 following command:
 
         $ ./track2/setup/setup_track2.sh
 
-  By running that script you will install all the packages needed on the track 2 
-  including the evaluation program, the baseline and topline replication. These packages will be 
-  installed from the `./track2/src` folder to your virtual environment in the case of python 
+  By running that script you will install all the packages needed on the track 2
+  including the evaluation program, the baseline and topline replication. These packages will be
+  installed from the `./track2/src` folder to your virtual environment in the case of python
   libraries and in `.track2/bin` for all the binary programs. Export `.track2/bin` to your `$PATH` before moving further. The installed packages are:
 
   * [ZRTools](https://github.com/bootphon/zerospeech2017/tree/master/track2/src/ZRTools), The same program that was
-  used for the baseline of 2015 Challenge. 
-  * Term Discovery Evaluation [tde](https://github.com/bootphon/tde) using the branch **zerospeech2017** is used to compute the scores of 2017 challenge. 
+  used for the baseline of 2015 Challenge.
+  * Term Discovery Evaluation [tde](https://github.com/bootphon/tde) using the branch **zerospeech2017** is used to compute the scores of 2017 challenge.
   * [sprachcore-feacalc](https://www1.icsi.berkeley.edu/~dpwe/projects/sprach/sprachcore.html) it is used to compute
   speech features for the baseline.
-  
-### Evaluation input format 
+
+### Evaluation input format
 
 To compute the scores for the Track 2, the evaluation toolkit need your results in
-an ASCII file, listing the set of fragments that were found with the following 
+an ASCII file, listing the set of fragments that were found with the following
 format:
 
      Class <classnb>
@@ -286,7 +286,7 @@ format:
   example:
 
      Class 1
-     dsgea01 1.238 1.763 
+     dsgea01 1.238 1.763
      dsgea19 3.380 3.821
      reuiz28 18.036 18.537
 
@@ -294,38 +294,38 @@ format:
      Class 2
      zeoqx71   8.389  9.132
      ...etc...
-  
+
 Note: the onset and offset are in seconds. If your system only does
 matching and not clustering, your classes will only have two
-elements each. If your system does not only matching, but also 
+elements each. If your system does not only matching, but also
 clustering and parsing, the fragments found will cover the entirety
 of the files, and there may be classes with only one element in it
 (the remainder of lexical-based segmentation).
 
 ### Evaluation program
 
-* The Track 2 evaluation programs are `./track2/eval/english_eval2.py`, 
+* The Track 2 evaluation programs are `./track2/eval/english_eval2.py`,
 `./track2/eval/french_eval2.py` and `./track2/eval/mandarin_eval2.py`. The
   detail of arguments is given by the `--help` option:
 
         $ cd ./track2/bin
         $ python ./mandarin_eval2.py --help
 
-* For example the following command will evaluate the output of your program formatted 
+* For example the following command will evaluate the output of your program formatted
 as described on the previous section for the Mandarin corpus:
 
 	    $ python ./mandarin_eval2.py mandarin.classes result_dir/
 
 * To run the evaluation on multiple cores, use the j-flag. Evaluation
-  runtime and memory usage are also strongly dependent on the 
+  runtime and memory usage are also strongly dependent on the
   particulars of the input file. It is not usefule to use more than
   10 cores (each parallel job will do one of the 10 subsampling folds)
 
-* The output directory will contain one file each for the above 
-  described measures, with scores for both cross-speaker and 
-  within-speaker performance. The directory will also contain a file 
-  called ``VERSION_$'' indicating the version of the evaluation code 
-  that was used. Please make sure to report that number in your report. 
+* The output directory will contain one file each for the above
+  described measures, with scores for both cross-speaker and
+  within-speaker performance. The directory will also contain a file
+  called ``VERSION_$'' indicating the version of the evaluation code
+  that was used. Please make sure to report that number in your report.
   The version number can also be obtained by:
 
   	$ python ./track2/bin/mandarin_track2.py -V
@@ -337,30 +337,28 @@ You will be able to replicate the baseline on one of the corpus with the command
     bash /track2/baseline/baseline_french/run.sh
     bash /track2/baseline/baseline_english/run.sh
     bash /track2/baseline/baseline_mandarin/run.sh
-    
-All scores are stored on individual files (ned/coverage, boundary, group  matching, and token/type) in 
-the `out` directory in each corpus directory path.  
+
+All scores are stored on individual files (ned/coverage, boundary, group  matching, and token/type) in
+the `out` directory in each corpus directory path.
 
 
 ## Packages installation on Docker
 
-If you want to install and run the tracks 1 and 2 in a
-virtualized environment, you can install and use 
-[docker](https://docs.docker.com/engine/installation). You won't need to 
-download this github repository, you can build the docker image by doing:
+If you want to install and run the tracks 1 and 2 in a virtualized
+environment, you can install and use
+[docker](https://docs.docker.com/engine/installation). After cloning
+this repository, you can build the docker image by doing:
 
-    $ docker build -t 'zsc_img' https://github.com/bootphon/zerospeech2017.git
-    
+    $ docker build -t zerospeech2017 .
+
 To run the docker image in an interactive mode using the command:
 
-    $ docker run -it zero zsc_img bash
+    $ docker run -it zerospeech2017 bash
 
-or, if you have downloaded the corpus you can run an interactive 
+or, if you have downloaded the corpus you can run an interactive
 session with the data attached by doing:
 
-    $ docker run -ti --name zero -v /my/host/data/folder:/root/zerospeech2017/data zsc_img bash
-
-
+    $ docker run -it -v /my/host/data/folder:/zerospeech2017/data zerospeech2017 bash
 
 
 ## Troubleshooting

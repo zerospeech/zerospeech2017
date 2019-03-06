@@ -1,26 +1,39 @@
-from ubuntu:14.04
+FROM continuumio/miniconda
 
 MAINTAINER Zero Speech <zerospeech2017@gmail.com>
 
-# build a docker image with the tool used on the zero speech challenge 
+# Install software dependencies
+RUN apt-get -y update
+RUN apt-get install -y \
+        bzip2 \
+        g++ \
+        gcc \
+        git-core \
+        make \
+        parallel \
+        pkg-config \
+        sox \
+        vim \
+        wget
 
-RUN apt-get -y update 
-RUN apt-get install -y gcc g++ make git-core pkg-config
-RUN apt-get install -y wget parallel sox vim bzip2 
+# Copy code from zerospeech2017 repository
+WORKDIR /zerospeech2017
+COPY . .
+# comment a useless import causing a bug in the tests
+RUN sed -i 's|import matplotlib.pyplot as plt|# import matplotlib.pyplot as plt|' \
+        ./track1/src/ABXpy/ABXpy/test/test_sampling.py
 
+# Prepare the conda environment
+RUN conda create --name zerospeech python=2
 
-# install mini-conda 
-WORKDIR /root
-RUN wget -c https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh 
-# COPY Miniconda2-latest-Linux-x86_64.sh /root/
-RUN bash /root/Miniconda2-latest-Linux-x86_64.sh -b 
+# Setup track1
+RUN bash -c "source activate zerospeech && \
+        ./track1/setup/setup_track1.sh && \
+        pytest ./track1/src"
 
-# get zerospeech2017 github repository 
-RUN echo 'export PATH=/root/miniconda2/bin:$PATH' >> .bashrc
-RUN git clone --recursive http://github.com/bootphon/zerospeech2017 /root/zerospeech2017
+# Setup track2
+RUN bash -c "source activate zerospeech && \
+        ./track2/setup/setup_track2.sh"
 
-### install subpackages from zerospeech2017 
-WORKDIR /root/zerospeech2017
-ENV PATH /root/miniconda2/bin:$PATH
-RUN ./track1/setup/setup_track1.sh
-RUN ./track2/setup/setup_track2.sh
+# Activate the zerospeech environment by default
+RUN echo "source activate zerospeech" >> /root/.bashrc
