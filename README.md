@@ -50,15 +50,19 @@ Once done, you'll be ready to test your system on two surprise languages. To get
   register yourself by sending an email to :
 	zerospeech2017@gmail.com
 
-* Dowload the whole challenge hyper-training dataset using the
-  `download_data.sh` script :
-
-        ./download_data.sh ./data
+* Dowload the whole challenge hyper-training dataset on the 
+  [ZeroSpeech Website](https://download.zerospeech.com)
 
 * The dataset is about 34 GB large, so it will take a while to
   download.
 
-* Once downloaded, the `./data` directory has the following structure:
+* Once downloaded, put the data create the `./data` directory in
+  the root folder of this package:
+
+        mkdir -p data/train
+        mkdir -p data/test
+
+  and unzip the datasets in the following way:
 
         train/
             {english, mandarin, french}/
